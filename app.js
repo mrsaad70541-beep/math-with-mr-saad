@@ -1,4 +1,10 @@
 const app = document.getElementById('app');
+const math = (s) => {
+  let t = esc(String(s));
+  t = t.replace(/\^(\([^)]+\)|-?[\p{L}\p{N}]+)/gu, (_, e) => '<sup>' + (e[0] === '(' ? e.slice(1, -1) : e) + '</sup>');
+  return '<bdi class="mxq">' + t + '</bdi>';
+};
+const toArNum = (n) => String(n).replace(/[0-9]/g, (c) => '٠١٢٣٤٥٦٧٨٩'[c]);
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ===== theme (light/dark, local) ===== */
@@ -72,6 +78,8 @@ LEH_CATS.forEach((c) => SEARCH.push({ t: c + ' — ليه؟', u: '#/t/leh' }));
 SEARCH.push({ t: 'القدرات الكمي — المنهج السعودي', u: '#/t/qudurat' });
 SEARCH.push({ t: 'ليه؟ — رياضيات عامة', u: '#/t/leh' });
 CHALLENGES.forEach((c) => SEARCH.push({ t: 'تحدي اليوم: ' + c.title, u: '#/challenge' }));
+SEARCH.push({ t: 'اكتشف مستواك — اختبار تشخيصي', u: '#/diagnostic' });
+SEARCH.push({ t: 'إنجازاتي', u: '#/account' });
 SEARCH.push({ t: 'مكتبة الملفات', u: '#/files' });
 LIB_CATS.forEach((c) => SEARCH.push({ t: c.n + ' — مكتبة الملفات', u: '#/files/' + c.id }));
 SEARCH.push({ t: 'مختبر الرياضيات — تجارب تفاعلية', u: '#/lab' });
@@ -148,6 +156,7 @@ function home() {
     <a class="tile" href="#/test"><span class="ic" style="background:#e0f5f1">${IC.quiz}</span><span class="name">الاختبارات والتدريبات</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/book"><span class="ic" style="background:#fdf3d8">${IC.book}</span><span class="name">الكتاب التفاعلي</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/lab"><span class="ic" style="background:#efeafc">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st on2">متاح الآن</span></a>
+    <a class="tile" href="#/diagnostic"><span class="ic" style="background:#fdf3d7">${IC.target || IC.quiz}</span><span class="name">اكتشف مستواك</span><span class="st on2">متاح الآن</span></a>
     <a class="tile" href="#/files"><span class="ic" style="background:#e7f0fd">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">بانتظار المحتوى</span></a>
   </div></div>
   <div class="section-title">أحدث المحتويات</div>`;
@@ -179,7 +188,7 @@ function lesson(gid, li) {
   const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
   h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '#/g/${gid}/l/${li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
-  if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>`;
+  if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li>${math(o)}</li>`).join('')}</ul></div>`;
   h += `<h3 class="subhead">شرح الدرس بالفيديو</h3>`;
   l.videos.forEach((v, vi) => {
     const u = `#/g/${g.id}/l/${li}/v/${vi}`;
@@ -187,9 +196,9 @@ function lesson(gid, li) {
       ? `<div class="vrow">${saveBtn(u, v.n)}<span class="vn">${esc(v.n)}</span><a class="play" href="${u}">${IC.play} تشغيل</a></div>`
       : `<div class="vrow"><span class="vn">${esc(v.n)}</span><a class="play off" href="#/soon">قريبًا</a></div>`;
   });
-  if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${esc(meta.summary)}</p></div>`;
+  if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${math(meta.summary)}</p></div>`;
   if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<span class="skillchip">${esc(s)}</span>`).join('')}</div></div>`;
-  if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}: <span class="mx">${esc(e.q)} = ؟</span></div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol">${esc(e.sol)}</div></div>`).join('')}</div>`;
+  if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}: ${math(e.q)} = ؟</div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol">${math(e.sol)}</div></div>`).join('')}</div>`;
   if (l.quiz) h += `<a class="card quizlink" href="#/test"><span class="chip" style="background:#e0f5f1">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
   const prev = li > 0 ? g.lessons[li - 1] : null;
   const next = li < g.lessons.length - 1 ? g.lessons[li + 1] : null;
@@ -260,12 +269,13 @@ function saved() {
 /* ===== quiz engine (real, local, mistakes captured) ===== */
 let qState = null;
 function test() {
-  qState = { set: QUIZSETS.g3l1, i: 0, score: 0 };
+  qState = { set: QUIZSETS.g3l1, i: 0, score: 0, locked: false };
   return quizHtml();
 }
 function quizHtml() {
   const set = qState.set;
   if (qState.i >= set.questions.length) {
+    if (!qState.done) { qState.done = true; onQuizDone(); }
     return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
     <div class="quiz"><div class="qcard result">
       <div class="qhead">نتيجتك</div>
@@ -285,6 +295,8 @@ function quizHtml() {
   </div></div>`;
 }
 function answer(oi) {
+  if (qState.locked) return;
+  qState.locked = true;
   const set = qState.set;
   const cur = set.questions[qState.i];
   const btns = document.querySelectorAll('.quiz .opts button');
@@ -295,13 +307,166 @@ function answer(oi) {
   });
   if (oi === cur.a) qState.score++;
   else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], ex: cur.ex, skill: set.skill, from: '#/test' });
-  setTimeout(() => { qState.i++; app.innerHTML = quizHtml(); window.scrollTo(0, 0); }, 1100);
+  setTimeout(() => { qState.i++; qState.locked = false; app.innerHTML = quizHtml(); window.scrollTo(0, 0); }, 1100);
 }
 window.answer = answer;
+
+
+/* ===== achievements (local, learning-tied) ===== */
+function getAch() { try { return JSON.parse(localStorage.getItem('saad.ach.v1') || '{}'); } catch (e) { return {}; } }
+function getBest() { try { return JSON.parse(localStorage.getItem('saad.quizbest.v1') || '{}'); } catch (e) { return {}; } }
+function unlock(id) {
+  const ach = getAch();
+  if (ach[id]) return;
+  ach[id] = new Date().toISOString();
+  localStorage.setItem('saad.ach.v1', JSON.stringify(ach));
+  const def = ACHIEVEMENTS.find((x) => x.id === id);
+  if (def) setTimeout(() => toast('إنجاز جديد: ' + def.n), 300);
+}
+function onQuizDone() {
+  const set = qState.set;
+  unlock('lesson');
+  const best = getBest();
+  const prev = best[set.title];
+  const full = qState.score === set.questions.length;
+  if (full) {
+    unlock('master');
+    if (getMistakes().some((m) => m.skill === set.skill)) unlock('fix');
+  }
+  if (prev != null && qState.score > prev) unlock('improve');
+  if (prev == null || qState.score > prev) {
+    best[set.title] = qState.score;
+    localStorage.setItem('saad.quizbest.v1', JSON.stringify(best));
+  }
+  if (getAch().master && getAch().challenge) unlock('cert');
+}
+function goalGet() { try { return JSON.parse(localStorage.getItem('saad.goal.v1') || 'null'); } catch (e) { return null; } }
+function goalSet() {
+  const el = document.getElementById('goalInput');
+  const text = (el.value || '').trim();
+  if (!text) return;
+  localStorage.setItem('saad.goal.v1', JSON.stringify({ text, done: false }));
+  route();
+}
+function goalToggle() {
+  const g = goalGet();
+  if (!g) return;
+  g.done = !g.done;
+  localStorage.setItem('saad.goal.v1', JSON.stringify(g));
+  route();
+}
+window.goalSet = goalSet; window.goalToggle = goalToggle;
+function achBlock() {
+  const ach = getAch();
+  const g = goalGet();
+  let h = '<div class="section-title">إنجازاتي</div>';
+  h += `<div class="qcard"><div class="qhead">هدفي التعليمي</div>`;
+  if (g) {
+    h += `<div class="goalrow"><label class="goalchk"><input type="checkbox" ${g.done ? 'checked' : ''} onchange="goalToggle()"> <span class="${g.done ? 'goaldone' : ''}">${esc(g.text)}</span></label></div>`;
+  }
+  h += `<div class="goalrow"><input id="goalInput" class="goalinput" type="text" maxlength="80" placeholder="مثال: أخلص درس قوى القوى هذا الأسبوع" value=""><button class="btn2 sm" onclick="goalSet()">حفظ الهدف</button></div>`;
+  h += `<p class="dim" style="font-size:12px;margin:8px 0 0">هدف شخصي محفوظ على جهازك فقط — بدون ضغط ولا تذكيرات مزعجة.</p></div>`;
+  h += '<div class="achgrid">';
+  ACHIEVEMENTS.forEach((d) => {
+    const got = ach[d.id];
+    h += `<div class="achcard ${got ? 'on' : ''}"><div class="achic">${got ? '✓' : '·'}</div><div class="achn">${esc(d.n)}</div><div class="achd">${esc(d.desc)}</div>${got ? `<div class="achdate">${esc(got.slice(0, 10))}</div>` : ''}</div>`;
+  });
+  h += '</div>';
+  const certReady = ach.master && ach.challenge;
+  h += certReady
+    ? `<a class="card quizlink" href="#/certificate"><span class="chip" style="background:#fdf3d7">★</span><span class="txt"><h2>شهادة إتمام الوحدة</h2><div class="sub">تحققت شروطها: إتقان المهارة + حل التحدي</div></span><span class="arrow">‹</span></a>`
+    : `<div class="qcard"><div class="qhead">شهادة إتمام الوحدة</div><p class="dim" style="font-size:13px;margin:6px 0 0">تُفتح عند تحقق شرطيها الفعليين: إتقان مهارة الدرس (علامة كاملة) وحل تحدي اليوم. حالتك الآن: إتقان ${ach.master ? '✓' : '—'} · تحدي ${ach.challenge ? '✓' : '—'}</p></div>`;
+  return h;
+}
+function certificate() {
+  const ach = getAch();
+  if (!(ach.master && ach.challenge)) return account();
+  const d = new Date().toISOString().slice(0, 10);
+  return `<a class="back" href="#/account">‹ حسابي</a><div class="section-title">شهادة إتمام</div>
+  <div class="cert">
+    <div class="certband">رياضيات مع مستر سعد</div>
+    <div class="certtitle">شهادة إتمام وحدة قوى القوى</div>
+    <p class="certline">تشهد المنصة بأن هذا الطالب (وضع الزائر على هذا الجهاز) أتقن اختبار درس قوى القوى بالعلامة الكاملة وحل تحدي اليوم حلًّا صحيحًا.</p>
+    <div class="certmeta"><span>التاريخ: ${d}</span><span>الرقم: ${'CERT-' + (ach.cert || d).slice(0, 10).replace(/-/g, '')}</span></div>
+    <button class="btn2" onclick="shareLink('شهادة إتمام وحدة قوى القوى', '#/certificate', 'حصلت على شهادة إتمام وحدة قوى القوى في تطبيق رياضيات مع مستر سعد')">مشاركة</button>
+  </div>`;
+}
+
+/* ===== اكتشف مستواك (diagnostic) ===== */
+let dState = null;
+function diag() {
+  dState = { i: 0, per: {}, locked: false, plan: planGet() };
+  return diagHtml();
+}
+function planGet() { try { return JSON.parse(localStorage.getItem('saad.plan.v1') || '{}'); } catch (e) { return {}; } }
+function planToggle(skill) {
+  const p = planGet();
+  p[skill] = !p[skill];
+  localStorage.setItem('saad.plan.v1', JSON.stringify(p));
+  route();
+}
+window.planToggle = planToggle;
+function diagHtml() {
+  const qs = DIAG.questions;
+  if (dState.i >= qs.length) {
+    const skills = [...new Set(qs.map((q) => q.skill))];
+    let h = `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">نتيجة التشخيص</div>`;
+    h += `<p class="dim labintro">${esc(DIAG.note)}</p>`;
+    const needs = [];
+    skills.forEach((s) => {
+      const p = dState.per[s] || { c: 0, t: 0 };
+      const mastered = p.c === p.t && p.t > 0;
+      if (!mastered) needs.push(s);
+      const q = qs.find((x) => x.skill === s);
+      h += `<div class="labcard"><span class="labtag">${mastered ? 'متقنة' : 'تحتاج مراجعة'}</span><h3 style="margin:8px 0 4px;font-size:15px">${esc(s)} — أجبت صحيحًا على <bdi>${toArNum(p.c)} من ${toArNum(p.t)}</bdi></h3>
+        ${mastered ? '<p class="dim">أداؤك هنا يشير إلى إتقان أولي لهذه المهارة.</p>'
+          : `<p class="dim">الدرس المقترح: <a href="${q.lesson}">فتح الدرس</a> · والتدريب المناسب: <a href="#/test">اختبار قوى القوى</a> · راجع أخطاءك في <a href="#/mistakes">أخطائي</a>.</p>`}</div>`;
+    });
+    if (needs.length) {
+      const plan = planGet();
+      h += `<div class="labcard"><span class="labtag">خطة مراجعة قابلة للتعديل</span><p class="dim" style="margin-top:8px">اختر ما تريد إدراجه في خطتك — تُحفظ على جهازك:</p>`;
+      needs.forEach((s) => {
+        const on = plan[s] !== false;
+        h += `<label class="goalchk planrow"><input type="checkbox" ${on ? 'checked' : ''} onchange="planToggle('${s}')"> مراجعة «${esc(s)}» ثم إعادة التشخيص</label>`;
+      });
+      h += '</div>';
+    } else {
+      h += `<div class="labcard"><p style="text-align:center">ممتاز — إجاباتك كلها صحيحة في هذا التشخيص الأولي. جرّب <a href="#/challenge">تحدي اليوم</a>.</p></div>`;
+    }
+    h += `<button class="btn2" onclick="location.hash='#/diagnostic'">إعادة التشخيص</button>`;
+    return h;
+  }
+  const cur = qs[dState.i];
+  return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(DIAG.title)}</div>
+  <p class="dim labintro">${esc(DIAG.note)}</p>
+  <div class="quiz"><div class="qcard">
+    <div class="qhead">سؤال ${dState.i + 1} من ${qs.length} · ${esc(cur.skill)}</div>
+    <div class="qtext">${cur.q}</div>
+    <div class="opts">${cur.o.map((o, oi) => `<button onclick="diagAnswer(${oi})">${o}</button>`).join('')}</div>
+  </div></div>`;
+}
+function diagAnswer(oi) {
+  if (dState.locked) return;
+  dState.locked = true;
+  const cur = DIAG.questions[dState.i];
+  const p = dState.per[cur.skill] || (dState.per[cur.skill] = { c: 0, t: 0 });
+  p.t++;
+  const btns = document.querySelectorAll('.quiz .opts button');
+  btns.forEach((b, bi) => {
+    b.disabled = true;
+    if (bi === cur.a) b.classList.add('ok');
+    else if (bi === oi) b.classList.add('no');
+  });
+  if (oi === cur.a) p.c++;
+  else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], ex: cur.ex, skill: cur.skill, from: '#/diagnostic' });
+  setTimeout(() => { dState.i++; dState.locked = false; app.innerHTML = diagHtml(); window.scrollTo(0, 0); }, 1100);
+}
+window.diagAnswer = diagAnswer;
 
 /* ===== daily challenge ===== */
 let chState = null;
 function challenge() {
+  window._chDone = false;
   chState = { done: false };
   return challengeHtml(CHALLENGES[0]);
 }
@@ -318,7 +483,7 @@ function challengeHtml(c, done, picked) {
   if (done) {
     h += `<div class="explain ${picked === c.a ? 'good' : 'bad'}">
       <b>${picked === c.a ? 'إجابة صحيحة!' : 'الإجابة الصحيحة: ' + c.o[c.a]}</b>
-      <div>${esc(c.ex)}</div>
+      <div>${math(c.ex)}</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='#/challenge'">محاولة تانية</button>
@@ -329,11 +494,13 @@ function challengeHtml(c, done, picked) {
   return h;
 }
 function chAnswer(oi) {
+  if (window._chDone) return;
+  window._chDone = true;
   const c = CHALLENGES[0];
+  if (oi === c.a) { unlock('challenge'); if (getAch().master) unlock('cert'); }
   if (oi !== c.a) addMistake({ q: c.q, your: c.o[oi], right: c.o[c.a], ex: c.ex, skill: c.cat, from: '#/challenge' });
   app.innerHTML = challengeHtml(c, true, oi);
   window.scrollTo(0, 0);
-  LAB.afterRender(p);
 }
 window.chAnswer = chAnswer;
 
@@ -345,10 +512,10 @@ function mistakes() {
   ms.forEach((m, i) => {
     h += `<div class="qcard mcard">
       <div class="qhead">${esc(m.skill)}</div>
-      <div class="qtext" style="font-size:15px">${esc(m.q)}</div>
+      <div class="qtext" style="font-size:15px">${math(m.q)}</div>
       <div class="mline bad">إجابتك: ${esc(m.your)}</div>
       <div class="mline good">الصح: ${esc(m.right)}</div>
-      <div class="mex">${esc(m.ex)}</div>
+      <div class="mex">${math(m.ex)}</div>
       <a class="btn2 ghost" href="${m.from}">إعادة المحاولة</a>
     </div>`;
   });
@@ -365,8 +532,8 @@ function bookHtml() {
     <div class="ptag">وحدة قوى القوى · الصف الثالث الإعدادي · صفحة ${bp + 1} من ${BOOK.length}</div>
     <h3>${pg.t}</h3>
     <p>${pg.p}</p>
-    <div class="f">${pg.f}</div>
-    <div class="ex">${pg.ex}</div>
+    <div class="f">${math(pg.f)}</div>
+    <div class="ex">${math(pg.ex)}</div>
   </div>
   <div class="booknav">
     <button onclick="bookGo(-1)" ${bp === 0 ? 'disabled' : ''}>‹ السابق</button>
@@ -379,7 +546,6 @@ function bookGo(d) {
   bp = Math.min(BOOK.length - 1, Math.max(0, bp + d));
   app.innerHTML = bookHtml();
   window.scrollTo(0, 0);
-  LAB.afterRender(p);
 }
 window.bookGo = bookGo;
 
@@ -403,7 +569,8 @@ function account() {
       <button class="tbtn ${t === 'light' ? 'on' : ''}" onclick="setTheme('light')">نهاري</button>
       <button class="tbtn ${t === 'dark' ? 'on' : ''}" onclick="setTheme('dark')">ليلي</button>
     </div>
-  </div>`;
+  </div>
+  ${achBlock()}`;
 }
 
 /* ===== router ===== */
@@ -456,6 +623,8 @@ function route() {
   else if (p[0] === 'book') html = book();
   else if (p[0] === 'saved') html = saved();
   else if (p[0] === 'challenge') html = challenge();
+  else if (p[0] === 'diagnostic') html = diag();
+  else if (p[0] === 'certificate') html = certificate();
   else if (p[0] === 'files' && p[1]) html = filesCat(p[1]);
   else if (p[0] === 'files') html = filesHome();
   else if (p[0] === 'lab' && p[1]) html = LAB.labExp(p[1]);
