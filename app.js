@@ -282,6 +282,7 @@ function manhag() {
   for (const g of DATA.grades) h += `<a class="card" href="#/g/${g.id}"><span class="chip">${nums[g.id] || '•'}</span><span class="txt"><h2>${esc(g.title)}</h2><div class="sub">المرحلة الإعدادية</div></span><span class="arrow">‹</span></a>`;
   return h;
 }
+function vidOrder(l) { return l.videos.map((v, vi) => ({ v, vi })).sort((x, y) => ((x.v.ord || x.vi + 1) - (y.v.ord || y.vi + 1)) || (x.vi - y.vi)); }
 function lessonOrder(g) { return g.lessons.map((l, i) => ({ l, i })).sort((x, y) => ((x.l.ord || x.i + 1) - (y.l.ord || y.i + 1)) || ((y.l.ord ? 1 : 0) - (x.l.ord ? 1 : 0)) || (x.i - y.i)); }
 function grade(gid) {
   const g = DATA.grades.find((x) => x.id === gid);
@@ -312,7 +313,7 @@ function lesson(gid, li) {
     h += '</div>';
   }
   h += `<h3 class="subhead">شرح الدرس بالفيديو</h3>`;
-  l.videos.forEach((v, vi) => {
+  vidOrder(l).forEach(({ v, vi }) => {
     if (v._gone) return;
     const u = `#/g/${g.id}/l/${li}/v/${vi}`;
     h += v.yt
@@ -437,8 +438,9 @@ function watch(gid, li, vi) {
   if (!v || v._gone || !v.yt) return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a><div class="note">هذا المحتوى غير متاح حاليًا</div>`;
   const u = `#/g/${g.id}/l/${li}/v/${vi}`;
   setLast(u, v.n);
-  const next = l.videos[vi + 1];
-  const nu = next && next.yt ? `#/g/${g.id}/l/${li}/v/${vi + 1}` : null;
+  const vo = vidOrder(l).filter((x) => !x.v._gone), vpos = vo.findIndex((x) => x.vi === vi), nx = vpos >= 0 ? vo[vpos + 1] : null;
+  const next = nx && nx.v;
+  const nu = next && next.yt ? `#/g/${g.id}/l/${li}/v/${nx.vi}` : null;
   setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
   return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a>
   <div class="section-title">${esc(v.n)}</div>
@@ -1309,7 +1311,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
         label: String(p.label || old.label || '').slice(0, 120),
         videos: (Array.isArray(p.videos) ? p.videos : old.videos)
           .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
-          .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt }; }) };
+          .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt, ord: ordOf(v) }; }) };
       if (p.quiz && QUIZSETS[p.quiz]) g2.lessons[+k[2]].quiz = p.quiz;
       return true;
     }
@@ -1344,7 +1346,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           if (!g2 || !p.title || g2.lessons.some(function (x) { return x.title === p.title; })) return;
           var vids = (Array.isArray(p.videos) ? p.videos : [])
             .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
-            .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt }; });
+            .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt, ord: ordOf(v) }; });
           var nl = { cid: String(it.id || ''), ord: ordOf(p), title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids, cmeta: metaOf(p), term: String(p.term || '').slice(0, 80), unit: String(p.unit || '').slice(0, 80), skills: (Array.isArray(p.skills) ? p.skills : []).filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }) };
           if (p.quiz && QUIZSETS[p.quiz]) nl.quiz = p.quiz;
           g2.lessons.push(nl);
