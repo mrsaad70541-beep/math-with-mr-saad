@@ -915,9 +915,19 @@ function mistakes() {
 
 /* ===== interactive book sample ===== */
 let bp = 0;
-function book() { bp = 0; return bookHtml(); }
+function bkGet(k, d) { return jget('saad.book.' + k, d); }
+function bkSet(k, v) { localStorage.setItem('saad.book.' + k, JSON.stringify(v)); }
+function book() {
+  const m = /^#\/book\/(\d+)/.exec(location.hash);
+  const n = m ? +m[1] : (+bkGet('last', 1) || 1);
+  bp = Math.min(BOOK.length - 1, Math.max(0, n - 1));
+  bkSet('last', bp + 1);
+  return bookHtml();
+}
 function bookHtml() {
   const pg = BOOK[bp];
+  const bms = bkGet('bm', []), isbm = bms.indexOf(bp + 1) >= 0;
+  const note = (bkGet('notes', {}))[bp + 1] || '';
   return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">الكتاب التفاعلي — نموذج</div>
   <div class="bookpg">
     <div class="ptag">وحدة قوى القوى · الصف الثالث الإعدادي · صفحة ${bp + 1} من ${BOOK.length}</div>
@@ -931,13 +941,35 @@ function bookHtml() {
     <button onclick="bookGo(1)" ${bp === BOOK.length - 1 ? 'disabled' : ''}>التالي ›</button>
   </div>
   <div class="dots">${BOOK.map((_, i) => `<i class="${i === bp ? 'on' : ''}"></i>`).join('')}</div>
+  <div class="bktools">
+    <label>اذهب إلى صفحة <select id="bkgo" onchange="bookTo(+this.value)">${BOOK.map((_, i) => `<option value="${i + 1}"${i === bp ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>
+    <button type="button" class="btn2 sm ${isbm ? '' : 'ghost'}" onclick="bookBm()">${isbm ? 'إزالة الإشارة المرجعية' : 'إشارة مرجعية للصفحة'}</button>
+    <button type="button" class="btn2 sm ghost" onclick="shareLink('الكتاب التفاعلي — صفحة ${bp + 1}', '#/book/${bp + 1}', 'صفحة ${bp + 1} من الكتاب التفاعلي')">مشاركة الصفحة</button>
+  </div>
+  <div class="qcard bknote"><div class="qhead">ملاحظتي على هذه الصفحة (محفوظة على جهازك فقط)</div>
+    <textarea id="bknote" rows="3" placeholder="اكتب ملاحظتك…" oninput="bookNote(this.value)">${esc(note)}</textarea></div>
+  ${bms.length ? '<div class="note">صفحاتك المُشار إليها: ' + bms.slice().sort((x, y) => x - y).map((x) => '<a href="#/book/' + x + '">' + x + '</a>').join(' · ') + '</div>' : ''}
   <div class="note">نموذج تجريبي من ٤ صفحات — الكتاب الكامل قريبًا</div>`;
 }
-function bookGo(d) {
-  bp = Math.min(BOOK.length - 1, Math.max(0, bp + d));
+function bookTo(n) {
+  bp = Math.min(BOOK.length - 1, Math.max(0, n - 1));
+  bkSet('last', bp + 1);
+  history.replaceState(null, '', '#/book/' + (bp + 1));
   app.innerHTML = bookHtml();
   window.scrollTo(0, 0);
 }
+window.bookTo = bookTo;
+function bookGo(d) { bookTo(bp + 1 + d); }
+function bookBm() {
+  const b = bkGet('bm', []), i = b.indexOf(bp + 1);
+  if (i >= 0) b.splice(i, 1); else b.push(bp + 1);
+  bkSet('bm', b);
+  const y = window.scrollY; app.innerHTML = bookHtml(); window.scrollTo(0, y);
+  toast(i >= 0 ? 'أُزيلت الإشارة المرجعية' : 'تمت الإشارة المرجعية للصفحة');
+}
+window.bookBm = bookBm;
+function bookNote(v) { const n = bkGet('notes', {}); if (v.trim()) n[bp + 1] = v; else delete n[bp + 1]; bkSet('notes', n); }
+window.bookNote = bookNote;
 window.bookGo = bookGo;
 
 /* ===== sample video (approved ليه؟ sample) ===== */
