@@ -950,11 +950,23 @@ function bookHtml() {
     <button type="button" class="btn2 sm ${isbm ? '' : 'ghost'}" onclick="bookBm()">${isbm ? 'إزالة الإشارة المرجعية' : 'إشارة مرجعية للصفحة'}</button>
     <button type="button" class="btn2 sm ghost" onclick="shareLink('الكتاب التفاعلي — صفحة ${bp + 1}', '#/book/${bp + 1}', 'صفحة ${bp + 1} من الكتاب التفاعلي')">مشاركة الصفحة</button>
   </div>
+  <div class="qcard bkidx"><div class="qhead">فهرس الكتاب والبحث فيه</div>
+    <input id="bksearch" type="search" placeholder="ابحث في صفحات الكتاب…" oninput="bookSearch(this.value)" aria-label="بحث في الكتاب">
+    <div id="bkres">${bookIndexHtml('')}</div></div>
+  <div class="bktools"><a class="btn2 sm ghost" href="#/g/g3/l/0">فيديوهات الدرس</a><a class="btn2 sm ghost" href="#/test/g3l1">اختبار الدرس</a></div>
   <div class="qcard bknote"><div class="qhead">ملاحظتي على هذه الصفحة (محفوظة على جهازك فقط)</div>
     <textarea id="bknote" rows="3" placeholder="اكتب ملاحظتك…" oninput="bookNote(this.value)">${esc(note)}</textarea></div>
   ${bms.length ? '<div class="note">صفحاتك المُشار إليها: ' + bms.slice().sort((x, y) => x - y).map((x) => '<a href="#/book/' + x + '">' + x + '</a>').join(' · ') + '</div>' : ''}
   <div class="note">نموذج تجريبي من ٤ صفحات — الكتاب الكامل قريبًا</div>`;
 }
+function bkPlain(h) { const d = document.createElement('div'); d.innerHTML = String(h || ''); return (d.textContent || '').replace(/\s+/g, ' '); }
+function bookIndexHtml(q) {
+  const k = (q || '').trim();
+  const r = BOOK.map((p, i) => ({ i, p })).filter((x) => !k || (x.p.t + ' ' + bkPlain(x.p.p)).indexOf(k) >= 0);
+  return r.length ? r.map((x) => '<a class="bkrow' + (x.i === bp ? ' on' : '') + '" href="#/book/' + (x.i + 1) + '"><b>' + (x.i + 1) + '</b> ' + esc(x.p.t) + '</a>').join('') : '<div class="dim" style="font-size:13px">لا توجد صفحة تطابق بحثك.</div>';
+}
+function bookSearch(v) { const e = document.getElementById('bkres'); if (e) e.innerHTML = bookIndexHtml(v); }
+window.bookSearch = bookSearch;
 function bookTo(n) {
   bp = Math.min(BOOK.length - 1, Math.max(0, n - 1));
   bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
