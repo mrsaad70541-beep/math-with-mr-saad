@@ -141,6 +141,9 @@ function soon() {
   <div class="qcard"><div class="qhead">هذه الميزة قيد التجهيز</div>
   <p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">شغالين على تجهيزها وهتتاح هنا أول ما تخلص. المتاح حاليًا: دروس المنهج المصري والاختبارات والمختبر والكتاب التجريبي وتحدي اليوم — كلها من الصفحة الرئيسية.</p></div>`;
 }
+var HOME_IDS = ['paths', 'challenge', 'tools', 'latest'];
+var HOME_NAMES = { paths: 'مسارات التعلم', challenge: 'تحدي اليوم', tools: 'أدوات التعلم', latest: 'أحدث المحتويات' };
+var HOMECFG = { order: HOME_IDS.slice(), hide: [], soon: [] };
 function home() {
   const last = getLast();
   const ch = CHALLENGES[0];
@@ -158,18 +161,23 @@ function home() {
     <span class="t">${esc(last.t)}</span>
     <span class="go">متابعة ‹</span>
   </a>`;
-  h += `
+  const B = {};
+  B.paths = `
   <div class="section-title">مسارات التعلم</div>
   <div class="trio">
     <a class="p1" href="#/manhag"><span class="ic">${IC.cap}</span><h3>المنهج المصري</h3><span class="st on">متاح الآن</span></a>
     <a class="p2" href="#/t/leh"><span class="ic">${IC.bulb}</span><h3>ليه؟</h3><span class="st on2">نموذج متاح</span></a>
     <a class="p3" href="#/t/qudurat"><span class="ic">${IC.sigma}</span><h3>القدرات الكمي</h3><span class="st">قريبًا</span></a>
   </div>
+`;
+  B.challenge = `
   <a class="chcard" href="#/challenge">
     <span class="ic">${IC.target}</span>
     <span class="txt"><span class="lbl">${chLabel(ch)} · ${esc(ch.date)}</span><span class="t">${esc(ch.title)}</span></span>
     <span class="go">ابدأ التحدي</span>
   </a>
+`;
+  B.tools = `
   <div class="section-title">أدوات التعلم</div>
   <div class="tools"><div class="grid">
     <a class="tile" href="#/test"><span class="ic">${IC.quiz}</span><span class="name">الاختبارات والتدريبات</span><span class="st on">نموذج متاح</span></a>
@@ -178,6 +186,8 @@ function home() {
     <a class="tile" href="#/diagnostic"><span class="ic">${IC.target || IC.quiz}</span><span class="name">اكتشف مستواك</span><span class="st on2">متاح الآن</span></a>
     <a class="tile" href="#/files"><span class="ic">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">بانتظار المحتوى</span></a>
   </div></div>
+`;
+  let lh = `
   <div class="section-title">أحدث المحتويات</div>`;
   const latest = [];
   DATA.grades.forEach((g) => g.lessons.forEach((l, li) => l.videos.forEach((v, vi) => {
@@ -185,7 +195,13 @@ function home() {
     if (v.yt) latest.push({ t: v.n, s: `${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}` });
   })));
   latest.slice(-3).reverse().forEach((x) => {
-    h += `<div class="vrow">${saveBtn(x.u, x.t)}<span class="vn">${esc(x.t)}<span class="vsub">${esc(x.s)}</span></span><a class="play" href="${x.u}">${IC.play} تشغيل</a></div>`;
+    lh += `<div class="vrow">${saveBtn(x.u, x.t)}<span class="vn">${esc(x.t)}<span class="vsub">${esc(x.s)}</span></span><a class="play" href="${x.u}">${IC.play} تشغيل</a></div>`;
+  });
+  B.latest = lh;
+  const cfg = (typeof HOMECFG !== 'undefined') ? HOMECFG : { order: ['paths','challenge','tools','latest'], hide: [], soon: [] };
+  cfg.order.forEach((id) => {
+    if (!B[id] || cfg.hide.indexOf(id) >= 0) return;
+    h += (cfg.soon.indexOf(id) >= 0) ? `<div class="section-title">${HOME_NAMES[id]}</div><div class="note">قريبًا</div>` : B[id];
   });
   return h;
 }
@@ -877,6 +893,12 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
             level: String(p.level || '').slice(0, 60), cat: String(p.cat || '').slice(0, 60) };
           var ci = CHALLENGES.findIndex(function (c) { return c.id === p.id; });
           if (ci >= 0) CHALLENGES[ci] = nc; else CHALLENGES.unshift(nc);
+          applied++;
+        } else if (it.type === 'home') {
+          var ids = ['paths', 'challenge', 'tools', 'latest'];
+          var hl = function (a) { return (Array.isArray(a) ? a : []).filter(function (x, i, ar) { return ids.indexOf(x) >= 0 && ar.indexOf(x) === i; }); };
+          var ord = hl(p.order); ids.forEach(function (x) { if (ord.indexOf(x) < 0) ord.push(x); });
+          HOMECFG = { order: ord, hide: hl(p.hide), soon: hl(p.soon) };
           applied++;
         } else if (it.type === 'section') {
           if (p.track === 'qudurat' || p.track === 'leh') {
