@@ -156,6 +156,8 @@ SEARCH.push({ t: 'إنجازاتي', u: '#/account' });
 SEARCH.push({ t: 'مكتبة الملفات', u: '#/files' });
 LIB_CATS.forEach((c) => SEARCH.push({ t: c.n + ' — مكتبة الملفات', u: '#/files/' + c.id }));
 SEARCH.push({ t: 'مختبر الرياضيات — تجارب تفاعلية', u: '#/lab' });
+SEARCH.push({ t: 'اكتشف النظرية بنفسك — نماذج تفاعلية للنظريات', u: '#/theorems' });
+THEO.models.forEach((m) => SEARCH.push({ t: 'نظرية: ' + m.title + ' — ' + THEO.GR[m.g] + ' · اكتشف النظرية بنفسك', u: '#/theorem/' + m.id }));
 LAB.EXPERIMENTS.forEach((e) => SEARCH.push({ t: 'تجربة: ' + e.title + ' — مختبر الرياضيات', u: '#/lab/' + e.id }));
 SEARCH.push({ t: 'الكتاب التفاعلي — نموذج قوى القوى', u: '#/book' });
 SEARCH.push({ t: 'محفوظاتي', u: '#/saved' });
@@ -293,6 +295,7 @@ function home() {
     <a class="tile" href="#/test"><span class="ic">${IC.quiz}</span><span class="name">الاختبارات والتدريبات</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/book"><span class="ic">${IC.book}</span><span class="name">الكتاب التفاعلي</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/lab"><span class="ic">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st on2">متاح الآن</span></a>
+    <a class="tile" href="#/theorems"><span class="ic">${IC.flask}</span><span class="name">اكتشف النظرية بنفسك</span><span class="st on2">جديد</span></a>
     <a class="tile" href="#/diagnostic"><span class="ic">${IC.target || IC.quiz}</span><span class="name">اكتشف مستواك</span><span class="st on2">متاح الآن</span></a>
     <a class="tile" href="#/files"><span class="ic">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">${LIB_FILES.length ? toArNum(LIB_FILES.length) + ' ملف' : 'بانتظار المحتوى'}</span></a>
   </div></div>
@@ -1234,6 +1237,8 @@ function route() {
   else if (p[0] === 'v' && p[1]) html = watchSample(p[1]);
   else if (p[0] === 'files' && p[1]) html = filesCat(p[1]);
   else if (p[0] === 'files') html = filesHome();
+  else if (p[0] === 'theorems') html = THEO.home(IC.flask);
+  else if (p[0] === 'theorem' && p[1]) html = THEO.page(p[1]);
   else if (p[0] === 'lab' && p[1]) html = LAB.labExp(p[1]);
   else if (p[0] === 'lab') html = LAB.labHome();
   else if (p[0] === 'mistakes') html = mistakes();
@@ -1249,12 +1254,14 @@ function route() {
   document.querySelectorAll('#tabbar a').forEach((a) => a.classList.toggle('active',
     (p[0] === 'manhag' || p[0] === 'g' || p[0] === 't') ? a.dataset.route === 'manhag'
     : (p[0] === 'saved') ? a.dataset.route === 'saved'
+    : (p[0] === 'theorems' || p[0] === 'theorem') ? a.dataset.route === 'manhag'
     : (p[0] === 'account' || p[0] === 'mistakes' || p[0] === 'privacy') ? a.dataset.route === 'account'
     : a.dataset.route === 'home' && p.length === 0));
   const sy = trackNav();
   window.scrollTo(0, sy);
   if (sy) setTimeout(() => window.scrollTo(0, sy), 150);
   LAB.afterRender(p);
+  THEO.after(p);
 }
 window.addEventListener('hashchange', route);
 /* First-paint playback gate: a direct deep link to a bundled video must not
