@@ -542,7 +542,7 @@ window.THEO = (function () {
       seg(a, b, kind) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: kind === 2 ? '#1e6fa3' : '#b8860b', 'stroke-width': kind === 2 ? 1.6 : 2.2, 'stroke-dasharray': kind === 2 ? '5 4' : '' }); },
       dot(p, big) { el('circle', { cx: p.x, cy: p.y, r: big ? 5 : 3.5, fill: '#b8860b' }); },
       label(p, t, dx, dy) { const e = el('text', { x: p.x + (dx == null ? 6 : dx), y: p.y + (dy == null ? -6 : dy), class: 'labtxt', 'font-size': 13, 'font-weight': 700 }); e.textContent = t; },
-      tag(t, good) { const e = el('text', { x: 170, y: 18, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: good ? '#1a7f4b' : '#b3261e' }); e.textContent = t; },
+      tag(t, good) { const e = el('text', { x: 170, y: 18, 'text-anchor': 'middle', 'font-size': t.length > 36 ? 10.5 : (t.length > 28 ? 12 : 13), 'font-weight': 700, class: 'thtag ' + (good ? 'ok' : 'no'), fill: good ? '#1a7f4b' : '#b3261e' }); e.textContent = t; },
       txt(p, t, col) {
         const c = col || 'currentColor';
         if (t.charAt(0) === '√') {
