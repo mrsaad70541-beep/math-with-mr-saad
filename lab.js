@@ -365,8 +365,8 @@ window.LAB = (function () {
   function cmsDoc(html) {
     return '<!DOCTYPE html><meta http-equiv="Content-Security-Policy" content="' + CSP + '"><meta name="viewport" content="width=device-width,initial-scale=1">' + html;
   }
-  function addCms(it) {
-    const p = it.payload || {};
+  function addCms(it, pp) {
+    const p = pp || it.payload || {};
     if (!it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id))) return false;
     if (typeof p.html !== 'string' || !p.html.trim() || p.html.length > 150000) return false;
     const e = { id: 'x-' + it.id, title: String(it.title || '').slice(0, 200), desc: String(p.desc || '').slice(0, 300), html: p.html };
