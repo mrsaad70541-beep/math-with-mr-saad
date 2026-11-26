@@ -75,6 +75,9 @@ function addMistake(m) {
 /* ===== share (real links) ===== */
 const WSHARE = 'https://secureadmin.mrsaad70541.workers.dev/s/c/';
 function seoUrl(u) {
+  const ml = /^#\/g\/(g[123])\/l\/0$/.exec(u);
+  if (ml && typeof DATA === 'undefined') return null;
+  if (ml) { const gl = DATA.grades.find((x) => x.id === ml[1]), l0 = gl && gl.lessons[0]; return l0 && !l0.cid ? location.origin + location.pathname + 's/lesson-' + ml[1] + '-l0.html' : null; }
   const m = /^#\/g\/(g\d)\/l\/(\d+)\/v\/(\d+)$/.exec(u);
   if (!m || typeof DATA === 'undefined') return null;
   const g = DATA.grades.find((x) => x.id === m[1]), l = g && g.lessons[+m[2]];
