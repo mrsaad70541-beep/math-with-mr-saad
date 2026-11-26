@@ -350,13 +350,13 @@ html.dark .tbtn.on { border-color: var(--gold); color: var(--gold); }
 .of{font-size:.6em;font-weight:600;color:var(--dim);margin:0 6px}
 .labintro{margin:2px 0 12px;font-size:13px}
 .labgrid{display:flex;flex-direction:column;gap:10px}
-.labitem{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:14px;box-shadow:var(--sh);text-decoration:none;color:var(--ink)}
+.labitem{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:14px;box-shadow:var(--shadow);text-decoration:none;color:var(--ink)}
 .labitem .ic{width:40px;height:40px;border-radius:12px;background:#efeafc;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .labitem .ic svg{width:22px;height:22px}
 .labitem .lt{flex:1;font-weight:700;font-size:15px}
 .labitem .go{font-size:12px;font-weight:700;color:#fff;background:var(--navy);padding:6px 12px;border-radius:999px}
 .labmore{margin-top:14px;font-size:12px;text-align:center}
-.labcard{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--sh)}
+.labcard{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
 .labcard p{margin:6px 0 0;font-size:14px;line-height:1.8}
 .labtag{display:inline-block;font-size:11px;font-weight:800;color:var(--navy);background:rgba(234,198,91,.25);padding:3px 10px;border-radius:999px}
 .labcard.obs .labtag{background:rgba(30,111,163,.15)}
@@ -381,7 +381,7 @@ html.dark .tbtn.on { border-color: var(--gold); color: var(--gold); }
 
 /* ===== lesson metadata (spec 5) ===== */
 .lactions{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-.lmeta{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--sh)}
+.lmeta{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
 .lmeta h3{margin:0 0 8px;font-size:14px;font-weight:800;color:var(--navy)}
 .lmeta p{margin:0;font-size:14px;line-height:1.9}
 .objlist{margin:0;padding:0 18px 0 0;font-size:14px;line-height:2}
@@ -408,7 +408,7 @@ html.dark .tbtn.on { border-color: var(--gold); color: var(--gold); }
 .fsep{margin:0 6px}
 .objlist li,.lmeta p,.exq,.exsol{direction:rtl}
 .achgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.achcard{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--sh);opacity:.55}
+.achcard{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);opacity:.55}
 .achcard.on{opacity:1;border:1.5px solid var(--gold)}
 .achic{width:26px;height:26px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);margin-bottom:6px}
 .achcard.on .achic{background:var(--gold)}
@@ -421,7 +421,7 @@ html.dark .tbtn.on { border-color: var(--gold); color: var(--gold); }
 .goalchk input{accent-color:var(--navy);width:16px;height:16px}
 .goaldone{text-decoration:line-through;color:var(--dim)}
 .planrow{display:flex;margin-top:8px}
-.cert{background:var(--card);border-radius:16px;padding:22px 18px;box-shadow:var(--sh);text-align:center;border:2px solid var(--gold)}
+.cert{background:var(--card);border-radius:16px;padding:22px 18px;box-shadow:var(--shadow);text-align:center;border:2px solid var(--gold)}
 .certband{background:var(--navy);color:var(--gold);font-weight:800;border-radius:10px;padding:8px;margin-bottom:14px}
 .certtitle{font-size:19px;font-weight:800;color:var(--navy);margin-bottom:10px}
 .certline{font-size:13.5px;line-height:2;color:var(--ink)}
