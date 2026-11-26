@@ -519,3 +519,5 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .chhist { margin-top: 12px; }
 .chrow { display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 14px; }
 .chrow b.ok { color: #4ade80; } .chrow b.no { color: #f87171; }
+
+#app { zoom: var(--tz, 1); }
