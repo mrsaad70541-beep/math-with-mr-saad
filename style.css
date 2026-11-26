@@ -525,3 +525,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .bktools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0; font-size: 13px; }
 .bktools select { background: var(--navy, #102b49); color: inherit; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; padding: 4px 8px; font: inherit; }
 .bknote textarea { width: 100%; box-sizing: border-box; background: transparent; color: inherit; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; padding: 10px; font: inherit; resize: vertical; }
+
+.note a, .note a:visited { color: var(--gold-ink); font-weight: 800; text-decoration: underline; padding: 2px 6px; }
+html.dark .note a, html.dark .note a:visited { color: var(--gold); }
