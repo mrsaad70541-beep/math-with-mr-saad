@@ -532,7 +532,7 @@ window.THEO = (function () {
     (m.chk || []).forEach((c) => { P[c.k] = 0; });
     const regular = (n) => { const t = []; for (let i = 0; i < 10; i++) t.push(-Math.PI / 2 + i * 2 * Math.PI / n); return t; };
     if (m.ring) P.th = regular(P.n);
-    const obs = []; let last = null;
+    const obs = []; let last = null; let editIdx = -1;
     const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || gDyn).appendChild(e); return e; };
     const pts = (ps) => ps.map((p) => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
     const d = {
@@ -645,15 +645,15 @@ window.THEO = (function () {
     compute(); sync();
     // سجل الملاحظات
     const rec = document.getElementById('thRec'), tbl = document.getElementById('thObs'), concl = document.getElementById('thConcl');
-    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + mxh(o.txt) + '</span><button type="button" class="th-del" data-i="' + i + '" aria-label="حذف الحالة ' + toAr(i + 1, 0) + '">حذف</button></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; document.getElementById('thGo').disabled = obs.length < 3; if (obs.length < 3) concl.hidden = true; }
-    tbl.onclick = (e) => { const b = e.target.closest('.th-del'); if (!b) return; obs.splice(+b.dataset.i, 1); renderObs(); };
+    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + mxh(o.txt) + '</span><button type="button" class="th-del" data-i="' + i + '" aria-label="حذف الحالة ' + toAr(i + 1, 0) + '">حذف</button><button type="button" class="th-del th-ed' + (editIdx === i ? ' on' : '') + '" data-e="' + i + '" aria-label="تعديل الحالة ' + toAr(i + 1, 0) + '">' + (editIdx === i ? 'إلغاء التعديل' : 'تعديل') + '</button></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; document.getElementById('thGo').disabled = obs.length < 3; if (obs.length < 3) concl.hidden = true; }
+    tbl.onclick = (e) => { const b = e.target.closest('.th-del'); if (!b) return; if (b.dataset.e != null) { const k = +b.dataset.e; editIdx = editIdx === k ? -1 : k; if (editIdx >= 0) toastMsg('غيّر الشكل ثم اضغط «سجّل هذه الحالة» لاستبدال الحالة ' + toAr(k + 1, 0)); renderObs(); return; } const d = +b.dataset.i; obs.splice(d, 1); if (editIdx === d) editIdx = -1; else if (editIdx > d) editIdx--; renderObs(); };
     rec.onclick = () => {
       if (!last || !last.eq.length) { toastMsg('الشرط غير متحقق الآن، لا فائدة من تسجيل هذه الحالة'); return; }
       const key = last.rows.map((r) => (typeof r[1] === 'number' ? toAr(r[1], 1) : r[1])).join('|');
       const dd = last.dec != null ? (last.dec === 0 ? 0 : 2) : 1;
       const txt = last.rows.filter((r) => r[0] !== '').map((r) => r[0] + ': ' + (typeof r[1] === 'number' ? toAr(r[1], dd) : r[1])).join(' | ');
-      if (obs.some((o) => o.key === key)) { toastMsg('غيّر الشكل أولًا لتسجّل حالة مختلفة'); return; }
-      obs.push({ key, txt });
+      if (obs.some((o, j) => o.key === key && j !== editIdx)) { toastMsg('غيّر الشكل أولًا لتسجّل حالة مختلفة'); return; }
+      if (editIdx >= 0) { obs[editIdx] = { key, txt }; editIdx = -1; } else obs.push({ key, txt });
       renderObs();
     };
     document.getElementById('thGo').onclick = () => { const pc = document.getElementById('thPredCmp'); if (pc) { const pi = window.__thPred; pc.textContent = pi == null ? 'لم تسجّل توقّعًا قبل التجربة.' : (pi === m.a ? 'توقّعك كان: ' + m.opts[pi] + ' وهو يتفق مع ما لاحظت.' : 'توقّعك كان: ' + m.opts[pi] + '، والملاحظات تشير إلى: ' + m.opts[m.a] + '.'); } concl.hidden = false; concl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
@@ -685,7 +685,7 @@ window.THEO = (function () {
     const m = M.find((x) => x.id === id); if (!m) return home();
     return '<a class="back" href="#/theorems">‹ اكتشف النظرية بنفسك</a><div class="section-title">' + esc(m.title) + '</div>' +
       '<div class="th-meta">' + GR[m.g] + ' · ' + esc(m.lesson) + '</div>' +
-      '<div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
+      '<div class="th-media">' + (m.media && m.media.video ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.video) + '">فيديو التجربة</a>' : '<span class="th-soon">فيديو التجربة: قريبًا</span>') + (m.media && m.media.voice ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.voice) + '">شرح صوتي</a>' : '<span class="th-soon">شرح صوتي: قريبًا</span>') + '</div><div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
       '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
       '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
       '<div class="labcard obs"><span class="labtag">٣ · لاحظ</span><div id="thRows" class="th-rows"></div><div class="th-rec"><button class="btn2 sm" id="thRec" type="button">سجّل هذه الحالة</button><span id="thCount">٠ / ٣</span></div><div id="thObs" class="th-obs"></div><button class="btn2 sm" id="thGo" type="button" disabled>٤ · استنتج (بعد ٣ حالات مختلفة)</button></div>' +
