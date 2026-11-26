@@ -334,6 +334,63 @@ function trackGroup(tid, ci) {
   });
   return h;
 }
+/* ===== video player extras: resume, speed, next (YouTube IFrame API, plain iframe stays as fallback) ===== */
+const VPOS = 'saad.vpos.v1';
+const VP = { pl: null, iv: 0, key: '' };
+function vpGet() { try { return JSON.parse(localStorage.getItem(VPOS) || '{}'); } catch (e) { return {}; } }
+function vpSet(o) { try { localStorage.setItem(VPOS, JSON.stringify(o)); } catch (e) { /* storage off */ } }
+function vpStart(yt) { const p = vpGet()[yt]; return p && p.t >= 5 ? '&start=' + Math.floor(p.t) : ''; }
+function vpFmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+function vpStop() { if (VP.iv) clearInterval(VP.iv); VP.iv = 0; VP.pl = null; }
+function vpInit(yt, nu, nname) {
+  vpStop();
+  const fr = document.getElementById('ytframe'), tools = document.getElementById('vtools');
+  if (!fr || !tools) return;
+  const saved = vpGet()[yt];
+  const load = (cb) => {
+    if (window.YT && window.YT.Player) return cb();
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); cb(); };
+    if (!document.getElementById('ytapi')) { const sc = document.createElement('script'); sc.id = 'ytapi'; sc.src = 'https://www.youtube.com/iframe_api'; sc.async = true; document.head.appendChild(sc); }
+  };
+  load(() => {
+    if (document.getElementById('ytframe') !== fr) return; // route changed meanwhile
+    try {
+      VP.pl = new window.YT.Player(fr, { events: {
+        onReady: () => {
+          const rates = [0.75, 1, 1.25, 1.5, 2];
+          tools.hidden = false;
+          tools.innerHTML = (saved && saved.t >= 5 ? '<div class="vresume">تكمل من ' + vpFmt(saved.t) + ' · <button type="button" id="vrestart">من البداية</button></div>' : '') +
+            '<div class="vspeed"><span>السرعة</span>' + rates.map((r) => '<button type="button" data-r="' + r + '" class="' + (r === 1 ? 'on' : '') + '">' + String(r).replace('.', '٫') + '×</button>').join('') + '</div>';
+          tools.onclick = (e) => {
+            const b = e.target.closest('button'); if (!b || !VP.pl) return;
+            if (b.id === 'vrestart') { VP.pl.seekTo(0, true); return; }
+            if (b.dataset.r) { VP.pl.setPlaybackRate(+b.dataset.r); tools.querySelectorAll('.vspeed button').forEach((x) => x.classList.toggle('on', x === b)); }
+          };
+        },
+        onStateChange: (ev) => {
+          const st = ev.data;
+          if (st === 0) {
+            const o = vpGet(); delete o[yt]; vpSet(o);
+            const nx = document.getElementById('vnext');
+            if (nx && nu) { nx.hidden = false; nx.innerHTML = '<a class="nextbtn" href="' + nu + '">التالي: ' + esc(nname || 'المهارة التالية') + ' ‹</a>'; }
+          }
+        },
+      } });
+      VP.iv = setInterval(() => {
+        if (document.getElementById('ytframe') !== fr) { vpStop(); return; }
+        try {
+          if (VP.pl && VP.pl.getPlayerState && VP.pl.getPlayerState() === 1) {
+            const t = VP.pl.getCurrentTime(), d = VP.pl.getDuration();
+            const o = vpGet();
+            if (d && t > d - 10) delete o[yt]; else if (t >= 5) o[yt] = { t: Math.floor(t), at: Date.now() };
+            vpSet(o);
+          }
+        } catch (e) { /* player not ready */ }
+      }, 4000);
+    } catch (e) { /* API blocked: plain iframe keeps working */ }
+  });
+}
 function watch(gid, li, vi) {
   const g = DATA.grades.find((x) => x.id === gid);
   const l = g.lessons[li];
@@ -345,12 +402,14 @@ function watch(gid, li, vi) {
   const nu = next && next.yt ? `#/g/${g.id}/l/${li}/v/${vi + 1}` : null;
   return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a>
   <div class="section-title">${esc(v.n)}</div>
-  <div class="playerwrap"><iframe src="https://www.youtube-nocookie.com/embed/${v.yt}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+  <div class="playerwrap"><iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${v.yt}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
     ${nu ? `<a class="nextbtn" href="${nu}">المهارة التالية ‹</a>` : ''}
-  </div>`;
+  </div>
+  <div id="vtools" class="vtools" hidden></div><div id="vnext" class="vnextcard" hidden></div>`;
+  setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
 }
 function saved() {
   const s = getSaved();
