@@ -53,6 +53,7 @@ window.toggleSave = toggleSave;
 const getLast = () => jget('saad.last.v1', null);
 const setLast = (u, t) => localStorage.setItem('saad.last.v1', JSON.stringify({ u, t }));
 const getMistakes = () => jget('saad.mistakes.v1', []);
+function removeMistake(q) { localStorage.setItem('saad.mistakes.v1', JSON.stringify(getMistakes().filter((x) => x.q !== q))); }
 function addMistake(m) {
   const ms = getMistakes().filter((x) => x.q !== m.q);
   ms.unshift(m);
@@ -341,17 +342,45 @@ const QTEXT = ['num', 'frac', 'fill'];
 function qProg() { try { return JSON.parse(localStorage.getItem(QPROG) || 'null'); } catch (e) { return null; } }
 function qSave() {
   try {
-    if (!qState || qState.done) { localStorage.removeItem(QPROG); return; }
+    if (!qState || qState.done || qState.id === '_mistakes') { localStorage.removeItem(QPROG); return; }
     localStorage.setItem(QPROG, JSON.stringify({ id: qState.id, i: qState.i, score: qState.score, shuffle: qState.shuffle, practice: qState.practice, timer: qState.timer, orders: qState.orders }));
   } catch (e) { /* storage unavailable: quiz still works */ }
+}
+function mruns(html) {
+  let inMath = 0;
+  return String(html).split(/(<[^>]+>)/).map((part) => {
+    if (part.charAt(0) === '<') {
+      if (/^<math[\s>]/i.test(part)) inMath++;
+      else if (/^<\/math>/i.test(part)) inMath = Math.max(0, inMath - 1);
+      return part;
+    }
+    if (inMath) return part;
+    return part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="ltr">' + m.trim() + '</span>');
+  }).join('');
+}
+function qVisual(cur) {
+  let vis = '';
+  if (cur.img && /^https:\/\//.test(cur.img)) vis += `<img class="qimg" src="${esc(cur.img)}" alt="${esc(cur.alt || '')}" loading="lazy">`;
+  if (cur.geo) vis += geoSvg(cur.geo);
+  return vis;
 }
 function qTimerStop() { if (qState && qState.tid) { clearInterval(qState.tid); qState.tid = 0; } }
 function test(id) {
   qTimerStop();
-  id = (id && QUIZSETS[id]) ? id : 'g3l1';
-  const pr = qProg();
-  const n = QUIZSETS[id].questions.length;
-  qState = { id: id, set: QUIZSETS[id], i: 0, score: 0, locked: false, shuffle: false, practice: false, timer: 0, orders: [], tid: 0,
+  let pseudo = null;
+  if (id === '_mistakes') {
+    const qs = [];
+    getMistakes().forEach((m) => {
+      const st = m.setId && QUIZSETS[m.setId], qq = st && st.questions[m.qi];
+      if (qq) qs.push(Object.assign({}, qq, { _sid: m.setId, _qi: m.qi, _mk: m.q }));
+    });
+    pseudo = { title: 'مراجعة أخطائي', skill: '', questions: qs };
+    if (!qs.length) return `<a class="back" href="#/mistakes">‹ أخطائي</a><div class="section-title">مراجعة أخطائي</div><div class="note">لا توجد أخطاء قابلة للإعادة الآن.</div>`;
+  }
+  id = pseudo ? '_mistakes' : ((id && QUIZSETS[id]) ? id : 'g3l1');
+  const pr = pseudo ? null : qProg();
+  const n = (pseudo || QUIZSETS[id]).questions.length;
+  qState = { id: id, set: pseudo || QUIZSETS[id], i: 0, score: 0, wrong: 0, locked: false, shuffle: false, practice: false, timer: 0, orders: [], tid: 0,
     resume: (pr && pr.id === id && pr.i > 0 && pr.i < n) ? pr : null };
   return quizHtml();
 }
@@ -418,36 +447,36 @@ function quizHtml() {
   const set = qState.set;
   qTimerStop();
   if (qState.i >= set.questions.length) {
-    if (!qState.done) { qState.done = true; qSave(); onQuizDone(); }
+    if (!qState.done) { qState.done = true; qSave(); if (qState.id !== '_mistakes') onQuizDone(); }
     const others = Object.keys(QUIZSETS).filter((k) => k !== qState.id && QUIZSETS[k].questions.length);
+    const totalM = getMistakes().length;
     return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
     <div class="quiz"><div class="qcard result">
       <div class="qhead">نتيجتك</div>
       <div class="score">${qState.score} <span class="of">من</span> ${set.questions.length}</div>
       <div class="cap">${qState.score === set.questions.length ? 'ممتاز! جاهز للدرس اللي بعده' : 'راجع الدرس وحاول تاني — الأسئلة اللي غلطت فيها اتحفظت في «أخطائي»'}</div>
+      <div class="cap sub">أخطاء هذه المحاولة: ${qState.wrong} · المحفوظ في «أخطائي» من كل المحاولات: ${totalM}</div>
       <button class="btn2" onclick="restartQuiz()">إعادة الاختبار</button>
       <a class="btn2 ghost" href="#/g/g3/l/0">مراجعة الدرس</a>
-      ${getMistakes().length ? `<a class="btn2 ghost" href="#/mistakes">أخطائي (${getMistakes().length})</a>` : ''}
+      ${totalM ? `<a class="btn2 ghost" href="#/mistakes">كل أخطائي المحفوظة (${totalM})</a>` : ''}
       ${others.length ? `<div class="qmore"><h3>اختبارات أخرى</h3>${others.map((k) => `<a class="btn2 sm ghost" href="#/test/${esc(k)}">${esc(QUIZSETS[k].title)}</a>`).join(' ')}</div>` : ''}
     </div></div>`;
   }
   const cur = set.questions[qState.i];
   const t = cur.t || 'mcq';
-  let vis = '';
-  if (cur.img && /^https:\/\//.test(cur.img)) vis += `<img class="qimg" src="${esc(cur.img)}" alt="${esc(cur.alt || '')}" loading="lazy">`;
-  if (cur.geo) vis += geoSvg(cur.geo);
+  const vis = qVisual(cur);
   let inp;
   if (QTEXT.indexOf(t) >= 0) {
     inp = `<div class="qin"><input id="qin" type="text" dir="ltr" inputmode="${t === 'fill' ? 'text' : 'decimal'}" autocomplete="off" placeholder="${t === 'frac' ? 'مثال: ٣/٤' : t === 'num' ? 'اكتب الرقم' : 'اكتب الإجابة'}" onkeydown="if(event.key==='Enter')answerText()"><button class="btn2" onclick="answerText()">تحقق</button></div>`;
   } else {
     const ord = qOrder(qState.i);
-    inp = `<div class="opts">${ord.map((oi, pos) => `<button onclick="answer(${pos})">${cur.o[oi]}</button>`).join('')}</div>`;
+    inp = `<div class="opts">${ord.map((oi, pos) => `<button onclick="answer(${pos})">${mruns(cur.o[oi])}</button>`).join('')}</div>`;
   }
   const timer = qState.timer ? `<div class="qtimer" id="qtimer" aria-live="off">⏱ ${qState.timer}</div>` : '';
   const html = `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
   <div class="quiz">${qOptsBar()}<div class="qcard">
     <div class="qhead">سؤال ${qState.i + 1} من ${set.questions.length}${timer}</div>
-    <div class="qtext eqwrap">${cur.q}</div>${vis}
+    <div class="qtext eqwrap">${mruns(cur.q)}</div>${vis}
     ${inp}
     <div id="qfb"></div>
   </div></div>`;
@@ -475,11 +504,16 @@ function qFinish(ok, yourText, timeout) {
   qState.locked = true; qTimerStop();
   const set = qState.set, cur = set.questions[qState.i];
   if (ok) qState.score++;
-  else addMistake({ q: cur.q, your: timeout ? 'انتهى الوقت' : yourText, right: qRight(cur), exT: cur.exT, exE: cur.exE, skill: set.skill, from: '#/test/' + qState.id });
+  else {
+    const isT = QTEXT.indexOf(cur.t) >= 0;
+    addMistake({ q: cur.q + qVisual(cur), your: timeout ? 'انتهى الوقت' : (isT ? esc(yourText) : yourText), right: isT ? esc(qRight(cur)) : qRight(cur), exT: cur.exT, exE: cur.exE, skill: set.skill, from: '#/test/' + (qState.id === '_mistakes' ? '_mistakes' : qState.id), setId: cur._sid || qState.id, qi: cur._qi != null ? cur._qi : qState.i });
+    qState.wrong++;
+  }
+  if (ok && qState.id === '_mistakes' && cur._mk) removeMistake(cur._mk);
   const fb = document.getElementById('qfb');
   if (fb) {
     let m = ok ? '<b>إجابة صحيحة</b>' : (timeout ? '<b>انتهى الوقت</b>' : '<b>إجابة غير صحيحة</b>');
-    if (!ok) m += ' الإجابة الصحيحة: <span class="eqwrap">' + (QTEXT.indexOf(cur.t) >= 0 ? esc(qRight(cur)) : qRight(cur)) + '</span>';
+    if (!ok) m += ' الإجابة الصحيحة: <span class="eqwrap">' + (QTEXT.indexOf(cur.t) >= 0 ? '<span class="mrun" dir="ltr">' + esc(qRight(cur)) + '</span>' : mruns(qRight(cur))) + '</span>';
     if (qState.practice) m += (cur.exT ? '<div>' + esc(cur.exT) + '</div>' : '') + (cur.exE ? '<div class="eqwrap">' + cur.exE + '</div>' : '');
     fb.innerHTML = '<div class="qfb ' + (ok ? 'ok' : 'no') + '">' + m + '</div>' + (qState.practice ? '<button class="btn2" id="qnext" onclick="qNext()">التالي</button>' : '');
   }
@@ -727,12 +761,13 @@ function mistakes() {
   const ms = getMistakes();
   let h = `<a class="back" href="#/account">‹ حسابي</a><div class="section-title">أخطائي</div>`;
   if (!ms.length) return h + `<div class="note">مفيش أخطاء محفوظة — أي إجابة غلط في اختبار أو تحدي هتتسجل هنا تلقائيًا للمراجعة.</div>`;
+  if (ms.some((m) => m.setId && QUIZSETS[m.setId] && QUIZSETS[m.setId].questions[m.qi])) h += `<a class="btn2" href="#/test/_mistakes">تدرّب على أخطائي</a>`;
   ms.forEach((m, i) => {
     h += `<div class="qcard mcard">
       <div class="qhead">${esc(m.skill)}</div>
-      <div class="qtext" style="font-size:15px">${m.q}</div>
-      <div class="mline bad">إجابتك: ${m.your}</div>
-      <div class="mline good">الصح: ${m.right}</div>
+      <div class="qtext" style="font-size:15px">${mruns(m.q)}</div>
+      <div class="mline bad">إجابتك: ${mruns(m.your)}</div>
+      <div class="mline good">الصح: ${mruns(m.right)}</div>
       <div class="mex">${m.exE ? `<span class="ot">${esc(m.exT || '')}</span><span class="eqline">${m.exE}</span>` : (m.exH || esc(m.ex || ''))}</div>
       <a class="btn2 ghost" href="${m.from}">إعادة المحاولة</a>
     </div>`;
