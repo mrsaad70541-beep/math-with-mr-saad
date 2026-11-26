@@ -97,16 +97,17 @@ window.saSearch = saSearch;
 
 /* ===== icons (line SVG) ===== */
 const IC = {
-  cap: '<svg viewBox="0 0 24 24" fill="none" stroke="#2f6fce" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 9v5"/></svg>',
-  bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="#c98a06" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.5 1 2.5h6c0-1 .3-1.9 1-2.5A6 6 0 0 0 12 3Z"/></svg>',
-  sigma: '<svg viewBox="0 0 24 24" fill="none" stroke="#7a5ce0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 5H7l6 7-6 7h10"/></svg>',
-  quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="#1c9e8f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8.5 12.5 2 2 4.5-4.5"/><path d="M8.5 7.5h7"/></svg>',
-  book: '<svg viewBox="0 0 24 24" fill="none" stroke="#c98a06" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5C4 4 7 3.6 12 5.4c5-1.8 8-1.4 10 .1V19c-2-1.5-5-1.9-10-.1-5-1.8-8-1.4-10 .1Z"/><path d="M12 5.4V18.9"/></svg>',
-  flask: '<svg viewBox="0 0 24 24" fill="none" stroke="#7a5ce0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"/><path d="M7.5 14h9"/></svg>',
-  folder: '<svg viewBox="0 0 24 24" fill="none" stroke="#2f6fce" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
+  cap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 9v5"/></svg>',
+  bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.5 1 2.5h6c0-1 .3-1.9 1-2.5A6 6 0 0 0 12 3Z"/></svg>',
+  sigma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 5H7l6 7-6 7h10"/></svg>',
+  quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8.5 12.5 2 2 4.5-4.5"/><path d="M8.5 7.5h7"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5C4 4 7 3.6 12 5.4c5-1.8 8-1.4 10 .1V19c-2-1.5-5-1.9-10-.1-5-1.8-8-1.4-10 .1Z"/><path d="M12 5.4V18.9"/></svg>',
+  flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"/><path d="M7.5 14h9"/></svg>',
+  folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
   mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21Z"/></svg>',
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5Z"/></svg>',
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></svg>',
+  award: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5.5"/><path d="m8.6 13.5-1.8 7 5.2-3 5.2 3-1.8-7"/></svg>',
   target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
 };
 
@@ -129,7 +130,7 @@ function home() {
   let h = `
   <div class="searchwrap">
     <div class="searchbar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="ابحث عن درس أو مهارة" oninput="saSearch(this.value)" autocomplete="off">
     </div>
     <div id="sres" class="sres"></div>
@@ -154,11 +155,11 @@ function home() {
   </a>
   <div class="section-title">أدوات التعلم</div>
   <div class="tools"><div class="grid">
-    <a class="tile" href="#/test"><span class="ic" style="background:#e0f5f1">${IC.quiz}</span><span class="name">الاختبارات والتدريبات</span><span class="st on">نموذج متاح</span></a>
-    <a class="tile" href="#/book"><span class="ic" style="background:#fdf3d8">${IC.book}</span><span class="name">الكتاب التفاعلي</span><span class="st on">نموذج متاح</span></a>
-    <a class="tile" href="#/lab"><span class="ic" style="background:#efeafc">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st on2">متاح الآن</span></a>
-    <a class="tile" href="#/diagnostic"><span class="ic" style="background:#fdf3d7">${IC.target || IC.quiz}</span><span class="name">اكتشف مستواك</span><span class="st on2">متاح الآن</span></a>
-    <a class="tile" href="#/files"><span class="ic" style="background:#e7f0fd">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">بانتظار المحتوى</span></a>
+    <a class="tile" href="#/test"><span class="ic">${IC.quiz}</span><span class="name">الاختبارات والتدريبات</span><span class="st on">نموذج متاح</span></a>
+    <a class="tile" href="#/book"><span class="ic">${IC.book}</span><span class="name">الكتاب التفاعلي</span><span class="st on">نموذج متاح</span></a>
+    <a class="tile" href="#/lab"><span class="ic">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st on2">متاح الآن</span></a>
+    <a class="tile" href="#/diagnostic"><span class="ic">${IC.target || IC.quiz}</span><span class="name">اكتشف مستواك</span><span class="st on2">متاح الآن</span></a>
+    <a class="tile" href="#/files"><span class="ic">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">بانتظار المحتوى</span></a>
   </div></div>
   <div class="section-title">أحدث المحتويات</div>`;
   const latest = [];
@@ -200,7 +201,7 @@ function lesson(gid, li) {
   if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${meta.summary}</p></div>`;
   if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<span class="skillchip">${esc(s)}</span>`).join('')}</div></div>`;
   if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq"><span class="exlabel">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}</span><span class="eqline">${e.q} = ؟</span></div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol"><span class="ot">${esc(e.solT)}</span><span class="eqline">${e.solE}</span></div></div>`).join('')}</div>`;
-  if (l.quiz) h += `<a class="card quizlink" href="#/test"><span class="chip" style="background:#e0f5f1">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
+  if (l.quiz) h += `<a class="card quizlink" href="#/test"><span class="chip">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
   const prev = li > 0 ? g.lessons[li - 1] : null;
   const next = li < g.lessons.length - 1 ? g.lessons[li + 1] : null;
   if (prev || next) {
@@ -376,7 +377,7 @@ function achBlock() {
   h += '</div>';
   const certReady = ach.master && ach.challenge;
   h += certReady
-    ? `<a class="card quizlink" href="#/certificate"><span class="chip" style="background:#fdf3d7">★</span><span class="txt"><h2>شهادة إتمام الوحدة</h2><div class="sub">تحققت شروطها: إتقان المهارة + حل التحدي</div></span><span class="arrow">‹</span></a>`
+    ? `<a class="card quizlink" href="#/certificate"><span class="chip">${IC.award}</span><span class="txt"><h2>شهادة إتمام الوحدة</h2><div class="sub">تحققت شروطها: إتقان المهارة + حل التحدي</div></span><span class="arrow">‹</span></a>`
     : `<div class="qcard"><div class="qhead">شهادة إتمام الوحدة</div><p class="dim" style="font-size:13px;margin:6px 0 0">تُفتح عند تحقق شرطيها الفعليين: إتقان مهارة الدرس (علامة كاملة) وحل تحدي اليوم. حالتك الآن: إتقان ${ach.master ? '✓' : '—'} · تحدي ${ach.challenge ? '✓' : '—'}</p></div>`;
   return h;
 }
@@ -580,7 +581,7 @@ function account() {
     <div class="qhead">وضع الزائر</div>
     <p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">تقدّمك محفوظ على جهازك فقط — بدون تسجيل. إنشاء الحسابات والمزامنة بين الأجهزة قريبًا.</p>
   </div>
-  <a class="card" href="#/saved"><span class="chip" style="background:#fdeaef"><span style="color:#d94f70">${IC.mark}</span></span><span class="txt"><h2>محفوظاتي</h2><div class="sub">${s} عنصر محفوظ</div></span><span class="arrow">‹</span></a>
+  <a class="card" href="#/saved"><span class="chip">${IC.mark}</span><span class="txt"><h2>محفوظاتي</h2><div class="sub">${s} عنصر محفوظ</div></span><span class="arrow">‹</span></a>
   <a class="card" href="#/mistakes"><span class="chip">!</span><span class="txt"><h2>أخطائي</h2><div class="sub">${m} سؤال للمراجعة</div></span><span class="arrow">‹</span></a>
   ${last ? `<a class="card" href="${last.u}"><span class="chip">▶</span><span class="txt"><h2>آخر ما شاهدت</h2><div class="sub">${esc(last.t)}</div></span><span class="arrow">‹</span></a>` : ''}
   <div class="section-title">الإعدادات</div>
