@@ -528,3 +528,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 .note a, .note a:visited { color: var(--gold-ink); font-weight: 800; text-decoration: underline; padding: 2px 6px; }
 html.dark .note a, html.dark .note a:visited { color: var(--gold); }
+
+.bkzoom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; margin: 8px 0; }
+.bkzoom button { min-width: 36px; height: 34px; border-radius: 10px; border: 1px solid rgba(128,128,128,.4); background: var(--navy); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.bkprog { margin-inline-start: auto; opacity: .85; }
