@@ -850,13 +850,16 @@ window.diagAnswer = diagAnswer;
 const CH_TZ = 'Asia/Riyadh';
 function todayIso() { return new Intl.DateTimeFormat('en-CA', { timeZone: CH_TZ }).format(new Date()); }
 function chIsToday(c) { return c.iso === todayIso(); }
-function chLabel(c) { return chIsToday(c) ? 'تحدي اليوم' : 'أحدث تحدٍ منشور'; }
+function chLabel(c) { return c !== CHALLENGES[0] ? 'تحدٍ سابق' : (chIsToday(c) ? 'تحدي اليوم' : 'أحدث تحدٍ منشور'); }
 let chState = null;
-function challenge() {
+let chCur = null;
+function challenge(id) {
   window._chDone = false;
+  chCur = (id && CHALLENGES.find((c) => String(c.id) === String(id))) || CHALLENGES[0];
   chState = { done: false };
-  return challengeHtml(CHALLENGES[0]);
+  return challengeHtml(chCur);
 }
+function chHash(c) { return '#/challenge' + (c && c !== CHALLENGES[0] ? '/' + c.id : ''); }
 function challengeHtml(c, done, picked) {
   let h = `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${chLabel(c)} · ${esc(c.date)}</div>
   <div class="quiz"><div class="qcard">
@@ -874,12 +877,12 @@ function challengeHtml(c, done, picked) {
       <span class="eqline">${c.exE}</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn2" onclick="location.hash='#/challenge'">محاولة تانية</button>
-      <button class="btn2 ghost" onclick="shareLink('تحدي اليوم — رياضيات مع مستر سعد', '#/challenge', 'حل تحدي اليوم في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
+      <button class="btn2" onclick="location.hash='${chHash(c)}'">محاولة تانية</button>
+      <button class="btn2 ghost" onclick="shareLink('تحدي — رياضيات مع مستر سعد', '${chHash(c)}', 'حل تحدي في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
       <button class="btn2 ghost" onclick="chShareImage()">شارك كصورة</button>
     </div>`;
   }
-  h += `</div></div>${chIsToday(c) ? '<div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>' : '<div class="note">هذا أحدث تحدٍ منشور بتاريخه الظاهر أعلاه — لا يوجد تحدٍ جديد اليوم بعد.</div>'}`;
+  h += `</div></div>${c !== CHALLENGES[0] ? '<div class="note">هذا تحدٍ سابق من أرشيف التحديات المنشورة، بتاريخه الظاهر أعلاه.</div>' : chIsToday(c) ? '<div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>' : '<div class="note">هذا أحدث تحدٍ منشور بتاريخه الظاهر أعلاه — لا يوجد تحدٍ جديد اليوم بعد.</div>'}`;
   return h + '<div class="quiz">' + chArchive() + '</div>';
 }
 function chHist() { return jget('saad.chhist.v1', []); }
@@ -892,12 +895,14 @@ function chArchive() {
   const h = chHist();
   const rows = h.length ? h.map((x) => '<div class="chrow"><span>' + esc(x.d || x.iso) + '</span><b class="' + (x.ok ? 'ok' : 'no') + '">' + (x.ok ? 'صحيحة ✓' : 'غير صحيحة ✗') + '</b></div>').join('') : '<div class="dim" style="font-size:13px">لسه ما حليتش أي تحدي — نتيجتك هتتسجل هنا على جهازك.</div>';
   const older = CHALLENGES.length > 1 ? '' : '<div class="dim" style="font-size:12px;margin-top:8px">التحديات السابقة هتظهر هنا لما يتنشر تحدي جديد.</div>';
-  return '<div class="qcard chhist"><div class="qhead">أرشيف تحدياتك ونتائجك</div>' + rows + older + '</div>';
+  const others = CHALLENGES.filter((c) => c !== chCur);
+  const list = others.length ? '<div class="qcard chhist"><div class="qhead">التحديات المنشورة</div>' + others.map((c) => '<a class="chrow" style="text-decoration:none;color:inherit" href="' + chHash(c) + '"><span>' + esc(c.date || c.iso || '') + ' · ' + esc(c.title) + '</span><b>' + (c === CHALLENGES[0] ? 'الأحدث' : 'فتح') + '</b></a>').join('') + '</div>' : '';
+  return list + '<div class="qcard chhist"><div class="qhead">أرشيف تحدياتك ونتائجك</div>' + rows + older + '</div>';
 }
 function chAnswer(oi) {
   if (window._chDone) return;
   window._chDone = true;
-  const c = CHALLENGES[0];
+  const c = chCur || CHALLENGES[0];
   chSaveResult(c, oi === c.a);
   if (oi === c.a) { unlock('challenge'); if (getAch().master) unlock('cert'); }
   if (oi !== c.a) addMistake({ q: c.q, your: c.o[oi], right: c.o[c.a], exT: c.exT, exE: c.exE, skill: c.cat, from: '#/challenge' });
@@ -920,7 +925,7 @@ function chImgBlob() {
     const img = new Image();
     img.onload = () => { try { const cv = document.createElement('canvas'); cv.width = cv.height = 1080; cv.getContext('2d').drawImage(img, 0, 0); cv.toBlob((b) => b ? res(b) : rej(new Error('blob')), 'image/png'); } catch (e) { rej(e); } };
     img.onerror = () => rej(new Error('img'));
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chImgSvg(CHALLENGES[0]));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chImgSvg(chCur || CHALLENGES[0]));
   });
 }
 function chShareImage() {
@@ -1144,7 +1149,7 @@ function route() {
   else if (p[0] === 'bk') html = bookExtra(p[1], +p[2]);
   else if (p[0] === 'book') html = book();
   else if (p[0] === 'saved') html = saved();
-  else if (p[0] === 'challenge') html = challenge();
+  else if (p[0] === 'challenge') html = challenge(p[1]);
   else if (p[0] === 'diagnostic') html = diag();
   else if (p[0] === 'certificate') html = certificate();
   else if (p[0] === 'v' && p[1]) html = watchSample(p[1]);
