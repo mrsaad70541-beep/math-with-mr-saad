@@ -550,3 +550,7 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 .fcard .fd{font-size:13.5px;line-height:1.7;color:var(--mut)}
 .fcard .ftags{font-size:12px;color:var(--mut);margin-top:2px}
 .fcard .fbtns{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.labframe{width:100%;height:min(70vh,520px);border:0;border-radius:var(--r-sm);background:#fff;display:block}
+.labstage:fullscreen .labframe,#labStage:fullscreen .labframe{height:calc(100vh - 56px)}
+#labStage.labfs{position:fixed;inset:0;z-index:50;margin:0;border-radius:0;overflow:auto}
+#labStage.labfs .labframe{height:calc(100vh - 60px)}
