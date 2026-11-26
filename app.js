@@ -763,6 +763,26 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
   var REMOTE = 'https://secureadmin.mrsaad70541.workers.dev/api/public/content';
   var TIMEOUT_MS = 3500;
   var YT = /^[A-Za-z0-9_-]{6,15}$/;
+  /* Allowlist sanitizer for CMS-entered HTML/MathML (structure tags only). */
+  function sanHTML(str) {
+    if (typeof DOMParser === 'undefined') return String(str == null ? '' : str);
+    var ALLOW = { MATH: 1, MROW: 1, MSUP: 1, MSUB: 1, MSUBSUP: 1, MFRAC: 1, MSQRT: 1, MROOT: 1, MO: 1, MN: 1, MI: 1, MTEXT: 1, MSPACE: 1, MSTYLE: 1, MUNDER: 1, MOVER: 1, MUNDEROVER: 1, MTABLE: 1, MTR: 1, MTD: 1, SPAN: 1, B: 1, STRONG: 1, I: 1, EM: 1, U: 1, BR: 1, DIV: 1, P: 1, SUB: 1, SUP: 1 };
+    var ATTR = { DIR: 1, CLASS: 1, MATHVARIANT: 1, DISPLAY: 1 };
+    var doc = new DOMParser().parseFromString('<div>' + String(str == null ? '' : str) + '</div>', 'text/html');
+    (function walk(node) {
+      var kids = [].slice.call(node.childNodes);
+      for (var i = 0; i < kids.length; i++) {
+        var k = kids[i];
+        if (k.nodeType === 1) {
+          if (!ALLOW[k.tagName]) { var t = document.createTextNode(k.textContent || ''); node.replaceChild(t, k); continue; }
+          var attrs = [].slice.call(k.attributes);
+          for (var j = 0; j < attrs.length; j++) { if (!ATTR[attrs[j].name.toUpperCase()]) k.removeAttribute(attrs[j].name); }
+          walk(k);
+        } else if (k.nodeType !== 3) { node.removeChild(k); }
+      }
+    })(doc.body);
+    return doc.body.firstChild.innerHTML;
+  }
   function payloadOf(it) {
     var p = it.payload;
     if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { return null; } }
@@ -846,13 +866,15 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           applied++;
         } else if (it.type === 'quiz') {
           if (!p.id || !Array.isArray(p.questions) || !p.questions.length) return;
-          QUIZSETS[p.id] = { title: p.title || it.title, skill: p.skill || '', questions: p.questions };
+          var sani = function (q) { return { q: sanHTML(q.q), o: (Array.isArray(q.o) ? q.o : []).map(sanHTML), a: (typeof q.a === 'number' ? q.a : 0), exT: typeof q.exT === 'string' ? q.exT : '', exE: sanHTML(q.exE) }; };
+          QUIZSETS[p.id] = { title: String(p.title || it.title || '').slice(0, 200), skill: String(p.skill || '').slice(0, 120), questions: p.questions.map(sani).filter(function (q) { return q.q && q.o.length; }) };
+          if (!QUIZSETS[p.id].questions.length) { delete QUIZSETS[p.id]; return; }
           applied++;
         } else if (it.type === 'challenge') {
           if (!p.id || !p.q || !Array.isArray(p.o) || !p.o.length) return;
-          var nc = { id: p.id, date: p.date || '', iso: p.iso || '', title: p.title || it.title,
-            q: p.q, o: p.o, a: (typeof p.a === 'number' ? p.a : 0), exT: p.exT || '', exE: p.exE || '',
-            level: p.level || '', cat: p.cat || '' };
+          var nc = { id: p.id, date: p.date || '', iso: p.iso || '', title: String(p.title || it.title || '').slice(0, 200),
+            q: sanHTML(p.q), o: p.o.map(sanHTML), a: (typeof p.a === 'number' ? p.a : 0), exT: typeof p.exT === 'string' ? p.exT : '', exE: sanHTML(p.exE),
+            level: String(p.level || '').slice(0, 60), cat: String(p.cat || '').slice(0, 60) };
           var ci = CHALLENGES.findIndex(function (c) { return c.id === p.id; });
           if (ci >= 0) CHALLENGES[ci] = nc; else CHALLENGES.unshift(nc);
           applied++;
