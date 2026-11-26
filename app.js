@@ -934,7 +934,7 @@ function bookHtml() {
   return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">الكتاب التفاعلي — نموذج</div>
   <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.max(bkGet('maxp', 0), bp + 1)} من ${BOOK.length} صفحات</span></div>
   <div class="bookpg" style="zoom:${bkZ()}">
-    <div class="ptag">وحدة قوى القوى · الصف الثالث الإعدادي · صفحة ${bp + 1} من ${BOOK.length}</div>
+    <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${BOOK.length}</div>
     <h3>${pg.t}</h3>
     <p>${pg.p}</p>
     <div class="f eqwrap">${pg.f}</div>
@@ -1308,6 +1308,13 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var iids = ['manhag', 'leh', 'qudurat', 'test', 'book', 'lab', 'diagnostic', 'files'];
           var il = function (a) { return (Array.isArray(a) ? a : []).filter(function (x) { return iids.indexOf(x) >= 0; }); };
           HOMECFG = { order: ord, hide: hl(p.hide), soon: hl(p.soon), hideItems: il(p.hideItems), soonItems: il(p.soonItems) };
+          applied++;
+        } else if (it.type === 'book') {
+          if (typeof p.t !== 'string' || !p.t.trim() || typeof p.p !== 'string' || !p.p.trim() || !it.id) return;
+          var bpg = { cid: String(it.id), t: esc(p.t.slice(0, 120)), p: esc(p.p.slice(0, 1500)),
+            f: '<span dir="ltr">' + esc(String(p.ft || '').slice(0, 200)) + '</span>', ex: esc(String(p.ex || '').slice(0, 300)) };
+          var bi = BOOK.findIndex(function (x) { return x.cid === bpg.cid; });
+          if (bi >= 0) BOOK[bi] = bpg; else BOOK.push(bpg);
           applied++;
         } else if (it.type === 'section') {
           if (p.track === 'qudurat' || p.track === 'leh') {
