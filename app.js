@@ -1175,7 +1175,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
       // current route's entity was withdrawn, even over the player-iframe guard.
       if (applied > 0 && alreadyRouted && (currentRouteGone() || safeToRerender())) route();
       var wantQ = (location.hash.match(/^#\/test\/([^/?]+)/) || [])[1];
-      if (wantQ && wantQ !== '_mistakes' && QUIZSETS[wantQ] && (!qState || qState.id !== wantQ) && safeToRerender()) route();
+      if (wantQ && wantQ !== '_mistakes' && QUIZSETS[wantQ] && (!qState || (qState.id !== wantQ && qState.i === 0 && !qState.locked && !(qState.score > 0)))) route();
     })
     .catch(function () { clearTimeout(to); if (window.__resolveInitialRoute) window.__resolveInitialRoute(); /* bundled content stands */ });
 })();
