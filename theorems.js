@@ -644,7 +644,8 @@ window.THEO = (function () {
     compute(); sync();
     // سجل الملاحظات
     const rec = document.getElementById('thRec'), tbl = document.getElementById('thObs'), concl = document.getElementById('thConcl');
-    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + mxh(o.txt) + '</span></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; if (obs.length >= 3) document.getElementById('thGo').disabled = false; }
+    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + mxh(o.txt) + '</span><button type="button" class="th-del" data-i="' + i + '" aria-label="حذف الحالة ' + toAr(i + 1, 0) + '">حذف</button></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; document.getElementById('thGo').disabled = obs.length < 3; if (obs.length < 3) concl.hidden = true; }
+    tbl.onclick = (e) => { const b = e.target.closest('.th-del'); if (!b) return; obs.splice(+b.dataset.i, 1); renderObs(); };
     rec.onclick = () => {
       if (!last || !last.eq.length) { toastMsg('الشرط غير متحقق الآن، لا فائدة من تسجيل هذه الحالة'); return; }
       const key = last.rows.map((r) => (typeof r[1] === 'number' ? toAr(r[1], 1) : r[1])).join('|');
@@ -654,7 +655,7 @@ window.THEO = (function () {
       obs.push({ key, txt });
       renderObs();
     };
-    document.getElementById('thGo').onclick = () => { concl.hidden = false; concl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+    document.getElementById('thGo').onclick = () => { const pc = document.getElementById('thPredCmp'); if (pc) { const pi = window.__thPred; pc.textContent = pi == null ? 'لم تسجّل توقّعًا قبل التجربة.' : (pi === m.a ? 'توقّعك كان: ' + m.opts[pi] + ' وهو يتفق مع ما لاحظت.' : 'توقّعك كان: ' + m.opts[pi] + '، والملاحظات تشير إلى: ' + m.opts[m.a] + '.'); } concl.hidden = false; concl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
     document.getElementById('thReset').onclick = () => mount(host, m);
     return { P, compute, get last() { return last; } };
   }
@@ -683,22 +684,35 @@ window.THEO = (function () {
     const m = M.find((x) => x.id === id); if (!m) return home();
     return '<a class="back" href="#/theorems">‹ اكتشف النظرية بنفسك</a><div class="section-title">' + esc(m.title) + '</div>' +
       '<div class="th-meta">' + GR[m.g] + ' · ' + esc(m.lesson) + '</div>' +
+      '<div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
       '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
       '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
       '<div class="labcard obs"><span class="labtag">٣ · لاحظ</span><div id="thRows" class="th-rows"></div><div class="th-rec"><button class="btn2 sm" id="thRec" type="button">سجّل هذه الحالة</button><span id="thCount">٠ / ٣</span></div><div id="thObs" class="th-obs"></div><button class="btn2 sm" id="thGo" type="button" disabled>٤ · استنتج (بعد ٣ حالات مختلفة)</button></div>' +
-      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p><b>' + mxh(m.claim) + '</b></p><p>' + mxh(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + mxh(m.proof) + '</p></div>';
+      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p id="thPredCmp" class="dim"></p><p><b>' + mxh(m.claim) + '</b></p><p>' + mxh(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + mxh(m.proof) + '</p></div>';
   }
   function after(p) {
     if (p[0] !== 'theorem' || !p[1]) return;
     const m = M.find((x) => x.id === p[1]); if (!m) return;
     const host = document.getElementById('thHost'); if (!host) return;
     mount(host, m);
+    window.__thPred = null;
+    const tb = document.getElementById('thTeach');
+    tb.onclick = () => { const on = document.body.classList.toggle('th-teach'); tb.textContent = on ? 'إنهاء وضع المعلم' : 'وضع المعلم'; const st = document.querySelector('.labcard.stage'); if (on && st && st.requestFullscreen) { st.requestFullscreen().catch(() => {}); } else if (!on && document.fullscreenElement) document.exitFullscreen(); };
+    document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('th-teach')) { document.body.classList.remove('th-teach'); tb.textContent = 'وضع المعلم'; } }, { once: true });
+    document.getElementById('thShare').onclick = () => { const u = location.href, t = m.title; if (navigator.share) navigator.share({ title: t, url: u }).catch(() => {}); else if (navigator.clipboard) navigator.clipboard.writeText(u).then(() => toastMsg('نُسخ رابط النظرية')); else toastMsg(u); };
+    document.getElementById('thSheet').onclick = () => {
+      const w = window.open('', '_blank'); if (!w) { toastMsg('اسمح بالنوافذ المنبثقة لتصدير الورقة'); return; }
+      const rows = [...document.querySelectorAll('#thObs .th-or span')].map((x) => '<li>' + esc(x.textContent) + '</li>').join('');
+      const blank = (n) => Array.from({ length: n }, () => '<div class="ln"></div>').join('');
+      w.document.write('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>ورقة عمل</title><style>@page{size:A4;margin:16mm}body{font-family:Tahoma,Arial,sans-serif;color:#102B49;font-size:14px}h1{font-size:20px;border-bottom:2px solid #b8860b;padding-bottom:6px}h2{font-size:15px;margin:16px 0 6px}.ln{border-bottom:1px solid #999;height:26px}.m{color:#555}li{margin:3px 0}.o{display:inline-block;margin:0 0 0 18px}</style><body><h1>' + esc(m.title) + '</h1><div class="m">' + esc(GR[m.g]) + ' · ' + esc(m.lesson) + ' · الاسم: ................ التاريخ: ........</div><h2>١ · توقّع</h2><div>' + esc(m.q) + '</div><div>' + m.opts.map((o) => '<span class="o">☐ ' + esc(o) + '</span>').join('') + '</div><h2>٢ · جرّب</h2><div class="m">' + esc(m.cond) + '</div><h2>٣ · لاحظ (الحالات المسجّلة)</h2>' + (rows ? '<ol>' + rows + '</ol>' : blank(4)) + '<h2>٤ · استنتج بكلماتك</h2>' + blank(4) + '<h2>٥ · طبّق</h2>' + blank(4) + '<script>onload=function(){setTimeout(function(){print()},300)}<\/script></body></html>');
+      w.document.close();
+    };
     const opts = document.getElementById('thOpts'), fb = document.getElementById('thFb');
     opts.onclick = (e) => {
       const b = e.target.closest('button'); if (!b) return; const i = +b.dataset.i;
       opts.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
       b.classList.add('on'); fb.hidden = false;
-      fb.textContent = i === m.a ? 'توقّع ممتاز. تأكّد منه بالتجربة بالأسفل.' : 'توقّع مقبول، لكن لنختبره: جرّب وراقب ثم احكم بنفسك.';
+      window.__thPred = i; fb.textContent = 'سُجّل توقّعك. جرّب الآن، وسنقارنه بالنتيجة بعد الاستنتاج.';
     };
   }
   return { models: M, home, page, after, GR, util: { ang, dist, polyArea, isConvex } };
