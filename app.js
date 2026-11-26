@@ -401,6 +401,7 @@ function watch(gid, li, vi) {
   setLast(u, v.n);
   const next = l.videos[vi + 1];
   const nu = next && next.yt ? `#/g/${g.id}/l/${li}/v/${vi + 1}` : null;
+  setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
   return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a>
   <div class="section-title">${esc(v.n)}</div>
   <div class="playerwrap"><iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${v.yt}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
@@ -410,7 +411,6 @@ function watch(gid, li, vi) {
     ${nu ? `<a class="nextbtn" href="${nu}">المهارة التالية ‹</a>` : ''}
   </div>
   <div id="vtools" class="vtools" hidden></div><div id="vnext" class="vnextcard" hidden></div>`;
-  setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
 }
 function saved() {
   const s = getSaved();
