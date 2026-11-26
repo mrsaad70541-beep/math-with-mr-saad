@@ -72,6 +72,8 @@ LEH_CATS.forEach((c) => SEARCH.push({ t: c + ' — ليه؟', u: '#/t/leh' }));
 SEARCH.push({ t: 'القدرات الكمي — المنهج السعودي', u: '#/t/qudurat' });
 SEARCH.push({ t: 'ليه؟ — رياضيات عامة', u: '#/t/leh' });
 CHALLENGES.forEach((c) => SEARCH.push({ t: 'تحدي اليوم: ' + c.title, u: '#/challenge' }));
+SEARCH.push({ t: 'مكتبة الملفات', u: '#/files' });
+LIB_CATS.forEach((c) => SEARCH.push({ t: c.n + ' — مكتبة الملفات', u: '#/files/' + c.id }));
 SEARCH.push({ t: 'مختبر الرياضيات — تجارب تفاعلية', u: '#/lab' });
 LAB.EXPERIMENTS.forEach((e) => SEARCH.push({ t: 'تجربة: ' + e.title + ' — مختبر الرياضيات', u: '#/lab/' + e.id }));
 SEARCH.push({ t: 'الكتاب التفاعلي — نموذج قوى القوى', u: '#/book' });
@@ -146,7 +148,7 @@ function home() {
     <a class="tile" href="#/test"><span class="ic" style="background:#e0f5f1">${IC.quiz}</span><span class="name">الاختبارات والتدريبات</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/book"><span class="ic" style="background:#fdf3d8">${IC.book}</span><span class="name">الكتاب التفاعلي</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/lab"><span class="ic" style="background:#efeafc">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st on2">متاح الآن</span></a>
-    <a class="tile" href="#/soon"><span class="ic" style="background:#e7f0fd">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">قريبًا</span></a>
+    <a class="tile" href="#/files"><span class="ic" style="background:#e7f0fd">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">بانتظار المحتوى</span></a>
   </div></div>
   <div class="section-title">أحدث المحتويات</div>`;
   const latest = [];
@@ -390,6 +392,42 @@ function account() {
 }
 
 /* ===== router ===== */
+function fileCard(f) {
+  return `<div class="fcard">
+    <div class="fic">${IC.folder}</div>
+    <div class="fmeta">
+      <div class="ft">${esc(f.title)}</div>
+      <div class="fd">${esc(f.desc || '')}</div>
+      <div class="ftags">${esc(f.grade || '')}${f.subject ? ' · ' + esc(f.subject) : ''}${f.added ? ' · أضيف ' + esc(f.added) : ''}</div>
+    </div>
+    <div class="fbtns">
+      <a class="btn2 sm" href="${esc(f.url)}" target="_blank" rel="noopener">معاينة</a>
+      ${f.allowDownload ? `<a class="btn2 sm ghost" href="${esc(f.url)}" download>تحميل</a>` : ''}
+      <button class="btn2 sm ghost" onclick="shareLink('${esc(f.title)}', '${esc(f.url)}', '')">مشاركة</button>
+    </div>
+  </div>`;
+}
+function filesHome() {
+  let h = '<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">مكتبة الملفات</div>';
+  h += '<p class="dim labintro">أوراق عمل واختبارات وملخصات للمعلم والطالب. تُعرض هنا الملفات المعتمدة للنشر فقط.</p>';
+  h += '<div class="labgrid">';
+  LIB_CATS.forEach((c) => {
+    const n = LIB_FILES.filter((f) => f.cat === c.id).length;
+    h += `<a class="labitem" href="#/files/${c.id}"><span class="ic">${IC.folder}</span><span class="lt">${esc(c.n)}</span><span class="go">${n ? toArNum(n) + ' ملف' : 'فارغ حاليًا'}</span></a>`;
+  });
+  h += '</div></div>';
+  return h;
+}
+function filesCat(id) {
+  const c = LIB_CATS.find((x) => x.id === id);
+  if (!c) return filesHome();
+  const files = LIB_FILES.filter((f) => f.cat === id);
+  let h = `<a class="back" href="#/files">‹ مكتبة الملفات</a><div class="section-title">${esc(c.n)}</div>`;
+  if (!files.length) {
+    h += `<div class="labcard"><p class="dim" style="text-align:center;padding:18px 0">لا توجد ملفات منشورة في هذا التصنيف بعد.<br>تُضاف الملفات هنا بعد اعتمادها للنشر.</p></div>`;
+  } else files.forEach((f) => { h += fileCard(f); });
+  return h;
+}
 function route() {
   const p = location.hash.replace(/^#\//, '').split('/').filter(Boolean);
   let html;
@@ -403,6 +441,8 @@ function route() {
   else if (p[0] === 'book') html = book();
   else if (p[0] === 'saved') html = saved();
   else if (p[0] === 'challenge') html = challenge();
+  else if (p[0] === 'files' && p[1]) html = filesCat(p[1]);
+  else if (p[0] === 'files') html = filesHome();
   else if (p[0] === 'lab' && p[1]) html = LAB.labExp(p[1]);
   else if (p[0] === 'lab') html = LAB.labHome();
   else if (p[0] === 'mistakes') html = mistakes();
