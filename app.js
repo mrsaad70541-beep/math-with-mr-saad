@@ -10,6 +10,22 @@ function applyTheme() {
 }
 applyTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+/* ===== scroll memory + connection feedback (brief §4) ===== */
+const scrollMem = {};
+const navStack = [location.hash];
+let navIdx = 0;
+window.addEventListener('scroll', () => { scrollMem[location.hash] = window.scrollY; }, { passive: true });
+function trackNav() {
+  const h = location.hash;
+  if (navStack[navIdx] === h) return scrollMem[h] || 0;
+  if (navStack[navIdx - 1] === h) navIdx--;
+  else if (navStack[navIdx + 1] === h) navIdx++;
+  else { navStack.length = navIdx + 1; navStack.push(h); navIdx++; }
+  return scrollMem[h] || 0;
+}
+window.addEventListener('offline', () => toast('انقطع الاتصال بالإنترنت — المحتوى المحفوظ على جهازك يفضل شغال'));
+window.addEventListener('online', () => toast('رجع الاتصال بالإنترنت'));
 function setTheme(t) { localStorage.setItem('saad.theme.v1', t); applyTheme(); route(); }
 window.setTheme = setTheme;
 
@@ -667,7 +683,9 @@ function route() {
     : (p[0] === 'saved') ? a.dataset.route === 'saved'
     : (p[0] === 'account' || p[0] === 'mistakes') ? a.dataset.route === 'account'
     : a.dataset.route === 'home' && p.length === 0));
-  window.scrollTo(0, 0);
+  const sy = trackNav();
+  window.scrollTo(0, sy);
+  if (sy) setTimeout(() => window.scrollTo(0, sy), 150);
   LAB.afterRender(p);
 }
 window.addEventListener('hashchange', route);
