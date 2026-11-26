@@ -345,3 +345,36 @@ html.dark .tbtn.on { border-color: var(--gold); color: var(--gold); }
   z-index: 60; white-space: nowrap;
 }
 .toast.show { opacity: 1; transform: translateX(50%) translateY(0); }
+
+/* ===== math lab ===== */
+.of{font-size:.6em;font-weight:600;color:var(--dim);margin:0 6px}
+.labintro{margin:2px 0 12px;font-size:13px}
+.labgrid{display:flex;flex-direction:column;gap:10px}
+.labitem{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:14px;box-shadow:var(--sh);text-decoration:none;color:var(--ink)}
+.labitem .ic{width:40px;height:40px;border-radius:12px;background:#efeafc;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.labitem .ic svg{width:22px;height:22px}
+.labitem .lt{flex:1;font-weight:700;font-size:15px}
+.labitem .go{font-size:12px;font-weight:700;color:#fff;background:var(--navy);padding:6px 12px;border-radius:999px}
+.labmore{margin-top:14px;font-size:12px;text-align:center}
+.labcard{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--sh)}
+.labcard p{margin:6px 0 0;font-size:14px;line-height:1.8}
+.labtag{display:inline-block;font-size:11px;font-weight:800;color:var(--navy);background:rgba(234,198,91,.25);padding:3px 10px;border-radius:999px}
+.labcard.obs .labtag{background:rgba(30,111,163,.15)}
+.labcard.concl .labtag{background:var(--navy);color:var(--gold)}
+.lablive{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.live-row{font-size:15px;background:var(--bg);border-radius:10px;padding:8px 12px;text-align:center}
+.live-row .gold,.gold{color:#b8860b}
+.live-row.dim,.dim{color:var(--dim)}
+.labtools{display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px}
+.btn2.sm{padding:6px 12px;font-size:12px}
+.labsvg{background:var(--bg);border-radius:12px;padding:6px}
+.labsvgel{display:block;max-height:300px}
+.labtxt{font-size:13px;font-weight:700;fill:var(--navy)}
+.labtxt.ctr{text-anchor:middle}
+.labtxt.sm2{font-size:10px}
+.labctrl{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.rng{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700}
+.rng input[type=range]{flex:1;accent-color:var(--navy)}
+.rng span{min-width:26px;text-align:center;color:#b8860b}
+.labq{margin:6px 0 0;padding:0 18px 0 0;font-size:14px;line-height:2}
+.labcard.stage:fullscreen{background:var(--bg);padding:16px;overflow:auto}
