@@ -347,7 +347,7 @@ function vpInit(yt, nu, nname, tries) {
   const fr = document.getElementById('ytframe'), tools = document.getElementById('vtools');
   if (!fr || !tools) { if ((tries || 0) < 25) setTimeout(() => vpInit(yt, nu, nname, (tries || 0) + 1), 120); return; }
   if (fr.src.indexOf(yt) < 0) return; // stale retry from a previous route
-  const saved = vpGet()[yt];
+  let saved = vpGet()[yt];
   const load = (cb) => {
     if (window.YT && window.YT.Player) return cb();
     const prev = window.onYouTubeIframeAPIReady;
@@ -360,6 +360,13 @@ function vpInit(yt, nu, nname, tries) {
       VP.pl = new window.YT.Player(fr, { events: {
         onReady: () => {
           const rates = [0.75, 1, 1.25, 1.5, 2];
+          let dur = 0; try { dur = VP.pl.getDuration() || 0; } catch (e) { dur = 0; }
+          if (saved && (!(dur > 0) || saved.t > dur - 10)) {
+            // stored position does not fit this video: drop it, no resume offer, start from 0
+            const o = vpGet(); delete o[yt]; vpSet(o);
+            if (dur > 0) { try { VP.pl.cueVideoById({ videoId: yt, startSeconds: 0 }); } catch (e) { /* ignore */ } }
+            saved = null;
+          }
           tools.hidden = false;
           tools.innerHTML = (saved && saved.t >= 5 ? '<div class="vresume">تكمل من ' + vpFmt(saved.t) + ' · <button type="button" id="vrestart">من البداية</button></div>' : '') +
             '<div class="vspeed"><span>السرعة</span>' + rates.map((r) => '<button type="button" data-r="' + r + '" class="' + (r === 1 ? 'on' : '') + '">' + String(r).replace('.', '٫') + '×</button>').join('') + '</div>';
