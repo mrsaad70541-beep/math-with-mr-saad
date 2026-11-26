@@ -365,8 +365,19 @@ function qVisual(cur) {
   return vis;
 }
 function qTimerStop() { if (qState && qState.tid) { clearInterval(qState.tid); qState.tid = 0; } }
+function qPendingReroute() {
+  const m = (location.hash.match(/^#\/test\/([^/?]+)/) || [])[1];
+  if (m && m !== '_mistakes' && (!qState || (QUIZSETS[m] && qState.id !== m && qState.i === 0 && !qState.locked && !(qState.score > 0)))) route();
+}
 function test(id) {
   qTimerStop();
+  if (id && id !== '_mistakes' && !QUIZSETS[id]) {
+    qState = null;
+    const back = '<a class="back" href="#/">‹ الرئيسية</a>';
+    if (window.__qRemote === 'ok') return back + '<div class="section-title">الاختبار غير متاح</div><div class="note">هذا الاختبار غير موجود أو تم إيقافه. يمكنك العودة للرئيسية واختيار اختبار آخر.</div><a class="btn2" href="#/test">اختبار الدرس الأساسي</a>';
+    if (window.__qRemote === 'fail') return back + '<div class="section-title">تعذّر تحميل الاختبار</div><div class="note">تأكد من اتصالك بالإنترنت ثم حاول مرة أخرى.</div><a class="btn2" href="javascript:location.reload()">إعادة المحاولة</a>';
+    return back + '<div class="section-title">جارٍ تحميل الاختبار…</div><div class="note">لحظات ونعرض الاختبار.</div>';
+  }
   let pseudo = null;
   if (id === '_mistakes') {
     const qs = [];
@@ -1167,15 +1178,15 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     .then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); })
     .then(function (d) {
       clearTimeout(to);
-      if (!d || !Array.isArray(d.items) || !d.items.length) return; // empty never wipes anything
+      if (!d || !Array.isArray(d.items) || !d.items.length) { window.__qRemote = (d && Array.isArray(d.items)) ? 'ok' : 'fail'; qPendingReroute(); return; } // empty never wipes anything
+      window.__qRemote = 'ok';
       var applied = mergeItems(d.items);
       var alreadyRouted = __initialRouteDone;
       if (window.__resolveInitialRoute) window.__resolveInitialRoute(); // gated first paint renders merged content
       // A tombstoned deep target must never keep playing: force re-render when the
       // current route's entity was withdrawn, even over the player-iframe guard.
       if (applied > 0 && alreadyRouted && (currentRouteGone() || safeToRerender())) route();
-      var wantQ = (location.hash.match(/^#\/test\/([^/?]+)/) || [])[1];
-      if (wantQ && wantQ !== '_mistakes' && QUIZSETS[wantQ] && (!qState || (qState.id !== wantQ && qState.i === 0 && !qState.locked && !(qState.score > 0)))) route();
+      qPendingReroute();
     })
-    .catch(function () { clearTimeout(to); if (window.__resolveInitialRoute) window.__resolveInitialRoute(); /* bundled content stands */ });
+    .catch(function () { clearTimeout(to); window.__qRemote = 'fail'; qPendingReroute(); if (window.__resolveInitialRoute) window.__resolveInitialRoute(); /* bundled content stands */ });
 })();
