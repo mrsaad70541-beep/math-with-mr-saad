@@ -860,6 +860,17 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     });
     return applied;
   }
+  function currentRouteGone() {
+    try {
+      var m = (location.hash || '').match(/^#\/g\/([^/]+)\/l\/(\d+)(?:\/v\/(\d+))?/);
+      if (!m) return false;
+      var g = gradeOf(m[1]); if (!g) return false;
+      var l = g.lessons[+m[2]]; if (!l) return false;
+      if (l._gone) return true;
+      if (m[3] != null) { var v = l.videos[+m[3]]; return !!v && !!v._gone; }
+      return false;
+    } catch (e) { return false; }
+  }
   function safeToRerender() {
     try {
       if (typeof qState !== 'undefined' && qState && !qState.done) return false; // quiz in progress
@@ -876,7 +887,10 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     .then(function (d) {
       clearTimeout(to);
       if (!d || !Array.isArray(d.items) || !d.items.length) return; // empty never wipes anything
-      if (mergeItems(d.items) > 0 && safeToRerender()) route();
+      var applied = mergeItems(d.items);
+      // A tombstoned deep target must never keep playing: force re-render when the
+      // current route's entity was withdrawn, even over the player-iframe guard.
+      if (applied > 0 && (currentRouteGone() || safeToRerender())) route();
     })
     .catch(function () { clearTimeout(to); /* bundled content stands */ });
 })();
