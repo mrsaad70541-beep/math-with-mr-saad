@@ -67,6 +67,13 @@ window.LAB = (function () {
       ${exp.questions && exp.questions.length ? `<div class="labcard"><span class="labtag">أسئلة استكشافية</span><ul class="labq">${exp.questions.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
     `;
   }
+  function labToggleFs(st) {
+    if (document.fullscreenElement) { document.exitFullscreen(); return; }
+    if (st.classList.contains('labfs')) { st.classList.remove('labfs'); document.getElementById('labFull').textContent = 'ملء الشاشة'; return; }
+    const fn = st.requestFullscreen || st.webkitRequestFullscreen;
+    if (fn) { try { var r = fn.call(st); if (r && r.catch) r.catch(function () { st.classList.add('labfs'); }); return; } catch (e) {} }
+    st.classList.add('labfs'); document.getElementById('labFull').textContent = 'إغلاق ملء الشاشة';
+  }
   function wireShell(exp, mountFn) {
     const host = document.getElementById('labStage');
     const run = () => {
@@ -77,8 +84,7 @@ window.LAB = (function () {
     };
     document.getElementById('labReset').onclick = run;
     document.getElementById('labFull').onclick = () => {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else if (host.requestFullscreen) host.requestFullscreen();
+      labToggleFs(host);
     };
     run();
   }
@@ -411,9 +417,7 @@ window.LAB = (function () {
     load();
     document.getElementById('labReset').onclick = load;
     document.getElementById('labFull').onclick = () => {
-      const st = document.getElementById('labStage');
-      const fn = st.requestFullscreen || st.webkitRequestFullscreen;
-      if (fn) fn.call(st); else st.classList.toggle('labfs');
+      labToggleFs(document.getElementById('labStage'));
     };
   }
   function afterRender(p) {
