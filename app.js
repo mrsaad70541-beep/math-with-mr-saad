@@ -191,6 +191,13 @@ function soon() {
 var HOME_IDS = ['paths', 'challenge', 'tools', 'latest'];
 var HOME_NAMES = { paths: 'مسارات التعلم', challenge: 'تحدي اليوم', tools: 'أدوات التعلم', latest: 'أحدث المحتويات' };
 var HOMECFG = { order: HOME_IDS.slice(), hide: [], soon: [] };
+var NOTICES = [];
+function noticesHtml() {
+  const gone = jget('saad.notice.gone', []);
+  return NOTICES.filter((n) => gone.indexOf(n.id) < 0).map((n) => `<div class="note" role="status" style="border-color:var(--gold)"><b>${n.t}</b><div>${n.x}</div><button type="button" class="btn2 sm ghost" onclick="dismissNotice('${n.id}')">إخفاء</button></div>`).join('');
+}
+function dismissNotice(id) { const g = jget('saad.notice.gone', []); if (g.indexOf(id) < 0) g.push(id); localStorage.setItem('saad.notice.gone', JSON.stringify(g.slice(-50))); if (typeof route === 'function') route(); }
+window.dismissNotice = dismissNotice;
 var HOME_ITEMS = { '#/manhag': 'manhag', '#/t/leh': 'leh', '#/t/qudurat': 'qudurat', '#/test': 'test', '#/book': 'book', '#/lab': 'lab', '#/diagnostic': 'diagnostic', '#/files': 'files' };
 function homeItems(html) {
   var hi = HOMECFG.hideItems || [], si = HOMECFG.soonItems || [];
@@ -266,7 +273,7 @@ function home() {
     if (!B[id] || cfg.hide.indexOf(id) >= 0) return;
     h += (cfg.soon.indexOf(id) >= 0) ? `<div class="section-title">${HOME_NAMES[id]}</div><div class="note">قريبًا</div>` : ((id === 'paths' || id === 'tools') ? homeItems(B[id]) : B[id]);
   });
-  return h;
+  return noticesHtml() + h;
 }
 function manhag() {
   let h = '<a class="back" href="#/">‹ رجوع</a><div class="section-title">المنهج المصري — اختر صفّك</div>';
@@ -1308,6 +1315,12 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var iids = ['manhag', 'leh', 'qudurat', 'test', 'book', 'lab', 'diagnostic', 'files'];
           var il = function (a) { return (Array.isArray(a) ? a : []).filter(function (x) { return iids.indexOf(x) >= 0; }); };
           HOMECFG = { order: ord, hide: hl(p.hide), soon: hl(p.soon), hideItems: il(p.hideItems), soonItems: il(p.soonItems) };
+          applied++;
+        } else if (it.type === 'notice') {
+          if (typeof p.text !== 'string' || !p.text.trim() || !it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id))) return;
+          var nn = { id: String(it.id), t: esc(String(it.title || '').slice(0, 120)), x: esc(p.text.slice(0, 300)) };
+          var ni = NOTICES.findIndex(function (x) { return x.id === nn.id; });
+          if (ni >= 0) NOTICES[ni] = nn; else NOTICES.push(nn);
           applied++;
         } else if (it.type === 'book') {
           if (typeof p.t !== 'string' || !p.t.trim() || typeof p.p !== 'string' || !p.p.trim() || !it.id) return;
