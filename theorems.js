@@ -428,7 +428,7 @@ window.THEO = (function () {
       const sides = [[1, Math.sqrt(3), 2], [1, 1, Math.SQRT2], [Math.sqrt(3), 1, 2]][P.sel];
       const nm = [['½', '√٣/٢', '١/√٣'], ['√٢/٢', '√٢/٢', '١'], ['√٣/٢', '½', '√٣']][P.sel];
       const s = Math.sin(t * D2R), c = Math.cos(t * D2R), tn = Math.tan(t * D2R);
-      return { rows: [['جا ' + deg(t).replace('٫٠', ''), s + '  =  ' + nm[0], 0, 0], ['جتا', c + '  =  ' + nm[1], 0, 0], ['ظا', tn + '  =  ' + nm[2], 0, 0]], eq: [[s, ex[0]], [c, ex[1]], [tn, ex[2]], [sides[0] / sides[2], s]], t, sides, nm, ex, s, c, tn };
+      return { rows: [['جا ' + toAr(t, 0) + '°', toAr(s, 3) + '  =  ' + nm[0], 0, 0], ['جتا ' + toAr(t, 0) + '°', toAr(c, 3) + '  =  ' + nm[1], 0, 0], ['ظا ' + toAr(t, 0) + '°', toAr(tn, 3) + '  =  ' + nm[2], 0, 0]], eq: [[s, ex[0]], [c, ex[1]], [tn, ex[2]], [sides[0] / sides[2], s]], t, sides, nm, ex, s, c, tn };
     },
     draw(P, d, r) { const u = 90, C = { x: 60, y: 250 }, a = r.sides, B = { x: 60 + a[1 - (P.sel === 2 ? 1 : 0)] * 0 + (P.sel === 2 ? a[1] : a[1]) * u * 0, y: 250 }; const adj = (P.sel === 2 ? 1 : (P.sel === 1 ? 1 : Math.sqrt(3))), opp = (P.sel === 2 ? Math.sqrt(3) : 1); const Bp = { x: 60 + adj * u, y: 250 }, Ap = { x: 60 + adj * u, y: 250 - opp * u }; d.poly([C, Bp, Ap]); d.rightMark(Bp, C, Ap); d.angle(Ap, C, Bp, 'θ'); },
     fmt(rw) { return rw; },
@@ -593,8 +593,9 @@ window.THEO = (function () {
       }
       placeRing();
     }
-    function sync() { gHan.querySelectorAll('circle').forEach((c) => { const k = c.getAttribute('data-h'); c.setAttribute('cx', P[k].x); c.setAttribute('cy', P[k].y); c.nextSibling.setAttribute('x', P[k].x); c.nextSibling.setAttribute('y', P[k].y + 4); }); }
+    function sync() { gHan.querySelectorAll('circle').forEach((c) => { const k = c.getAttribute('data-h'); if (!k) return; c.setAttribute('cx', P[k].x); c.setAttribute('cy', P[k].y); c.nextSibling.setAttribute('x', P[k].x); c.nextSibling.setAttribute('y', P[k].y + 4); }); }
     // أدوات التحكم
+    let tie = { checked: false };
     const ctrl = document.getElementById('thCtrl'); ctrl.innerHTML = '';
     (m.ctrl || []).forEach((c) => {
       const lab = document.createElement('label'); lab.className = 'rng';
@@ -609,7 +610,6 @@ window.THEO = (function () {
       };
       inp.oninput = upd; inp.addEventListener('change', upd); upd.call();
     });
-    let tie = { checked: false };
     if (m.tie) { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox" id="thTie" checked> ساوِ الزاويتين ب وج'; ctrl.appendChild(lb); tie = lb.querySelector('input'); tie.onchange = () => { if (tie.checked) { P.c = P.b; document.getElementById('th_c').value = P.b; document.querySelectorAll('#thCtrl label span').forEach((s, i) => { s.textContent = toAr([P.b, P.c][i], 0); }); compute(); } }; }
     (m.chk || []).forEach((c) => { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox"> ' + esc(c.label); ctrl.appendChild(lb); lb.querySelector('input').onchange = (e) => { P[c.k] = e.target.checked ? 1 : 0; compute(); }; });
     if (m.tie) { P.c = P.b; }
