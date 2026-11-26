@@ -284,9 +284,10 @@ function manhag() {
 function grade(gid) {
   const g = DATA.grades.find((x) => x.id === gid);
   let h = `<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="section-title">${esc(g.title)} — الدروس</div>`;
-  g.lessons.forEach((l, i) => {
-    if (l._gone) { h += `<div class="card"><span class="chip">${i + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`; return; }
-    h += `<a class="card" href="#/g/${g.id}/l/${i}"><span class="chip">${i + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
+  g.lessons.map((l, i) => ({ l, i })).sort((x, y) => ((x.l.ord || x.i + 1) - (y.l.ord || y.i + 1)) || (x.i - y.i)).forEach((o, pos) => {
+    const l = o.l, i = o.i;
+    if (l._gone) { h += `<div class="card"><span class="chip">${pos + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`; return; }
+    h += `<a class="card" href="#/g/${g.id}/l/${i}"><span class="chip">${pos + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
   });
   h += `<div class="note">باقي دروس الصف قريبًا</div>`;
   return h;
@@ -1249,6 +1250,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     }
     return false;
   }
+  function ordOf(p) { var o = parseInt(p && p.ord, 10); return o >= 1 && o <= 999 ? o : 0; }
   function replaceBundled(key, it, p) {
     var k = String(key || '').split(':');
     if (k[0] === 'video' && k.length === 4 && YT.test(p.yt || '') && p.n) {
@@ -1259,7 +1261,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     if (k[0] === 'lesson' && k.length === 3 && p.title) {
       var g2 = gradeOf(k[1]); if (!g2 || !g2.lessons[+k[2]]) return false;
       var old = g2.lessons[+k[2]];
-      g2.lessons[+k[2]] = { title: String(p.title).slice(0, 120),
+      g2.lessons[+k[2]] = { ord: ordOf(p), title: String(p.title).slice(0, 120),
         label: String(p.label || old.label || '').slice(0, 120),
         videos: (Array.isArray(p.videos) ? p.videos : old.videos)
           .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
@@ -1299,7 +1301,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var vids = (Array.isArray(p.videos) ? p.videos : [])
             .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
             .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt }; });
-          var nl = { title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids, cmeta: metaOf(p), term: String(p.term || '').slice(0, 80), unit: String(p.unit || '').slice(0, 80), skills: (Array.isArray(p.skills) ? p.skills : []).filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }) };
+          var nl = { ord: ordOf(p), title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids, cmeta: metaOf(p), term: String(p.term || '').slice(0, 80), unit: String(p.unit || '').slice(0, 80), skills: (Array.isArray(p.skills) ? p.skills : []).filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }) };
           if (p.quiz && QUIZSETS[p.quiz]) nl.quiz = p.quiz;
           g2.lessons.push(nl);
           SEARCH.push({ k: metaKeys(nl.cmeta) + ' ' + nl.term + ' ' + nl.unit + ' ' + nl.skills.join(' '), t: 'درس ' + nl.title + ' — ' + g2.title, u: '#/g/' + g2.id + '/l/' + (g2.lessons.length - 1) });
