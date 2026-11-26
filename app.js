@@ -916,12 +916,15 @@ function mistakes() {
 /* ===== interactive book sample ===== */
 let bp = 0;
 function bkGet(k, d) { return jget('saad.book.' + k, d); }
+function bkZ() { return Math.min(1.6, Math.max(0.8, +bkGet('zoom', 1) || 1)); }
+function bookZ(d) { bkSet('zoom', Math.round((bkZ() + d) * 10) / 10); const y = window.scrollY; app.innerHTML = bookHtml(); window.scrollTo(0, y); }
+window.bookZ = bookZ;
 function bkSet(k, v) { localStorage.setItem('saad.book.' + k, JSON.stringify(v)); }
 function book() {
   const m = /^#\/book\/(\d+)/.exec(location.hash);
   const n = m ? +m[1] : (+bkGet('last', 1) || 1);
   bp = Math.min(BOOK.length - 1, Math.max(0, n - 1));
-  bkSet('last', bp + 1);
+  bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
   return bookHtml();
 }
 function bookHtml() {
@@ -929,7 +932,8 @@ function bookHtml() {
   const bms = bkGet('bm', []), isbm = bms.indexOf(bp + 1) >= 0;
   const note = (bkGet('notes', {}))[bp + 1] || '';
   return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">الكتاب التفاعلي — نموذج</div>
-  <div class="bookpg">
+  <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.max(bkGet('maxp', 0), bp + 1)} من ${BOOK.length} صفحات</span></div>
+  <div class="bookpg" style="zoom:${bkZ()}">
     <div class="ptag">وحدة قوى القوى · الصف الثالث الإعدادي · صفحة ${bp + 1} من ${BOOK.length}</div>
     <h3>${pg.t}</h3>
     <p>${pg.p}</p>
@@ -953,7 +957,7 @@ function bookHtml() {
 }
 function bookTo(n) {
   bp = Math.min(BOOK.length - 1, Math.max(0, n - 1));
-  bkSet('last', bp + 1);
+  bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
   history.replaceState(null, '', '#/book/' + (bp + 1));
   app.innerHTML = bookHtml();
   window.scrollTo(0, 0);
