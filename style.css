@@ -378,3 +378,18 @@ html.dark .tbtn.on { border-color: var(--gold); color: var(--gold); }
 .rng span{min-width:26px;text-align:center;color:#b8860b}
 .labq{margin:6px 0 0;padding:0 18px 0 0;font-size:14px;line-height:2}
 .labcard.stage:fullscreen{background:var(--bg);padding:16px;overflow:auto}
+
+/* ===== lesson metadata (spec 5) ===== */
+.lactions{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.lmeta{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--sh)}
+.lmeta h3{margin:0 0 8px;font-size:14px;font-weight:800;color:var(--navy)}
+.lmeta p{margin:0;font-size:14px;line-height:1.9}
+.objlist{margin:0;padding:0 18px 0 0;font-size:14px;line-height:2}
+.subhead{font-size:14px;font-weight:800;color:var(--navy);margin:14px 0 8px}
+.skillchips{display:flex;flex-wrap:wrap;gap:8px}
+.skillchip{font-size:12px;font-weight:700;color:var(--navy);background:rgba(234,198,91,.25);padding:5px 12px;border-radius:999px}
+.excard{background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.exq{flex:1;font-size:14px;font-weight:700;min-width:180px}
+.exsol{display:none;flex-basis:100%;font-size:14px;color:var(--ink);background:rgba(30,111,163,.08);border-radius:8px;padding:8px 12px;margin-top:4px}
+.exsol.open{display:block}
+.lessonnav{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
