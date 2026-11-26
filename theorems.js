@@ -697,7 +697,7 @@ window.THEO = (function () {
   function wireEngine(m, inst) {
     const steps = engineSteps(m), say = document.getElementById('thEngSay'), nEl = document.getElementById('thEngN'), spans = () => [...document.querySelectorAll('#thProof .th-step')];
     let i = -1, timer = null;
-    const show = (k) => { i = Math.max(-1, Math.min(steps.length - 1, k)); say.innerHTML = i < 0 ? '' : mxh(steps[i].say); nEl.textContent = i < 0 ? 'لم تبدأ' : toAr(i + 1, 0) + ' / ' + toAr(steps.length, 0); spans().forEach((x, j) => x.classList.toggle('cur', j === i)); inst.setStep(i); };
+    const show = (k) => { i = Math.max(-1, Math.min(steps.length - 1, k)); say.innerHTML = i < 0 ? '' : mxh(steps[i].say); nEl.textContent = i < 0 ? 'لم تبدأ' : toAr(i + 1, 0) + ' / ' + toAr(steps.length, 0); const hi = i < 0 ? -1 : (steps[i].proofIdx != null ? steps[i].proofIdx : (m.steps && m.steps.length ? -1 : i)); spans().forEach((x, j) => x.classList.toggle('cur', j === hi)); inst.setStep(i); };
     const stop = () => { if (timer) { clearInterval(timer); timer = null; document.getElementById('thEngPlay').textContent = 'تشغيل تلقائي'; } };
     document.getElementById('thEngNext').onclick = () => { stop(); show(i + 1); };
     document.getElementById('thEngPrev').onclick = () => { stop(); show(i - 1); };
