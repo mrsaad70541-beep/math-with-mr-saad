@@ -67,12 +67,12 @@ window.LAB = (function () {
       ${exp.questions && exp.questions.length ? `<div class="labcard"><span class="labtag">أسئلة استكشافية</span><ul class="labq">${exp.questions.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
     `;
   }
-  var labHome = null;
+  var labDockHome = null;
   function labDock(on) {
     var live = document.getElementById('labLive'), st = document.getElementById('labStage');
     if (!live || !st) return;
-    if (on && live.parentNode !== st) { labHome = live.parentNode; st.appendChild(live); }
-    else if (!on && labHome && live.parentNode === st) { labHome.appendChild(live); labHome = null; }
+    if (on && live.parentNode !== st) { labDockHome = live.parentNode; st.appendChild(live); }
+    else if (!on && labDockHome && live.parentNode === st) { labDockHome.appendChild(live); labDockHome = null; }
   }
   document.addEventListener('fullscreenchange', function () { labDock(!!document.fullscreenElement && document.fullscreenElement.id === 'labStage'); });
   function labToggleFs(st) {
