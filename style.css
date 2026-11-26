@@ -537,3 +537,6 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 .bkrow { display: block; padding: 8px 6px; border-bottom: 1px solid rgba(128,128,128,.2); text-decoration: none; color: inherit; font-size: 14px; }
 .bkrow.on { font-weight: 800; }
 .bkrow b { color: var(--gold-deep); margin-inline-end: 6px; }
+
+.bkidx .qhead, .bknote .qhead { margin-bottom: 12px; }
+.bkidx input:focus, .bknote textarea:focus { outline-offset: 0; }
