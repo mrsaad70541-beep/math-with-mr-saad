@@ -1,5 +1,6 @@
 * { box-sizing: border-box; margin: 0; }
 :root {
+  --navy-ink: var(--navy);
   /* identity */
   --navy: #102B49;
   --navy2: #1d3d63;
@@ -47,6 +48,7 @@
   --font: 'Alexandria', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
 }
 html.dark {
+  --navy-ink: #b9c6d8;
   --ok: #4ade80;
   --on-navy-mut: #9db0c8;
   --gold-ink: #3a2f10;
@@ -401,7 +403,7 @@ a.card:active { transform: scale(.99); }
 .labmore{margin-top:14px;font-size:12px;text-align:center}
 .labcard{background:var(--card);border-radius:var(--r-md);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
 .labcard p{margin:6px 0 0;font-size:14px;line-height:1.8}
-.labtag{display:inline-block;font-size:11px;font-weight:800;color:var(--navy);background:var(--gold-wash);padding:3px 10px;border-radius:var(--pill)}
+.labtag{display:inline-block;font-size:11px;font-weight:800;color:var(--navy-ink);background:var(--gold-wash);padding:3px 10px;border-radius:var(--pill)}
 .labcard.obs .labtag{background:var(--info-wash)}
 .labcard.concl .labtag{background:var(--navy);color:var(--gold)}
 .lablive{margin-top:10px;display:flex;flex-direction:column;gap:6px}
@@ -412,12 +414,12 @@ a.card:active { transform: scale(.99); }
 .btn2.sm{padding:6px 12px;font-size:12px}
 .labsvg{background:var(--bg);border-radius:var(--r-sm);padding:6px}
 .labsvgel{display:block;max-height:300px}
-.labtxt{font-size:13px;font-weight:700;fill:var(--navy)}
+.labtxt{font-size:13px;font-weight:700;fill:var(--navy-ink)}
 .labtxt.ctr{text-anchor:middle}
 .labtxt.sm2{font-size:10px}
 .labctrl{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .rng{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700}
-.rng input[type=range]{flex:1;accent-color:var(--navy)}
+.rng input[type=range]{flex:1;accent-color:var(--navy-ink)}
 .rng span{min-width:26px;text-align:center;color:var(--gold-deep)}
 .labq{margin:6px 0 0;padding:0 18px 0 0;font-size:14px;line-height:2}
 .labcard.stage:fullscreen{background:var(--bg);padding:16px;overflow:auto}
@@ -425,12 +427,12 @@ a.card:active { transform: scale(.99); }
 /* ===== lesson metadata (spec 5) ===== */
 .lactions{display:flex;gap:8px;align-items:center;margin-bottom:12px}
 .lmeta{background:var(--card);border-radius:var(--r-md);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
-.lmeta h3{margin:0 0 8px;font-size:14px;font-weight:800;color:var(--navy)}
+.lmeta h3{margin:0 0 8px;font-size:14px;font-weight:800;color:var(--navy-ink)}
 .lmeta p{margin:0;font-size:14px;line-height:1.9}
 .objlist{margin:0;padding:0 18px 0 0;font-size:14px;line-height:2}
-.subhead{font-size:14px;font-weight:800;color:var(--navy);margin:14px 0 8px}
+.subhead{font-size:14px;font-weight:800;color:var(--navy-ink);margin:14px 0 8px}
 .skillchips{display:flex;flex-wrap:wrap;gap:8px}
-.skillchip{font-size:12px;font-weight:700;color:var(--navy);background:var(--gold-wash);padding:5px 12px;border-radius:var(--pill)}
+.skillchip{font-size:12px;font-weight:700;color:var(--navy-ink);background:var(--gold-wash);padding:5px 12px;border-radius:var(--pill)}
 .excard{background:var(--bg);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .exq{flex:1;font-size:14px;font-weight:700;min-width:180px}
 .exsol{display:none;flex-basis:100%;font-size:14px;color:var(--ink);background:var(--info-wash2);border-radius:var(--r-xs);padding:8px 12px;margin-top:4px}
@@ -453,20 +455,20 @@ a.card:active { transform: scale(.99); }
 .achgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .achcard{background:var(--card);border-radius:var(--r-sm);padding:12px;box-shadow:var(--shadow);opacity:.55}
 .achcard.on{opacity:1;border:1.5px solid var(--gold)}
-.achic{width:26px;height:26px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);margin-bottom:6px}
+.achic{width:26px;height:26px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy-ink);margin-bottom:6px}
 .achcard.on .achic{background:var(--gold)}
-.achn{font-size:13px;font-weight:800;color:var(--navy)}
+.achn{font-size:13px;font-weight:800;color:var(--navy-ink)}
 .achd{font-size:11.5px;color:var(--mut);line-height:1.6;margin-top:2px}
 .achdate{font-size:10.5px;color:var(--mut);margin-top:6px}
 .goalrow{display:flex;gap:8px;align-items:center;margin-top:8px}
 .goalinput{flex:1;border:1.5px solid var(--bg);border-radius:var(--r-sm);padding:8px 12px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--ink)}
 .goalchk{display:flex;gap:8px;align-items:center;font-size:13.5px;cursor:pointer}
-.goalchk input{accent-color:var(--navy);width:16px;height:16px}
+.goalchk input{accent-color:var(--navy-ink);width:16px;height:16px}
 .goaldone{text-decoration:line-through;color:var(--mut)}
 .planrow{display:flex;margin-top:8px}
 .cert{background:var(--card);border-radius:var(--r-lg);padding:22px 18px;box-shadow:var(--shadow);text-align:center;border:2px solid var(--gold)}
 .certband{background:var(--navy);color:var(--gold);font-weight:800;border-radius:var(--r-sm);padding:8px;margin-bottom:14px}
-.certtitle{font-size:19px;font-weight:800;color:var(--navy);margin-bottom:10px}
+.certtitle{font-size:19px;font-weight:800;color:var(--navy-ink);margin-bottom:10px}
 .certline{font-size:13.5px;line-height:2;color:var(--ink)}
 .certmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin:14px 0}
 
