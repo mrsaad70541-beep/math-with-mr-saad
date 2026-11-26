@@ -1,9 +1,4 @@
 const app = document.getElementById('app');
-const math = (s) => {
-  let t = esc(String(s));
-  t = t.replace(/\^(\([^)]+\)|-?[\p{L}\p{N}]+)/gu, (_, e) => '<sup>' + (e[0] === '(' ? e.slice(1, -1) : e) + '</sup>');
-  return '<bdi class="mxq">' + t + '</bdi>';
-};
 const toArNum = (n) => String(n).replace(/[0-9]/g, (c) => '٠١٢٣٤٥٦٧٨٩'[c]);
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -188,7 +183,7 @@ function lesson(gid, li) {
   const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
   h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '#/g/${gid}/l/${li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
-  if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li>${math(o)}</li>`).join('')}</ul></div>`;
+  if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
   h += `<h3 class="subhead">شرح الدرس بالفيديو</h3>`;
   l.videos.forEach((v, vi) => {
     const u = `#/g/${g.id}/l/${li}/v/${vi}`;
@@ -196,9 +191,9 @@ function lesson(gid, li) {
       ? `<div class="vrow">${saveBtn(u, v.n)}<span class="vn">${esc(v.n)}</span><a class="play" href="${u}">${IC.play} تشغيل</a></div>`
       : `<div class="vrow"><span class="vn">${esc(v.n)}</span><a class="play off" href="#/soon">قريبًا</a></div>`;
   });
-  if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${math(meta.summary)}</p></div>`;
+  if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${meta.summary}</p></div>`;
   if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<span class="skillchip">${esc(s)}</span>`).join('')}</div></div>`;
-  if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}: ${math(e.q)} = ؟</div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol">${math(e.sol)}</div></div>`).join('')}</div>`;
+  if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq"><span class="exlabel">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}</span><span class="eqline">${e.q} = ؟</span></div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol"><span class="ot">${esc(e.solT)}</span><span class="eqline">${e.solE}</span></div></div>`).join('')}</div>`;
   if (l.quiz) h += `<a class="card quizlink" href="#/test"><span class="chip" style="background:#e0f5f1">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
   const prev = li > 0 ? g.lessons[li - 1] : null;
   const next = li < g.lessons.length - 1 ? g.lessons[li + 1] : null;
@@ -290,7 +285,7 @@ function quizHtml() {
   return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
   <div class="quiz"><div class="qcard">
     <div class="qhead">سؤال ${qState.i + 1} من ${set.questions.length}</div>
-    <div class="qtext">${cur.q}</div>
+    <div class="qtext eqwrap">${cur.q}</div>
     <div class="opts">${cur.o.map((o, oi) => `<button onclick="answer(${oi})">${o}</button>`).join('')}</div>
   </div></div>`;
 }
@@ -306,7 +301,7 @@ function answer(oi) {
     else if (bi === oi) b.classList.add('no');
   });
   if (oi === cur.a) qState.score++;
-  else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], ex: cur.ex, skill: set.skill, from: '#/test' });
+  else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], exT: cur.exT, exE: cur.exE, skill: set.skill, from: '#/test' });
   setTimeout(() => { qState.i++; qState.locked = false; app.innerHTML = quizHtml(); window.scrollTo(0, 0); }, 1100);
 }
 window.answer = answer;
@@ -441,7 +436,7 @@ function diagHtml() {
   <p class="dim labintro">${esc(DIAG.note)}</p>
   <div class="quiz"><div class="qcard">
     <div class="qhead">سؤال ${dState.i + 1} من ${qs.length} · ${esc(cur.skill)}</div>
-    <div class="qtext">${cur.q}</div>
+    <div class="qtext eqwrap">${cur.q}</div>
     <div class="opts">${cur.o.map((o, oi) => `<button onclick="diagAnswer(${oi})">${o}</button>`).join('')}</div>
   </div></div>`;
 }
@@ -458,7 +453,7 @@ function diagAnswer(oi) {
     else if (bi === oi) b.classList.add('no');
   });
   if (oi === cur.a) p.c++;
-  else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], ex: cur.ex, skill: cur.skill, from: '#/diagnostic' });
+  else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], exH: cur.ex, skill: cur.skill, from: '#/diagnostic' });
   setTimeout(() => { dState.i++; dState.locked = false; app.innerHTML = diagHtml(); window.scrollTo(0, 0); }, 1100);
 }
 window.diagAnswer = diagAnswer;
@@ -474,7 +469,7 @@ function challengeHtml(c, done, picked) {
   let h = `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">تحدي اليوم · ${esc(c.date)}</div>
   <div class="quiz"><div class="qcard">
     <div class="qhead">${esc(c.cat)} · مستوى: ${esc(c.level)}</div>
-    <div class="qtext">${esc(c.q)}</div>
+    <div class="qtext eqwrap">${c.q}</div>
     <div class="opts">${c.o.map((o, oi) => {
       let cls = '';
       if (done) { if (oi === c.a) cls = ' class="ok"'; else if (oi === picked) cls = ' class="no"'; }
@@ -483,11 +478,12 @@ function challengeHtml(c, done, picked) {
   if (done) {
     h += `<div class="explain ${picked === c.a ? 'good' : 'bad'}">
       <b>${picked === c.a ? 'إجابة صحيحة!' : 'الإجابة الصحيحة: ' + c.o[c.a]}</b>
-      <div>${math(c.ex)}</div>
+      <div class="ot">${esc(c.exT)}</div>
+      <span class="eqline">${c.exE}</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='#/challenge'">محاولة تانية</button>
-      <button class="btn2 ghost" onclick="shareLink('تحدي اليوم — رياضيات مع مستر سعد', '#/challenge', 'حل تحدي اليوم: ${esc(c.q)}')">شارك السؤال</button>
+      <button class="btn2 ghost" onclick="shareLink('تحدي اليوم — رياضيات مع مستر سعد', '#/challenge', 'حل تحدي اليوم في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
     </div>`;
   }
   h += `</div></div><div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>`;
@@ -498,7 +494,7 @@ function chAnswer(oi) {
   window._chDone = true;
   const c = CHALLENGES[0];
   if (oi === c.a) { unlock('challenge'); if (getAch().master) unlock('cert'); }
-  if (oi !== c.a) addMistake({ q: c.q, your: c.o[oi], right: c.o[c.a], ex: c.ex, skill: c.cat, from: '#/challenge' });
+  if (oi !== c.a) addMistake({ q: c.q, your: c.o[oi], right: c.o[c.a], exT: c.exT, exE: c.exE, skill: c.cat, from: '#/challenge' });
   app.innerHTML = challengeHtml(c, true, oi);
   window.scrollTo(0, 0);
 }
@@ -512,10 +508,10 @@ function mistakes() {
   ms.forEach((m, i) => {
     h += `<div class="qcard mcard">
       <div class="qhead">${esc(m.skill)}</div>
-      <div class="qtext" style="font-size:15px">${math(m.q)}</div>
-      <div class="mline bad">إجابتك: ${esc(m.your)}</div>
-      <div class="mline good">الصح: ${esc(m.right)}</div>
-      <div class="mex">${math(m.ex)}</div>
+      <div class="qtext" style="font-size:15px">${m.q}</div>
+      <div class="mline bad">إجابتك: ${m.your}</div>
+      <div class="mline good">الصح: ${m.right}</div>
+      <div class="mex">${m.exE ? `<span class="ot">${esc(m.exT || '')}</span><span class="eqline">${m.exE}</span>` : (m.exH || esc(m.ex || ''))}</div>
       <a class="btn2 ghost" href="${m.from}">إعادة المحاولة</a>
     </div>`;
   });
@@ -532,8 +528,8 @@ function bookHtml() {
     <div class="ptag">وحدة قوى القوى · الصف الثالث الإعدادي · صفحة ${bp + 1} من ${BOOK.length}</div>
     <h3>${pg.t}</h3>
     <p>${pg.p}</p>
-    <div class="f">${math(pg.f)}</div>
-    <div class="ex">${math(pg.ex)}</div>
+    <div class="f eqwrap">${pg.f}</div>
+    <div class="ex"><span class="exlabel">مثال</span><span class="eqline">${pg.ex}</span></div>
   </div>
   <div class="booknav">
     <button onclick="bookGo(-1)" ${bp === 0 ? 'disabled' : ''}>‹ السابق</button>
