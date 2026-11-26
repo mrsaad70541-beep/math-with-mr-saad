@@ -524,7 +524,7 @@ function mruns(html) {
       return part;
     }
     if (inMath) return part;
-    return part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="ltr">' + m.trim() + '</span>');
+    return part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="rtl">' + m.trim().replace(/([0-9٠-٩]+)\/([0-9٠-٩]+)/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/\^([−\-]?[0-9٠-٩]+)/g, '<sup>$1</sup>') + '</span>');
   }).join('');
 }
 function qVisual(cur) {
