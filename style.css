@@ -92,8 +92,8 @@ body {
   border-radius: 0 0 var(--r-header) var(--r-header);
 }
 #top .avatar {
-  flex: none; width: 46px; height: 46px; border-radius: 50%;
-  object-fit: cover; border: 2px solid var(--gold);
+  flex: none; width: 56px; height: 56px; border-radius: 50%;
+  object-fit: cover; object-position: 50% 30%; border: 2px solid var(--gold); background: #cfd6de;
 }
 #top .who { flex: 1; min-width: 0; }
 #top h1 { font-size: 16.5px; font-weight: 800; }
