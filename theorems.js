@@ -525,15 +525,15 @@ window.THEO = (function () {
     svg.style.touchAction = 'none';
     host.appendChild(svg);
     const gDyn = document.createElementNS(NS, 'g'), gHan = document.createElementNS(NS, 'g');
-    svg.appendChild(gDyn); svg.appendChild(gHan);
+    const gPr = document.createElementNS(NS, 'g'); gPr.setAttribute('class', 'th-pl'); svg.appendChild(gDyn); svg.appendChild(gPr); svg.appendChild(gHan);
     const P = {};
     Object.keys(m.pts || {}).forEach((k) => { P[k] = { x: m.pts[k][0], y: m.pts[k][1] }; });
     (m.ctrl || []).forEach((c) => { P[c.k] = c.v; });
     (m.chk || []).forEach((c) => { P[c.k] = 0; });
     const regular = (n) => { const t = []; for (let i = 0; i < 10; i++) t.push(-Math.PI / 2 + i * 2 * Math.PI / n); return t; };
     if (m.ring) P.th = regular(P.n);
-    const obs = []; let last = null; let editIdx = -1;
-    const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || gDyn).appendChild(e); return e; };
+    const obs = []; let last = null; let editIdx = -1; let stepIdx = -1; let tgt = gDyn;
+    const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || tgt).appendChild(e); return e; };
     const pts = (ps) => ps.map((p) => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
     const d = {
       poly(ps, alt) { el('polygon', { points: pts(ps), fill: alt ? 'rgba(184,134,11,.14)' : 'currentColor', 'fill-opacity': alt ? 1 : 0.12, stroke: alt ? '#b8860b' : 'currentColor', 'stroke-width': 2.4, 'stroke-linejoin': 'round' }); },
@@ -566,11 +566,13 @@ window.THEO = (function () {
       dots(mm, nn) { for (let i = 0; i < nn; i++) { el('rect', { x: 20, y: 20 + i * 62, width: 300, height: 52, rx: 8, fill: 'rgba(30,111,163,.1)', stroke: '#1e6fa3' }); const t = el('text', { x: 170, y: 20 + i * 62 + 20, 'text-anchor': 'middle', 'font-size': 12, fill: 'currentColor', 'font-weight': 700, direction: 'rtl', style: 'unicode-bidi:isolate' }); t.textContent = '(أ'; const sp = document.createElementNS(NS, 'tspan'); sp.setAttribute('dy', '-5'); sp.setAttribute('font-size', '9'); sp.textContent = toAr(mm, 0); t.appendChild(sp); const sp2 = document.createElementNS(NS, 'tspan'); sp2.setAttribute('dy', '5'); sp2.textContent = ')'; t.appendChild(sp2); for (let j = 0; j < mm; j++) el('circle', { cx: 170 - (mm - 1) * 16 + j * 32, cy: 20 + i * 62 + 36, r: 9, fill: '#b8860b' }); } }
     };
     const out = document.getElementById('thRows'), status = document.getElementById('thStatus');
+    function drawProof(R) { gPr.innerHTML = ''; const st = m.steps && m.steps[stepIdx]; if (st && typeof st.draw === 'function') { tgt = gPr; try { st.draw(P, d, R); } catch (e) {} tgt = gDyn; } }
     function compute() {
       const R = m.calc(P);
       gDyn.innerHTML = '';
       if (m.grid) d.grid();
       m.draw(P, d, R); gDyn.querySelectorAll('.thtag').forEach((t) => { try { let fs = +t.getAttribute('font-size') || 13, w = t.getBBox().width; if (w > 322) { const tx = t.textContent, sp = []; for (let i = 0; i < tx.length; i++) if (tx[i] === ' ') sp.push(i); if (sp.length) { const mid = sp.reduce((a, b) => (Math.abs(b - tx.length / 2) < Math.abs(a - tx.length / 2) ? b : a)); t.textContent = ''; [tx.slice(0, mid), tx.slice(mid + 1)].forEach((ln, k) => { const ts = document.createElementNS(NS, 'tspan'); ts.setAttribute('x', 170); ts.setAttribute('dy', k ? 14 : 0); ts.textContent = ln; t.appendChild(ts); }); t.setAttribute('y', 14); fs = Math.min(fs, 11.5); t.setAttribute('font-size', fs); w = t.getBBox().width; } if (w > 322) { fs = Math.max(8, fs * 322 / w); t.setAttribute('font-size', fs.toFixed(2)); } } } catch (e) {} });
+      drawProof(R);
       const bad = R.eq.filter((e) => Math.abs(e[0] - e[1]) > 0.06 * (Math.abs(e[1]) > 5 ? Math.abs(e[1]) / 5 : 1) && Math.abs(e[0] - e[1]) > 1e-6);
       let h = '';
       const dec = R.dec == null ? 1 : R.dec;
@@ -658,7 +660,7 @@ window.THEO = (function () {
     };
     document.getElementById('thGo').onclick = () => { const pc = document.getElementById('thPredCmp'); if (pc) { const pi = window.__thPred; pc.textContent = pi == null ? 'لم تسجّل توقّعًا قبل التجربة.' : (pi === m.a ? 'توقّعك كان: ' + m.opts[pi] + ' وهو يتفق مع ما لاحظت.' : 'توقّعك كان: ' + m.opts[pi] + '، والملاحظات تشير إلى: ' + m.opts[m.a] + '.'); } concl.hidden = false; concl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
     document.getElementById('thReset').onclick = () => mount(host, m);
-    return { P, compute, get last() { return last; } };
+    return { P, compute, get last() { return last; }, setStep(i) { stepIdx = i; drawProof(last || m.calc(P)); } };
   }
   function toastMsg(t) { if (window.toast) window.toast(t); }
 
@@ -689,14 +691,34 @@ window.THEO = (function () {
       '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
       '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
       '<div class="labcard obs"><span class="labtag">٣ · لاحظ</span><div id="thRows" class="th-rows"></div><div class="th-rec"><button class="btn2 sm" id="thRec" type="button">سجّل هذه الحالة</button><span id="thCount">٠ / ٣</span></div><div id="thObs" class="th-obs"></div><button class="btn2 sm" id="thGo" type="button" disabled>٤ · استنتج (بعد ٣ حالات مختلفة)</button></div>' +
-      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p id="thPredCmp" class="dim"></p><p><b>' + mxh(m.claim) + '</b></p><p>' + mxh(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + '<span id="thProof">' + m.proof.split(/(?<=[.؛])\s+/).map((t) => '<span class="th-step">' + mxh(t) + ' </span>').join('') + '</span></p><div class="th-tbar" id="thTBar" hidden><button type="button" class="btn2 ghost sm" id="thNext">كشف الخطوة التالية</button><button type="button" class="btn2 ghost sm" id="thHideAll">إخفاء الحل</button><button type="button" class="btn2 ghost sm" id="thShowAll">كشف الكل</button></div>' + (m.app ? '<div class="th-app"><span class="labtag">٦ · طبّق</span><p>' + mxh(m.app.q) + '</p><div class="th-opts" id="thAppOpts">' + m.app.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thAppFb" class="th-fb" hidden></p></div>' : '') + '</div>';
+      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p id="thPredCmp" class="dim"></p><p><b>' + mxh(m.claim) + '</b></p><p>' + mxh(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + '<span id="thProof">' + m.proof.split(/(?<=[.؛])\s+/).map((t) => '<span class="th-step">' + mxh(t) + ' </span>').join('') + '</span></p><div class="th-eng" id="thEng"><span class="labtag">البرهان خطوة خطوة</span><p id="thEngSay" class="th-say" aria-live="polite"></p><div class="th-engb"><button type="button" class="btn2 ghost sm" id="thEngPrev">السابق</button><span id="thEngN"></span><button type="button" class="btn2 ghost sm" id="thEngNext">التالي</button><button type="button" class="btn2 ghost sm" id="thEngPlay">تشغيل تلقائي</button></div></div><div class="th-tbar" id="thTBar" hidden><button type="button" class="btn2 ghost sm" id="thNext">كشف الخطوة التالية</button><button type="button" class="btn2 ghost sm" id="thHideAll">إخفاء الحل</button><button type="button" class="btn2 ghost sm" id="thShowAll">كشف الكل</button></div>' + (m.app ? '<div class="th-app"><span class="labtag">٦ · طبّق</span><p>' + mxh(m.app.q) + '</p><div class="th-opts" id="thAppOpts">' + m.app.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thAppFb" class="th-fb" hidden></p></div>' : '') + '</div>';
+  }
+  function engineSteps(m) { return m.steps && m.steps.length ? m.steps : m.proof.split(/(?<=[.؛])\s+/).map((t) => ({ say: t })); }
+  function wireEngine(m, inst) {
+    const steps = engineSteps(m), say = document.getElementById('thEngSay'), nEl = document.getElementById('thEngN'), spans = () => [...document.querySelectorAll('#thProof .th-step')];
+    let i = -1, timer = null;
+    const show = (k) => { i = Math.max(-1, Math.min(steps.length - 1, k)); say.innerHTML = i < 0 ? '' : mxh(steps[i].say); nEl.textContent = i < 0 ? 'لم تبدأ' : toAr(i + 1, 0) + ' / ' + toAr(steps.length, 0); spans().forEach((x, j) => x.classList.toggle('cur', j === i)); inst.setStep(i); };
+    const stop = () => { if (timer) { clearInterval(timer); timer = null; document.getElementById('thEngPlay').textContent = 'تشغيل تلقائي'; } };
+    document.getElementById('thEngNext').onclick = () => { stop(); show(i + 1); };
+    document.getElementById('thEngPrev').onclick = () => { stop(); show(i - 1); };
+    document.getElementById('thEngPlay').onclick = () => { if (timer) { stop(); return; } if (i >= steps.length - 1) show(-1); document.getElementById('thEngPlay').textContent = 'إيقاف'; timer = setInterval(() => { if (!document.getElementById('thEngSay')) { stop(); return; } if (i >= steps.length - 1) { stop(); return; } show(i + 1); }, 2600); };
+    show(-1);
+  }
+  function register(m) {
+    const req = ['id', 'g', 'lesson', 'title', 'claim', 'cond', 'q', 'opts', 'a', 'calc', 'draw', 'ok', 'sample', 'concl', 'proof'];
+    const missing = req.filter((k) => m[k] == null);
+    if (missing.length) return { ok: false, missing };
+    if (!GR[m.g]) return { ok: false, error: 'صف غير معروف' };
+    if (M.some((x) => x.id === m.id)) return { ok: false, error: 'المعرّف مستخدم' };
+    M.push(m); return { ok: true };
   }
   function after(p) {
     if (p[0] !== 'theorem' || !p[1]) return;
     const m = M.find((x) => x.id === p[1]); if (!m) return;
     const host = document.getElementById('thHost'); if (!host) return;
-    mount(host, m);
+    const inst = mount(host, m);
     window.__thPred = null;
+    wireEngine(m, inst);
     const tb = document.getElementById('thTeach');
     tb.onclick = () => { const on = document.body.classList.toggle('th-teach'); const steps = [...document.querySelectorAll('#thProof .th-step')], bar = document.getElementById('thTBar'); bar.hidden = !on; steps.forEach((x) => x.classList.toggle('h', on)); tb.textContent = on ? 'إنهاء وضع المعلم' : 'وضع المعلم'; const st = document.querySelector('.labcard.stage'); if (on && st && st.requestFullscreen) { st.requestFullscreen().catch(() => {}); } else if (!on && document.fullscreenElement) document.exitFullscreen(); };
     document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('th-teach')) { document.body.classList.remove('th-teach'); tb.textContent = 'وضع المعلم'; } }, { once: true });
@@ -722,5 +744,5 @@ window.THEO = (function () {
       window.__thPred = i; fb.textContent = 'سُجّل توقّعك. جرّب الآن، وسنقارنه بالنتيجة بعد الاستنتاج.';
     };
   }
-  return { models: M, home, page, after, GR, util: { ang, dist, polyArea, isConvex } };
+  return { models: M, register, home, page, after, GR, util: { ang, dist, polyArea, isConvex } };
 })();
