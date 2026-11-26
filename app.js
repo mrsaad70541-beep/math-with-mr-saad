@@ -78,7 +78,8 @@ function norm(s) {
 }
 const SEARCH = [];
 DATA.grades.forEach((g) => g.lessons.forEach((l, li) => {
-  l.videos.forEach((v, vi) => { if (v.yt) SEARCH.push({ t: `${v.n} — ${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}` }); });
+  if (l._gone) return;
+  l.videos.forEach((v, vi) => { if (v.yt && !v._gone) SEARCH.push({ t: `${v.n} — ${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}` }); });
   SEARCH.push({ t: `درس ${l.title} — ${g.title}`, u: `#/g/${g.id}/l/${li}` });
   if (l.quiz) SEARCH.push({ t: `اختبار درس ${l.title}`, u: '#/test' });
 }));
@@ -180,6 +181,7 @@ function home() {
   <div class="section-title">أحدث المحتويات</div>`;
   const latest = [];
   DATA.grades.forEach((g) => g.lessons.forEach((l, li) => l.videos.forEach((v, vi) => {
+    if (v._gone) return;
     if (v.yt) latest.push({ t: v.n, s: `${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}` });
   })));
   latest.slice(-3).reverse().forEach((x) => {
@@ -196,19 +198,24 @@ function manhag() {
 function grade(gid) {
   const g = DATA.grades.find((x) => x.id === gid);
   let h = `<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="section-title">${esc(g.title)} — الدروس</div>`;
-  g.lessons.forEach((l, i) => { h += `<a class="card" href="#/g/${g.id}/l/${i}"><span class="chip">${i + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`; });
+  g.lessons.forEach((l, i) => {
+    if (l._gone) { h += `<div class="card"><span class="chip">${i + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`; return; }
+    h += `<a class="card" href="#/g/${g.id}/l/${i}"><span class="chip">${i + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
+  });
   h += `<div class="note">باقي دروس الصف قريبًا</div>`;
   return h;
 }
 function lesson(gid, li) {
   const g = DATA.grades.find((x) => x.id === gid);
   const l = g.lessons[li];
+  if (!l || l._gone) return `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="note">هذا الدرس غير متاح حاليًا</div>`;
   const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
   h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '#/g/${gid}/l/${li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
   if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
   h += `<h3 class="subhead">شرح الدرس بالفيديو</h3>`;
   l.videos.forEach((v, vi) => {
+    if (v._gone) return;
     const u = `#/g/${g.id}/l/${li}/v/${vi}`;
     h += v.yt
       ? `<div class="vrow">${saveBtn(u, v.n)}<span class="vn">${esc(v.n)}</span><a class="play" href="${u}">${IC.play} تشغيل</a></div>`
@@ -262,6 +269,7 @@ function watch(gid, li, vi) {
   const g = DATA.grades.find((x) => x.id === gid);
   const l = g.lessons[li];
   const v = l.videos[vi];
+  if (!v || v._gone || !v.yt) return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a><div class="note">هذا المحتوى غير متاح حاليًا</div>`;
   const u = `#/g/${g.id}/l/${li}/v/${vi}`;
   setLast(u, v.n);
   const next = l.videos[vi + 1];
@@ -754,12 +762,12 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     var k = String(key || '').split(':');
     if (k[0] === 'video' && k.length === 4) {
       var g = gradeOf(k[1]); if (!g) return false;
-      var l = g.lessons[+k[2]]; if (!l || !l.videos[+k[3]]) return false;
-      l.videos.splice(+k[3], 1); return true;
+      var l = g.lessons[+k[2]]; if (!l || !l.videos[+k[3]] || l.videos[+k[3]]._gone) return false;
+      l.videos[+k[3]] = { _gone: true, n: '', yt: '' }; return true; // in-place: links never retarget
     }
     if (k[0] === 'lesson' && k.length === 3) {
-      var g2 = gradeOf(k[1]); if (!g2 || !g2.lessons[+k[2]]) return false;
-      g2.lessons.splice(+k[2], 1); return true;
+      var g2 = gradeOf(k[1]); if (!g2 || !g2.lessons[+k[2]] || g2.lessons[+k[2]]._gone) return false;
+      g2.lessons[+k[2]] = { _gone: true, title: '', label: '', videos: [] }; return true;
     }
     if (k[0] === 'quiz' && k.length === 2) {
       if (!QUIZSETS[k[1]]) return false; delete QUIZSETS[k[1]]; return true;
@@ -856,6 +864,8 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     try {
       if (typeof qState !== 'undefined' && qState && !qState.done) return false; // quiz in progress
       if (document.querySelector('#app iframe')) return false; // video player open
+      var ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.tagName === 'SELECT')) return false; // form/search in use
     } catch (e) { return false; }
     return true;
   }
