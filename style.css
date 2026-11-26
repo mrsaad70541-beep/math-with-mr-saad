@@ -440,14 +440,14 @@ a.card:active { transform: scale(.99); }
 .lessonnav{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
 
 /* ===== math rendering / achievements / diagnostic ===== */
-.eq{direction:ltr;unicode-bidi:isolate;display:inline-block;white-space:nowrap}
+.eq{direction:rtl;unicode-bidi:isolate;display:inline-block;white-space:nowrap}
 .eq math{font-family:Alexandria,'Times New Roman',serif;font-style:normal;font-weight:700;font-size:1.08em}
 /* matrices/determinants: a font with an OpenType MATH table so brackets stretch to the table height */
 .eq math:has(mtable){font-family:'Noto Sans Math',Alexandria,'Times New Roman',serif;font-weight:400}
 .eq mi{font-style:normal;unicode-bidi:isolate}
 .eq mn{font-style:normal}
 .eq msqrt{font-family:sans-serif}
-.eqline{display:block;text-align:center;margin:4px 0;direction:ltr}
+.eqline{display:block;text-align:center;margin:4px 0;direction:rtl}
 .eqwrap{direction:rtl}
 .econd{display:block;font-size:12px;color:var(--mut);margin-top:2px}
 .ot{display:block}
