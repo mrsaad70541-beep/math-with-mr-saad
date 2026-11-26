@@ -62,7 +62,7 @@ window.LAB = (function () {
         <div class="labctrl" id="labCtrl"></div>
       </div>
       <div class="labcard obs"><span class="labtag">الملاحظة</span><p id="labObs">${esc(exp.observation)}</p><div class="lablive" id="labLive"></div></div>
-      <div class="labcard concl"><span class="labtag">الاستنتاج</span><p>${esc(exp.conclusion)}</p></div>
+      <div class="labcard concl"><span class="labtag">الاستنتاج</span><p>${esc(exp.conclusion).replace(/√\(([^)]*)\)/g, '<span class="rt"><b class="rg">√</b><span class="rr">$1</span></span>')}</p></div>
       <div class="labcard"><span class="labtag">شرح مختصر</span><p>${esc(exp.explain)}</p></div>
       ${exp.questions && exp.questions.length ? `<div class="labcard"><span class="labtag">أسئلة استكشافية</span><ul class="labq">${exp.questions.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
     `;
