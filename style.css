@@ -251,9 +251,13 @@ a.card:active { transform: scale(.99); }
 .play.off { background: var(--line); color: var(--mut); }
 
 .playerwrap {
-  position: relative; padding-top: 177%; background: #000;
+  position: relative; padding-top: 177%;
+  background: #0b0f1a linear-gradient(100deg, #0b0f1a 40%, #1a2740 50%, #0b0f1a 60%);
+  background-size: 200% 100%; animation: pwload 1.4s linear infinite;
   border-radius: var(--r-lg); overflow: hidden; margin-bottom: 12px;
 }
+@keyframes pwload { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .playerwrap { animation: none; } }
 .playerwrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 
 .actionrow { display: flex; align-items: center; gap: 6px; justify-content: center; }
