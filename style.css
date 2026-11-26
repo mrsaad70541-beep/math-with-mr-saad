@@ -575,3 +575,7 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 .th-rec{display:flex;align-items:center;gap:12px;margin:10px 0 6px;font-size:13px}
 .th-or{display:flex;gap:8px;font-size:12.5px;line-height:1.7;padding:6px 0;border-top:1px solid var(--line,#e3e7ee)}
 #thGo:disabled{opacity:.45}
+
+.eq msqrt{direction:ltr;transform:scaleX(-1)}.eq msqrt>*{transform:scaleX(-1)}
+.rt{direction:rtl;unicode-bidi:isolate;display:inline-flex;align-items:flex-end}.rg{display:inline-block;transform:scaleX(-1);font-weight:400}.rr{border-top:1.5px solid currentColor;padding:0 1px}
+.labcard sup,.th-r sup,.tbtn sup{font-size:.75em;line-height:0}
