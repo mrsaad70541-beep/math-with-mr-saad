@@ -1380,7 +1380,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           if (fidx >= 0) LIB_FILES[fidx] = fobj; else LIB_FILES.push(fobj);
           applied++;
         } else if (it.type === 'experiment') {
-          if (!LAB.addCms(it)) return;
+          if (!LAB.addCms(it, p)) return;
           SEARCH.push({ t: 'تجربة: ' + String(it.title || '').slice(0, 120) + ' — مختبر الرياضيات', u: '#/lab/x-' + it.id });
           applied++;
         } else if (it.type === 'notice') {
