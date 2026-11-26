@@ -281,10 +281,10 @@ function manhag() {
   for (const g of DATA.grades) h += `<a class="card" href="#/g/${g.id}"><span class="chip">${nums[g.id] || '•'}</span><span class="txt"><h2>${esc(g.title)}</h2><div class="sub">المرحلة الإعدادية</div></span><span class="arrow">‹</span></a>`;
   return h;
 }
+function lessonOrder(g) { return g.lessons.map((l, i) => ({ l, i })).sort((x, y) => ((x.l.ord || x.i + 1) - (y.l.ord || y.i + 1)) || ((y.l.ord ? 1 : 0) - (x.l.ord ? 1 : 0)) || (x.i - y.i)); }
 function grade(gid) {
   const g = DATA.grades.find((x) => x.id === gid);
   let h = `<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="section-title">${esc(g.title)} — الدروس</div>`;
-function lessonOrder(g) { return g.lessons.map((l, i) => ({ l, i })).sort((x, y) => ((x.l.ord || x.i + 1) - (y.l.ord || y.i + 1)) || ((y.l.ord ? 1 : 0) - (x.l.ord ? 1 : 0)) || (x.i - y.i)); }
   lessonOrder(g).forEach((o, pos) => {
     const l = o.l, i = o.i;
     if (l._gone) { h += `<div class="card"><span class="chip">${pos + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`; return; }
