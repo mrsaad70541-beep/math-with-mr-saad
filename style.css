@@ -587,3 +587,4 @@ body.th-teach .th-svg{max-width:none;width:100%}
 .labcard.stage:fullscreen{background:#fff;padding:18px;overflow:auto;display:flex;flex-direction:column;justify-content:center}
 .labcard.stage:fullscreen .th-svg{max-height:70vh}
 body.th-teach .th-pred,body.th-teach .th-meta{font-size:1.1em}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;direction:rtl}.fn{border-bottom:1.5px solid currentColor;padding:0 4px}.fd{padding:0 4px}
