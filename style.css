@@ -600,3 +600,4 @@ html.dark .th-fb{color:#e6edf7}
 .th-media{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}.th-soon{font-size:12px;color:#5b6577;border:1px dashed #c9d2de;border-radius:8px;padding:4px 8px}html.dark .th-soon{color:#aab4c5;border-color:#3a4658}.th-ed{margin-inline-start:0;color:#12305c}html.dark .th-ed{color:#e8d9a8;background:transparent;border-color:#3a4658}.th-ed.on{background:#f3e3a4}
 .th-svg{max-height:min(78vh,680px)}
 @media (max-width:480px){.labcard.stage{padding-inline:8px}.labcard.stage .th-svg{margin-inline:-2px;width:calc(100% + 4px)}}
+html.dark .th-svg text.thtag.ok{fill:#7ee2a8}html.dark .th-svg text.thtag.no{fill:#ff9a93}
