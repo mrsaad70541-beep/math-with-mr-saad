@@ -342,10 +342,11 @@ function vpSet(o) { try { localStorage.setItem(VPOS, JSON.stringify(o)); } catch
 function vpStart(yt) { const p = vpGet()[yt]; return p && p.t >= 5 ? '&start=' + Math.floor(p.t) : ''; }
 function vpFmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function vpStop() { if (VP.iv) clearInterval(VP.iv); VP.iv = 0; VP.pl = null; }
-function vpInit(yt, nu, nname) {
+function vpInit(yt, nu, nname, tries) {
   vpStop();
   const fr = document.getElementById('ytframe'), tools = document.getElementById('vtools');
-  if (!fr || !tools) return;
+  if (!fr || !tools) { if ((tries || 0) < 25) setTimeout(() => vpInit(yt, nu, nname, (tries || 0) + 1), 120); return; }
+  if (fr.src.indexOf(yt) < 0) return; // stale retry from a previous route
   const saved = vpGet()[yt];
   const load = (cb) => {
     if (window.YT && window.YT.Player) return cb();
