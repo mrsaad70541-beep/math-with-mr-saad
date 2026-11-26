@@ -9,6 +9,10 @@ function applyTheme() {
   document.documentElement.classList.toggle('dark', dark);
 }
 applyTheme();
+function applyTz() { const z = +localStorage.getItem('saad.tz.v1') || 1; document.documentElement.style.setProperty('--tz', z); }
+applyTz();
+function setTz(z) { localStorage.setItem('saad.tz.v1', z); applyTz(); route(); }
+window.setTz = setTz;
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
 /* ===== scroll memory + connection feedback (brief §4) ===== */
@@ -970,6 +974,12 @@ function account() {
       <button class="tbtn ${t === 'auto' ? 'on' : ''}" onclick="setTheme('auto')">تلقائي</button>
       <button class="tbtn ${t === 'light' ? 'on' : ''}" onclick="setTheme('light')">نهاري</button>
       <button class="tbtn ${t === 'dark' ? 'on' : ''}" onclick="setTheme('dark')">ليلي</button>
+    </div>
+  </div>
+  <div class="qcard">
+    <div class="qhead">حجم النص</div>
+    <div class="themerow">
+      ${[[1, 'عادي'], [1.15, 'كبير'], [1.3, 'أكبر']].map((z) => `<button class="tbtn ${(+localStorage.getItem('saad.tz.v1') || 1) === z[0] ? 'on' : ''}" onclick="setTz(${z[0]})">${z[1]}</button>`).join('')}
     </div>
   </div>
   ${achBlock()}`;
