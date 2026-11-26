@@ -395,9 +395,16 @@ html.dark .tbtn.on { border-color: var(--gold); color: var(--gold); }
 .lessonnav{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
 
 /* ===== math rendering / achievements / diagnostic ===== */
-.mxq{unicode-bidi:isolate;direction:ltr;font-weight:700}
+.eq{direction:ltr;unicode-bidi:isolate;display:inline-block;white-space:nowrap;font-weight:700}
+.pw{display:inline-block;white-space:nowrap}
+.pw sup{font-size:.72em;line-height:0;vertical-align:baseline;position:relative;top:-.4em}
+.eqline{display:block;text-align:center;margin:4px 0;direction:ltr}
+.eqwrap{direction:rtl}
+.econd{display:block;font-size:12px;color:var(--dim);margin-top:2px}
+.ot{display:block}
+.exlabel{display:block;font-size:12px;color:var(--dim);margin-bottom:2px}
+.fsep{margin:0 6px}
 .objlist li,.lmeta p,.exq,.exsol{direction:rtl}
-.mxq sup{font-size:.7em}
 .achgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .achcard{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--sh);opacity:.55}
 .achcard.on{opacity:1;border:1.5px solid var(--gold)}
