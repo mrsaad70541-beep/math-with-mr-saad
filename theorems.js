@@ -220,7 +220,7 @@ window.THEO = (function () {
       const dg = ang(A, O, D), h1 = ang(P.B, A, C), h2 = ang(C, A, D);
       return { rows: [['أب = ب ج = ج د = د أ', r, 0, 1], ['الزاوية بين القطرين', dg, 1], ['∠ب أ ج', h1], ['∠ج أ د', h2]], eq: [[dg, 90], [h1, h2], [dist(P.B, C), dist(C, D)]], C, D, O };
     },
-    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ'); d.label(P.B, 'ب'); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); },
+    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ', -18, 16); d.label(P.B, 'ب', 14, 8); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); },
     concl: 'الزاوية بين القطرين كانت ٩٠° دائمًا، وقطر المعين نصّف الزاوية عند الرأس.',
     proof: 'البرهان: المثلثان أبج وأدج متطابقان (ثلاثة أضلاع)، فالقطر ينصف الزاوية؛ ومن مثلث متساوي الساقين يكون المنصّف عموديًا على القاعدة.'
   });
@@ -540,7 +540,7 @@ window.THEO = (function () {
       clipLine(a, b, alt) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: alt ? '#b8860b' : '#102B49', 'stroke-width': 2.4 }); },
       seg(a, b, kind) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: kind === 2 ? '#1e6fa3' : '#b8860b', 'stroke-width': kind === 2 ? 1.6 : 2.2, 'stroke-dasharray': kind === 2 ? '5 4' : '' }); },
       dot(p, big) { el('circle', { cx: p.x, cy: p.y, r: big ? 5 : 3.5, fill: '#b8860b' }); },
-      label(p, t) { const e = el('text', { x: p.x + 6, y: p.y - 6, class: 'labtxt', 'font-size': 13, 'font-weight': 700 }); e.textContent = t; },
+      label(p, t, dx, dy) { const e = el('text', { x: p.x + (dx == null ? 6 : dx), y: p.y + (dy == null ? -6 : dy), class: 'labtxt', 'font-size': 13, 'font-weight': 700 }); e.textContent = t; },
       tag(t, good) { const e = el('text', { x: 170, y: 18, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: good ? '#1a7f4b' : '#b3261e' }); e.textContent = t; },
       txt(p, t, col) {
         const c = col || '#102B49';
@@ -688,7 +688,7 @@ window.THEO = (function () {
       '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
       '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
       '<div class="labcard obs"><span class="labtag">٣ · لاحظ</span><div id="thRows" class="th-rows"></div><div class="th-rec"><button class="btn2 sm" id="thRec" type="button">سجّل هذه الحالة</button><span id="thCount">٠ / ٣</span></div><div id="thObs" class="th-obs"></div><button class="btn2 sm" id="thGo" type="button" disabled>٤ · استنتج (بعد ٣ حالات مختلفة)</button></div>' +
-      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p id="thPredCmp" class="dim"></p><p><b>' + mxh(m.claim) + '</b></p><p>' + mxh(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + mxh(m.proof) + '</p></div>';
+      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p id="thPredCmp" class="dim"></p><p><b>' + mxh(m.claim) + '</b></p><p>' + mxh(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + mxh(m.proof) + '</p>' + (m.app ? '<div class="th-app"><span class="labtag">٦ · طبّق</span><p>' + mxh(m.app.q) + '</p><div class="th-opts" id="thAppOpts">' + m.app.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thAppFb" class="th-fb" hidden></p></div>' : '') + '</div>';
   }
   function after(p) {
     if (p[0] !== 'theorem' || !p[1]) return;
@@ -707,6 +707,8 @@ window.THEO = (function () {
       w.document.write('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>ورقة عمل</title><style>@page{size:A4;margin:16mm}body{font-family:Tahoma,Arial,sans-serif;color:#102B49;font-size:14px}h1{font-size:20px;border-bottom:2px solid #b8860b;padding-bottom:6px}h2{font-size:15px;margin:16px 0 6px}.ln{border-bottom:1px solid #999;height:26px}.m{color:#555}li{margin:3px 0}.o{display:inline-block;margin:0 0 0 18px}</style><body><h1>' + esc(m.title) + '</h1><div class="m">' + esc(GR[m.g]) + ' · ' + esc(m.lesson) + ' · الاسم: ................ التاريخ: ........</div><h2>١ · توقّع</h2><div>' + esc(m.q) + '</div><div>' + m.opts.map((o) => '<span class="o">☐ ' + esc(o) + '</span>').join('') + '</div><h2>٢ · جرّب</h2><div class="m">' + esc(m.cond) + '</div><h2>٣ · لاحظ (الحالات المسجّلة)</h2>' + (rows ? '<ol>' + rows + '</ol>' : blank(4)) + '<h2>٤ · استنتج بكلماتك</h2>' + blank(4) + '<h2>٥ · طبّق</h2>' + blank(4) + '<script>onload=function(){setTimeout(function(){print()},300)}<\/script></body></html>');
       w.document.close();
     };
+    const ao = document.getElementById('thAppOpts');
+    if (ao) ao.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; const i = +b.dataset.i, f = document.getElementById('thAppFb'); ao.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); f.hidden = false; f.textContent = (i === m.app.a ? 'إجابة صحيحة. ' : 'ليست الإجابة الصحيحة. ') + (m.app.why || ''); };
     const opts = document.getElementById('thOpts'), fb = document.getElementById('thFb');
     opts.onclick = (e) => {
       const b = e.target.closest('button'); if (!b) return; const i = +b.dataset.i;
