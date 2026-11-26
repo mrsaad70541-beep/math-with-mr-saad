@@ -988,7 +988,7 @@ function bookHtml() {
   const bms = bkGet('bm', []), isbm = bms.indexOf(bp + 1) >= 0;
   const note = (bkGet('notes', {}))[bp + 1] || '';
   return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${CURBK ? esc(BOOKS[CURBK].name) : 'الكتاب التفاعلي — نموذج'}</div>
-  <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.max(bkGet('maxp', 0), bp + 1)} من ${curPages().length} صفحات</span></div>
+  <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.min(curPages().length, Math.max(bkGet("maxp", 0), bp + 1))} من ${curPages().length} صفحات</span></div>
   <div class="bookpg" style="zoom:${bkZ()}">
     <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${curPages().length}</div>
     <h3>${pg.t}</h3>
