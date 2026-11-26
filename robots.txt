@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mrsaad70541-beep.github.io/math-with-mr-saad/sitemap.xml
