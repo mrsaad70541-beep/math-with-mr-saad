@@ -521,3 +521,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .chrow b.ok { color: #4ade80; } .chrow b.no { color: #f87171; }
 
 #app { zoom: var(--tz, 1); }
+
+.bktools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0; font-size: 13px; }
+.bktools select { background: var(--navy, #102b49); color: inherit; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; padding: 4px 8px; font: inherit; }
+.bknote textarea { width: 100%; box-sizing: border-box; background: transparent; color: inherit; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; padding: 10px; font: inherit; resize: vertical; }
