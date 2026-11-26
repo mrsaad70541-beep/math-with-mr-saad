@@ -953,7 +953,7 @@ function bookHtml() {
   <div class="qcard bkidx"><div class="qhead">فهرس الكتاب والبحث فيه</div>
     <input id="bksearch" type="search" placeholder="ابحث في صفحات الكتاب…" oninput="bookSearch(this.value)" aria-label="بحث في الكتاب">
     <div id="bkres">${bookIndexHtml('')}</div></div>
-  <div class="bktools"><a class="btn2 sm ghost" href="#/g/g3/l/0">فيديوهات الدرس</a><a class="btn2 sm ghost" href="#/test/g3l1">اختبار الدرس</a></div>
+  ${pg.cid ? '' : '<div class="bktools"><a class="btn2 sm ghost" href="#/g/g3/l/0">فيديوهات الدرس</a><a class="btn2 sm ghost" href="#/test/g3l1">اختبار الدرس</a></div>'}
   <div class="qcard bknote"><div class="qhead">ملاحظتي على هذه الصفحة (محفوظة على جهازك فقط)</div>
     <textarea id="bknote" rows="3" placeholder="اكتب ملاحظتك…" oninput="bookNote(this.value)">${esc(note)}</textarea></div>
   ${bms.length ? '<div class="note">صفحاتك المُشار إليها: ' + bms.slice().sort((x, y) => x - y).map((x) => '<a href="#/book/' + x + '">' + x + '</a>').join(' · ') + '</div>' : ''}
