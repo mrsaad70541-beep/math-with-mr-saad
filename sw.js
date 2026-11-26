@@ -1,6 +1,6 @@
-const C = 'saad-public-v105';
+const C = 'saad-public-v106';
 self.addEventListener('install', (e) => e.waitUntil(
-  caches.open(C).then((c) => c.addAll(['./','./index.html','./style.css?v=40','./data.js?v=10','./lab.js?v=12','./theorems.js?v=18','./app.js?v=70','./manifest.webmanifest','./icon.svg','./favicon.svg'])).then(() => self.skipWaiting())
+  caches.open(C).then((c) => c.addAll(['./','./index.html','./style.css?v=41','./data.js?v=10','./lab.js?v=12','./theorems.js?v=19','./app.js?v=70','./manifest.webmanifest','./icon.svg','./favicon.svg'])).then(() => self.skipWaiting())
 ));
 self.addEventListener('activate', (e) => e.waitUntil(
   caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== C).map((k) => caches.delete(k)))).then(() => self.clients.claim())
