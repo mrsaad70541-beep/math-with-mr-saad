@@ -44,7 +44,7 @@ function addMistake(m) {
 }
 
 /* ===== share (real links) ===== */
-function fullUrl(u) { return location.origin + location.pathname + u; }
+function fullUrl(u) { return /^https?:\/\//.test(u) ? u : location.origin + location.pathname + u; }
 function shareLink(title, u, text) {
   const url = fullUrl(u);
   const body = (text || title) + '\n' + url;
@@ -72,6 +72,7 @@ QUDURAT_CHAPTERS.forEach((c) => SEARCH.push({ t: c + ' — القدرات الك
 LEH_CATS.forEach((c) => SEARCH.push({ t: c + ' — ليه؟', u: '#/t/leh' }));
 SEARCH.push({ t: 'القدرات الكمي — المنهج السعودي', u: '#/t/qudurat' });
 SEARCH.push({ t: 'ليه؟ — رياضيات عامة', u: '#/t/leh' });
+SEARCH.push({ t: LEH_SAMPLE.n + ' — ليه؟ (نموذج)', u: '#/v/' + LEH_SAMPLE.yt });
 CHALLENGES.forEach((c) => SEARCH.push({ t: 'تحدي اليوم: ' + c.title, u: '#/challenge' }));
 SEARCH.push({ t: 'اكتشف مستواك — اختبار تشخيصي', u: '#/diagnostic' });
 SEARCH.push({ t: 'إنجازاتي', u: '#/account' });
@@ -117,6 +118,11 @@ function shareBtn(title, u, text) {
 }
 
 /* ===== pages ===== */
+function soon() {
+  return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">قريبًا</div>
+  <div class="qcard"><div class="qhead">هذه الميزة قيد التجهيز</div>
+  <p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">شغالين على تجهيزها وهتتاح هنا أول ما تخلص. المتاح حاليًا: دروس المنهج المصري والاختبارات والمختبر والكتاب التجريبي وتحدي اليوم — كلها من الصفحة الرئيسية.</p></div>`;
+}
 function home() {
   const last = getLast();
   const ch = CHALLENGES[0];
@@ -138,12 +144,12 @@ function home() {
   <div class="section-title">مسارات التعلم</div>
   <div class="trio">
     <a class="p1" href="#/manhag"><span class="ic">${IC.cap}</span><h3>المنهج المصري</h3><span class="st on">متاح الآن</span></a>
-    <a class="p2" href="#/t/leh"><span class="ic">${IC.bulb}</span><h3>ليه؟</h3><span class="st">قريبًا</span></a>
+    <a class="p2" href="#/t/leh"><span class="ic">${IC.bulb}</span><h3>ليه؟</h3><span class="st on2">نموذج متاح</span></a>
     <a class="p3" href="#/t/qudurat"><span class="ic">${IC.sigma}</span><h3>القدرات الكمي</h3><span class="st">قريبًا</span></a>
   </div>
   <a class="chcard" href="#/challenge">
     <span class="ic">${IC.target}</span>
-    <span class="txt"><span class="lbl">تحدي اليوم · ${esc(ch.date)}</span><span class="t">${esc(ch.title)}</span></span>
+    <span class="txt"><span class="lbl">${chLabel(ch)} · ${esc(ch.date)}</span><span class="t">${esc(ch.title)}</span></span>
     <span class="go">ابدأ التحدي</span>
   </a>
   <div class="section-title">أدوات التعلم</div>
@@ -215,6 +221,7 @@ function track(tid) {
     });
     h += `<div class="note">مكتبة القدرات جاهزة التنظيم حسب أبواب الكتاب المعتمد — الفيديوهات هتتضاف هنا أول ما تتنشر</div>`;
   } else if (tid === 'leh') {
+    h += `<div class="vrow">${saveBtn('#/v/' + LEH_SAMPLE.yt, LEH_SAMPLE.n)}<span class="vn">${esc(LEH_SAMPLE.n)}<span class="vsub">${esc(LEH_SAMPLE.t)}</span></span><a class="play" href="#/v/${LEH_SAMPLE.yt}">${IC.play} تشغيل</a></div>`;
     LEH_CATS.forEach((c) => {
       h += `<div class="vrow"><span class="vn">${esc(c)}</span><span class="badge soon">قريبًا</span></div>`;
     });
@@ -302,7 +309,7 @@ function answer(oi) {
   });
   if (oi === cur.a) qState.score++;
   else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], exT: cur.exT, exE: cur.exE, skill: set.skill, from: '#/test' });
-  setTimeout(() => { qState.i++; qState.locked = false; app.innerHTML = quizHtml(); window.scrollTo(0, 0); }, 1100);
+  setTimeout(() => { if (!location.hash.startsWith('#/test')) return; qState.i++; qState.locked = false; app.innerHTML = quizHtml(); window.scrollTo(0, 0); }, 1100);
 }
 window.answer = answer;
 
@@ -454,11 +461,15 @@ function diagAnswer(oi) {
   });
   if (oi === cur.a) p.c++;
   else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], exH: cur.ex, skill: cur.skill, from: '#/diagnostic' });
-  setTimeout(() => { dState.i++; dState.locked = false; app.innerHTML = diagHtml(); window.scrollTo(0, 0); }, 1100);
+  setTimeout(() => { if (!location.hash.startsWith('#/diagnostic')) return; dState.i++; dState.locked = false; app.innerHTML = diagHtml(); window.scrollTo(0, 0); }, 1100);
 }
 window.diagAnswer = diagAnswer;
 
 /* ===== daily challenge ===== */
+const CH_TZ = 'Asia/Riyadh';
+function todayIso() { return new Intl.DateTimeFormat('en-CA', { timeZone: CH_TZ }).format(new Date()); }
+function chIsToday(c) { return c.iso === todayIso(); }
+function chLabel(c) { return chIsToday(c) ? 'تحدي اليوم' : 'أحدث تحدٍ منشور'; }
 let chState = null;
 function challenge() {
   window._chDone = false;
@@ -466,7 +477,7 @@ function challenge() {
   return challengeHtml(CHALLENGES[0]);
 }
 function challengeHtml(c, done, picked) {
-  let h = `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">تحدي اليوم · ${esc(c.date)}</div>
+  let h = `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${chLabel(c)} · ${esc(c.date)}</div>
   <div class="quiz"><div class="qcard">
     <div class="qhead">${esc(c.cat)} · مستوى: ${esc(c.level)}</div>
     <div class="qtext eqwrap">${c.q}</div>
@@ -486,7 +497,7 @@ function challengeHtml(c, done, picked) {
       <button class="btn2 ghost" onclick="shareLink('تحدي اليوم — رياضيات مع مستر سعد', '#/challenge', 'حل تحدي اليوم في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
     </div>`;
   }
-  h += `</div></div><div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>`;
+  h += `</div></div>${chIsToday(c) ? '<div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>' : '<div class="note">هذا أحدث تحدٍ منشور بتاريخه الظاهر أعلاه — لا يوجد تحدٍ جديد اليوم بعد.</div>'}`;
   return h;
 }
 function chAnswer(oi) {
@@ -545,6 +556,21 @@ function bookGo(d) {
 }
 window.bookGo = bookGo;
 
+/* ===== sample video (approved ليه؟ sample) ===== */
+function watchSample(yt) {
+  const v = LEH_SAMPLE;
+  if (yt !== v.yt) return soon();
+  const u = '#/v/' + v.yt;
+  setLast(u, v.n);
+  return `<a class="back" href="#/t/leh">‹ ليه؟</a>
+  <div class="section-title">${esc(v.n)}</div>
+  <div class="playerwrap"><iframe src="https://www.youtube-nocookie.com/embed/${v.yt}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+  <div class="actionrow">
+    ${saveBtn(u, v.n)}
+    ${shareBtn(v.n, u)}
+  </div>`;
+}
+
 /* ===== account (guest, local) ===== */
 function account() {
   const t = localStorage.getItem('saad.theme.v1') || 'auto';
@@ -593,7 +619,7 @@ function filesHome() {
     const n = LIB_FILES.filter((f) => f.cat === c.id).length;
     h += `<a class="labitem" href="#/files/${c.id}"><span class="ic">${IC.folder}</span><span class="lt">${esc(c.n)}</span><span class="go">${n ? toArNum(n) + ' ملف' : 'فارغ حاليًا'}</span></a>`;
   });
-  h += '</div></div>';
+  h += '</div>';
   return h;
 }
 function filesCat(id) {
@@ -621,11 +647,13 @@ function route() {
   else if (p[0] === 'challenge') html = challenge();
   else if (p[0] === 'diagnostic') html = diag();
   else if (p[0] === 'certificate') html = certificate();
+  else if (p[0] === 'v' && p[1]) html = watchSample(p[1]);
   else if (p[0] === 'files' && p[1]) html = filesCat(p[1]);
   else if (p[0] === 'files') html = filesHome();
   else if (p[0] === 'lab' && p[1]) html = LAB.labExp(p[1]);
   else if (p[0] === 'lab') html = LAB.labHome();
   else if (p[0] === 'mistakes') html = mistakes();
+  else if (p[0] === 'soon') html = soon();
   else if (p[0] === 'account') html = account();
   else html = home();
   app.innerHTML = html;
@@ -640,7 +668,6 @@ function route() {
     : a.dataset.route === 'home' && p.length === 0));
   window.scrollTo(0, 0);
   LAB.afterRender(p);
-  if (p[0] === 'soon') toast('غير متاح حاليًا — شغالين عليها');
 }
 window.addEventListener('hashchange', route);
 route();
