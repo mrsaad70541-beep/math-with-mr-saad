@@ -596,6 +596,7 @@ function quizHtml() {
       <div class="cap sub">أخطاء هذه المحاولة: ${qState.wrong} · المحفوظ في «أخطائي» من كل المحاولات: ${totalM}</div>
       <button class="btn2" onclick="restartQuiz()">إعادة الاختبار</button>
       <a class="btn2 ghost" href="#/g/g3/l/0">مراجعة الدرس</a>
+      ${set.cid ? `<button class="btn2 ghost" onclick="shareLink(this.dataset.t, '${WSHARE}${esc(set.cid)}', 'اختبار في تطبيق رياضيات مع مستر سعد')" data-t="${esc(set.title)} — رياضيات مع مستر سعد">مشاركة الاختبار</button>` : ''}
       ${totalM ? `<a class="btn2 ghost" href="#/mistakes">كل أخطائي المحفوظة (${totalM})</a>` : ''}
       ${others.length ? `<div class="qmore"><h3>اختبارات أخرى</h3>${others.map((k) => `<a class="btn2 sm ghost" href="#/test/${esc(k)}">${esc(QUIZSETS[k].title)}</a>`).join(' ')}</div>` : ''}
     </div></div>`;
@@ -885,7 +886,7 @@ function challengeHtml(c, done, picked) {
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='${chHash(c)}'">محاولة تانية</button>
-      <button class="btn2 ghost" onclick="shareLink('تحدي — رياضيات مع مستر سعد', '${chHash(c)}', 'حل تحدي في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
+      <button class="btn2 ghost" onclick="shareLink('تحدي — رياضيات مع مستر سعد', '${c.cid ? WSHARE + esc(c.cid) : chHash(c)}', 'حل تحدي في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
       <button class="btn2 ghost" onclick="chShareImage()">شارك كصورة</button>
     </div>`;
   }
@@ -1365,12 +1366,12 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
             if (gg && typeof gg === 'object' && ['rect', 'tri', 'circle', 'angle'].indexOf(gg.shape) >= 0) { var nn = function (x) { x = Number(x); return isFinite(x) ? x : 0; }; o.geo = { shape: gg.shape, w: nn(gg.w), h: nn(gg.h), a: nn(gg.a), b: nn(gg.b), c: gg.c ? String(gg.c).slice(0, 12) : '', r: String(gg.r == null ? '' : gg.r).slice(0, 12), deg: nn(gg.deg) }; }
             return o;
           };
-          QUIZSETS[p.id] = { title: String(p.title || it.title || '').slice(0, 200), skill: String(p.skill || '').slice(0, 120), questions: p.questions.map(sani).filter(function (q) { return q.q && (q.o.length || ['num', 'frac', 'fill'].indexOf(q.t) >= 0); }) };
+          QUIZSETS[p.id] = { cid: String(it.id || ''), title: String(p.title || it.title || '').slice(0, 200), skill: String(p.skill || '').slice(0, 120), questions: p.questions.map(sani).filter(function (q) { return q.q && (q.o.length || ['num', 'frac', 'fill'].indexOf(q.t) >= 0); }) };
           if (!QUIZSETS[p.id].questions.length) { delete QUIZSETS[p.id]; return; }
           applied++;
         } else if (it.type === 'challenge') {
           if (!p.id || !p.q || !Array.isArray(p.o) || !p.o.length) return;
-          var nc = { id: p.id, date: p.date || '', iso: p.iso || '', title: String(p.title || it.title || '').slice(0, 200),
+          var nc = { id: p.id, cid: String(it.id || ''), date: p.date || '', iso: p.iso || '', title: String(p.title || it.title || '').slice(0, 200),
             q: sanHTML(p.q), o: p.o.map(sanHTML), a: (typeof p.a === 'number' ? p.a : 0), exT: typeof p.exT === 'string' ? p.exT : '', exE: sanHTML(p.exE),
             level: String(p.level || '').slice(0, 60), cat: String(p.cat || '').slice(0, 60) };
           var ci = CHALLENGES.findIndex(function (c) { return c.id === p.id; });
