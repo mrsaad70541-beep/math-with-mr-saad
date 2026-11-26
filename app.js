@@ -176,15 +176,30 @@ function grade(gid) {
 function lesson(gid, li) {
   const g = DATA.grades.find((x) => x.id === gid);
   const l = g.lessons[li];
+  const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
+  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '#/g/${gid}/l/${li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
+  if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>`;
+  h += `<h3 class="subhead">شرح الدرس بالفيديو</h3>`;
   l.videos.forEach((v, vi) => {
     const u = `#/g/${g.id}/l/${li}/v/${vi}`;
     h += v.yt
       ? `<div class="vrow">${saveBtn(u, v.n)}<span class="vn">${esc(v.n)}</span><a class="play" href="${u}">${IC.play} تشغيل</a></div>`
       : `<div class="vrow"><span class="vn">${esc(v.n)}</span><a class="play off" href="#/soon">قريبًا</a></div>`;
   });
+  if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${esc(meta.summary)}</p></div>`;
+  if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<span class="skillchip">${esc(s)}</span>`).join('')}</div></div>`;
+  if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}: <span class="mx">${esc(e.q)} = ؟</span></div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol">${esc(e.sol)}</div></div>`).join('')}</div>`;
   if (l.quiz) h += `<a class="card quizlink" href="#/test"><span class="chip" style="background:#e0f5f1">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
-  h += `<div class="note">باقي مهارات الدرس قريبًا</div>`;
+  const prev = li > 0 ? g.lessons[li - 1] : null;
+  const next = li < g.lessons.length - 1 ? g.lessons[li + 1] : null;
+  if (prev || next) {
+    h += '<div class="lessonnav">';
+    h += prev ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${li - 1}">‹ السابق: ${esc(prev.title)}</a>` : '<span></span>';
+    h += next ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${li + 1}">التالي: ${esc(next.title)} ›</a>` : '<span></span>';
+    h += '</div>';
+  }
+  if (!meta) h += `<div class="note">باقي تفاصيل الدرس قريبًا</div>`;
   return h;
 }
 function track(tid) {
