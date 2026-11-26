@@ -68,6 +68,22 @@ function askClearLocal() { const b = document.getElementById('clrbox'); if (b) b
 function doClearLocal() { localKeys().forEach((n) => localStorage.removeItem(n)); toast('تم حذف بيانات هذا الجهاز'); location.hash = '#/'; route(); }
 function clearErrLog() { try { localStorage.removeItem(ERRKEY); } catch (e) { /* none */ } route(); }
 function copyErrLog() { const t = jget(ERRKEY, []).map((x) => [x.t, x.k, x.f + ':' + x.l, x.m].join(' | ')).join('\n'); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('تم نسخ السجل'), () => toast('تعذّر النسخ')); }
+/* update prompt: shown only when a new service worker takes over a page that already had one; never reloads by itself */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  let had = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!had) { had = true; return; }
+    if (document.getElementById('updbar')) return;
+    const b = document.createElement('div');
+    b.id = 'updbar'; b.setAttribute('role', 'status');
+    b.style.cssText = 'position:fixed;inset-inline:12px;bottom:76px;z-index:60;background:#102B49;color:#fff;border:1px solid #f2c14e;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.35)';
+    b.innerHTML = '<span>تتوفر نسخة جديدة من التطبيق.</span><span style="display:flex;gap:8px"><button type="button" id="updgo" style="background:#f2c14e;color:#102B49;border:0;border-radius:10px;padding:8px 14px;font:inherit;font-weight:800">إعادة التحميل</button><button type="button" id="updno" style="background:transparent;color:#fff;border:1px solid #ffffff55;border-radius:10px;padding:8px 12px;font:inherit">لاحقًا</button></span>';
+    document.body.appendChild(b);
+    document.getElementById('updgo').onclick = () => location.reload();
+    document.getElementById('updno').onclick = () => b.remove();
+  });
+})();
 window.askClearLocal = askClearLocal; window.doClearLocal = doClearLocal; window.clearErrLog = clearErrLog; window.copyErrLog = copyErrLog;
 const getSaved = () => jget('saad.saved.v1', []);
 const isSaved = (u) => getSaved().some((x) => x.u === u);
