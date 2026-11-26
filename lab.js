@@ -79,7 +79,7 @@ window.LAB = (function () {
     if (document.fullscreenElement) { document.exitFullscreen(); return; }
     if (st.classList.contains('labfs')) { st.classList.remove('labfs'); labDock(false); document.getElementById('labFull').textContent = 'ملء الشاشة'; return; }
     const fn = st.requestFullscreen || st.webkitRequestFullscreen;
-    if (fn) { try { var r = fn.call(st); if (r && r.catch) r.catch(function () { st.classList.add('labfs'); labDock(true); }); return; } catch (e) {} }
+    if (fn) { try { var r = fn.call(st); if (r && r.catch) r.catch(function () { st.classList.add('labfs'); labDock(true); document.getElementById('labFull').textContent = 'إغلاق ملء الشاشة'; }); return; } catch (e) {} }
     st.classList.add('labfs'); labDock(true); document.getElementById('labFull').textContent = 'إغلاق ملء الشاشة';
   }
   function wireShell(exp, mountFn) {
