@@ -1356,9 +1356,10 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           if (typeof p.bk === 'string' && p.bk.trim()) {
             var bname = p.bk.trim().slice(0, 80), hh = 0;
             for (var hi = 0; hi < bname.length; hi++) hh = (hh * 31 + bname.charCodeAt(hi)) | 0;
-            var bslug = 'k' + Math.abs(hh).toString(36);
-            var bxo = BOOKS[bslug] || (BOOKS[bslug] = { name: bname, pages: [] });
+            var bslug = (typeof p.bi === 'string' && /^[a-z0-9-]{1,24}$/.test(p.bi)) ? 'b-' + p.bi : 'k' + Math.abs(hh).toString(36);
+            var bxo = BOOKS[bslug] || (BOOKS[bslug] = { name: bname, no: 1e9, pages: [] });
             bpg.o = Math.max(0, Math.min(999, parseInt(p.order, 10) || 0));
+            if (bpg.o <= bxo.no) { bxo.no = bpg.o; bxo.name = bname; }
             var bxi = bxo.pages.findIndex(function (x) { return x.cid === bpg.cid; });
             if (bxi >= 0) bxo.pages[bxi] = bpg; else bxo.pages.push(bpg);
             bxo.pages.sort(function (x, y) { return x.o - y.o; });
