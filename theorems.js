@@ -386,7 +386,7 @@ window.THEO = (function () {
     ok: (P) => triOK(P.A, P.B, P.C),
     sample() { const P = M[0].sample(); return { A: P.A, B: P.B, C: P.C, t: Math.round(rnd(2, 9)) / 10 }; },
     calc(P) { const D = add(P.A, mul(sub(P.B, P.A), P.t)), E = add(P.A, mul(sub(P.C, P.A), P.t)); const r1 = dist(P.A, D) / dist(D, P.B), r2 = dist(P.A, E) / dist(E, P.C); return { rows: [['أد : دب', r1], ['أهـ : هـج', r2], ['د هـ : ب ج', dist(D, E) / dist(P.B, P.C)], ['الزاوية ∠أدهـ − ∠أبج', Math.abs(ang(P.A, D, E) - ang(P.A, P.B, P.C))]], eq: [[r1, r2], [dist(D, E) / dist(P.B, P.C), P.t], [ang(P.A, D, E), ang(P.A, P.B, P.C)]], D, E }; },
-    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.seg(r.D, r.E, 1); d.label(r.D, 'د', -18, 4); d.label(r.E, 'هـ', 8, 4); },
+    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.seg(r.D, r.E, 1); d.label(r.D, 'د', -18, 4); d.label(r.E, 'هـ', 14, 8); },
     concl: 'النسبتان تساوتا دائمًا، والمثلث الصغير كان مشابهًا للكبير بنسبة أد : أب.',
     proof: 'البرهان: الزاويتان المتناظرتان متساويتان للتوازي، فالمثلثان متشابهان (زاويتان)، ومنه تناسب الأضلاع.'
   });
