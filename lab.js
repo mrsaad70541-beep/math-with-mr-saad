@@ -67,12 +67,20 @@ window.LAB = (function () {
       ${exp.questions && exp.questions.length ? `<div class="labcard"><span class="labtag">أسئلة استكشافية</span><ul class="labq">${exp.questions.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
     `;
   }
+  var labHome = null;
+  function labDock(on) {
+    var live = document.getElementById('labLive'), st = document.getElementById('labStage');
+    if (!live || !st) return;
+    if (on && live.parentNode !== st) { labHome = live.parentNode; st.appendChild(live); }
+    else if (!on && labHome && live.parentNode === st) { labHome.appendChild(live); labHome = null; }
+  }
+  document.addEventListener('fullscreenchange', function () { labDock(!!document.fullscreenElement && document.fullscreenElement.id === 'labStage'); });
   function labToggleFs(st) {
     if (document.fullscreenElement) { document.exitFullscreen(); return; }
-    if (st.classList.contains('labfs')) { st.classList.remove('labfs'); document.getElementById('labFull').textContent = 'ملء الشاشة'; return; }
+    if (st.classList.contains('labfs')) { st.classList.remove('labfs'); labDock(false); document.getElementById('labFull').textContent = 'ملء الشاشة'; return; }
     const fn = st.requestFullscreen || st.webkitRequestFullscreen;
-    if (fn) { try { var r = fn.call(st); if (r && r.catch) r.catch(function () { st.classList.add('labfs'); }); return; } catch (e) {} }
-    st.classList.add('labfs'); document.getElementById('labFull').textContent = 'إغلاق ملء الشاشة';
+    if (fn) { try { var r = fn.call(st); if (r && r.catch) r.catch(function () { st.classList.add('labfs'); labDock(true); }); return; } catch (e) {} }
+    st.classList.add('labfs'); labDock(true); document.getElementById('labFull').textContent = 'إغلاق ملء الشاشة';
   }
   function wireShell(exp, mountFn) {
     const host = document.getElementById('labStage');
