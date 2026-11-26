@@ -857,12 +857,25 @@ function challengeHtml(c, done, picked) {
     </div>`;
   }
   h += `</div></div>${chIsToday(c) ? '<div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>' : '<div class="note">هذا أحدث تحدٍ منشور بتاريخه الظاهر أعلاه — لا يوجد تحدٍ جديد اليوم بعد.</div>'}`;
-  return h;
+  return h + '<div class="quiz">' + chArchive() + '</div>';
+}
+function chHist() { return jget('saad.chhist.v1', []); }
+function chSaveResult(c, ok) {
+  const h = chHist().filter((x) => x.iso !== c.iso);
+  h.unshift({ iso: c.iso, d: c.date, ok: !!ok });
+  localStorage.setItem('saad.chhist.v1', JSON.stringify(h.slice(0, 60)));
+}
+function chArchive() {
+  const h = chHist();
+  const rows = h.length ? h.map((x) => '<div class="chrow"><span>' + esc(x.d || x.iso) + '</span><b class="' + (x.ok ? 'ok' : 'no') + '">' + (x.ok ? 'صحيحة ✓' : 'غير صحيحة ✗') + '</b></div>').join('') : '<div class="dim" style="font-size:13px">لسه ما حليتش أي تحدي — نتيجتك هتتسجل هنا على جهازك.</div>';
+  const older = CHALLENGES.length > 1 ? '' : '<div class="dim" style="font-size:12px;margin-top:8px">التحديات السابقة هتظهر هنا لما يتنشر تحدي جديد.</div>';
+  return '<div class="qcard chhist"><div class="qhead">أرشيف تحدياتك ونتائجك</div>' + rows + older + '</div>';
 }
 function chAnswer(oi) {
   if (window._chDone) return;
   window._chDone = true;
   const c = CHALLENGES[0];
+  chSaveResult(c, oi === c.a);
   if (oi === c.a) { unlock('challenge'); if (getAch().master) unlock('cert'); }
   if (oi !== c.a) addMistake({ q: c.q, your: c.o[oi], right: c.o[c.a], exT: c.exT, exE: c.exE, skill: c.cat, from: '#/challenge' });
   app.innerHTML = challengeHtml(c, true, oi);
