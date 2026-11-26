@@ -1379,6 +1379,10 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var fidx = LIB_FILES.findIndex(function (x) { return x.id === fobj.id; });
           if (fidx >= 0) LIB_FILES[fidx] = fobj; else LIB_FILES.push(fobj);
           applied++;
+        } else if (it.type === 'experiment') {
+          if (!LAB.addCms(it)) return;
+          SEARCH.push({ t: 'تجربة: ' + String(it.title || '').slice(0, 120) + ' — مختبر الرياضيات', u: '#/lab/x-' + it.id });
+          applied++;
         } else if (it.type === 'notice') {
           if (typeof p.text !== 'string' || !p.text.trim() || !it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id))) return;
           var nn = { id: String(it.id), t: esc(String(it.title || '').slice(0, 120)), x: esc(p.text.slice(0, 300)) };
