@@ -1174,6 +1174,8 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
       // A tombstoned deep target must never keep playing: force re-render when the
       // current route's entity was withdrawn, even over the player-iframe guard.
       if (applied > 0 && alreadyRouted && (currentRouteGone() || safeToRerender())) route();
+      var wantQ = (location.hash.match(/^#\/test\/([^/?]+)/) || [])[1];
+      if (wantQ && wantQ !== '_mistakes' && QUIZSETS[wantQ] && (!qState || qState.id !== wantQ) && safeToRerender()) route();
     })
     .catch(function () { clearTimeout(to); if (window.__resolveInitialRoute) window.__resolveInitialRoute(); /* bundled content stands */ });
 })();
