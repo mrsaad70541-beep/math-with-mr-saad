@@ -49,6 +49,25 @@ function toast(msg, undo) {
 
 /* ===== storage: saved / last-watched / mistakes ===== */
 function jget(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }
+/* ===== local technical error log: stays on this device, never sent; only name/short message (quoted text removed), file name and line ===== */
+const ERRKEY = 'saad.errlog.v1';
+function logErr(kind, msg, src, line) {
+  try {
+    const l = jget(ERRKEY, []);
+    const file = String(src || '').split('?')[0].split('#')[0].split('/').pop().slice(0, 40);
+    const m = String(msg || '').replace(/["'`][^"'`]*["'`]/g, '…').slice(0, 100);
+    l.unshift({ t: new Date().toISOString().slice(0, 16), k: kind, m: m, f: file, l: +line || 0 });
+    localStorage.setItem(ERRKEY, JSON.stringify(l.slice(0, 20)));
+  } catch (e) { /* storage unavailable */ }
+}
+window.addEventListener('error', (e) => logErr('error', e.message, e.filename, e.lineno));
+window.addEventListener('unhandledrejection', (e) => logErr('promise', e.reason && e.reason.message, '', 0));
+function localKeys() { const k = []; try { for (let i = 0; i < localStorage.length; i++) { const n = localStorage.key(i); if (n && n.indexOf('saad.') === 0) k.push(n); } } catch (e) { /* none */ } return k; }
+function askClearLocal() { const b = document.getElementById('clrbox'); if (b) b.hidden = !b.hidden; }
+function doClearLocal() { localKeys().forEach((n) => localStorage.removeItem(n)); toast('تم حذف بيانات هذا الجهاز'); location.hash = '#/'; route(); }
+function clearErrLog() { try { localStorage.removeItem(ERRKEY); } catch (e) { /* none */ } route(); }
+function copyErrLog() { const t = jget(ERRKEY, []).map((x) => [x.t, x.k, x.f + ':' + x.l, x.m].join(' | ')).join('\n'); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('تم نسخ السجل'), () => toast('تعذّر النسخ')); }
+window.askClearLocal = askClearLocal; window.doClearLocal = doClearLocal; window.clearErrLog = clearErrLog; window.copyErrLog = copyErrLog;
 const getSaved = () => jget('saad.saved.v1', []);
 const isSaved = (u) => getSaved().some((x) => x.u === u);
 function toggleSave(u, t) {
@@ -1102,7 +1121,39 @@ function account() {
       ${[[1, 'عادي'], [1.15, 'كبير'], [1.3, 'أكبر']].map((z) => `<button class="tbtn ${(+localStorage.getItem('saad.tz.v1') || 1) === z[0] ? 'on' : ''}" onclick="setTz(${z[0]})">${z[1]}</button>`).join('')}
     </div>
   </div>
+  <div class="qcard">
+    <div class="qhead">الخصوصية وبيانات هذا الجهاز</div>
+    <p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">بياناتك محفوظة في هذا المتصفح فقط ولا يرسلها التطبيق إلى أي جهة.</p>
+    <div class="themerow"><a class="tbtn" href="#/privacy" style="text-align:center;text-decoration:none">صفحة الخصوصية</a><button type="button" class="tbtn" onclick="askClearLocal()">حذف بيانات هذا الجهاز</button></div>
+    <div id="clrbox" hidden style="margin-top:12px;font-size:13.5px;line-height:1.9">
+      <p style="margin:0 0 8px">سيُحذف من هذا المتصفح فقط: المحفوظات، آخر ما شاهدت، مواضع المشاهدة، أخطائي، نتائج الاختبارات والتحديات، الإنجازات والأهداف والخطة، تقدّم الكتاب والإشارات والملاحظات، المظهر وحجم النص، الإشعارات التي أغلقتها، وسجل الأخطاء التقني. لا يُحذف أي حساب في يوتيوب أو جوجل، ولا أي بيانات خارج هذا الجهاز، ولا نسخة التطبيق المخزّنة للعمل دون إنترنت. لا يمكن التراجع.</p>
+      <div class="themerow"><button type="button" class="tbtn on" onclick="doClearLocal()">نعم، احذف بيانات هذا الجهاز</button><button type="button" class="tbtn" onclick="askClearLocal()">إلغاء</button></div>
+    </div>
+  </div>
+  ${(() => { const l = jget(ERRKEY, []); return `<div class="qcard"><div class="qhead">سجل الأخطاء التقني</div><p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">يحفظ التطبيق على جهازك فقط آخر ${l.length ? l.length : 'عدة'} أخطاء برمجية (الوقت ونوع الخطأ واسم الملف ورقم السطر). لا يُرسل تلقائيًا، ولا يتضمن محتوى الصفحات أو ما تكتبه أو ملاحظاتك. الحالي: ${l.length} ${l.length ? '' : '(لا أخطاء)'}</p>${l.length ? '<div class="themerow"><button type="button" class="tbtn" onclick="copyErrLog()">نسخ السجل</button><button type="button" class="tbtn" onclick="clearErrLog()">مسح السجل</button></div>' : ''}</div>`; })()}
   ${achBlock()}`;
+}
+
+function privacy() {
+  const li = (t) => '<li style="margin:6px 0">' + t + '</li>';
+  return `<a class="back" href="#/account">‹ حسابي</a><div class="section-title">الخصوصية</div>
+  <div class="qcard" style="font-size:14px;line-height:2">
+    <div class="qhead">ما يفعله التطبيق الآن</div>
+    <ul style="margin:6px 0;padding-inline-start:20px">
+      ${li('لا توجد حسابات ولا تسجيل دخول. التطبيق يعمل بوضع الزائر.')}
+      ${li('يحفظ على جهازك فقط (تخزين المتصفح): المحفوظات، آخر ما شاهدت ومواضع المشاهدة، أخطائي، نتائج الاختبارات والتحديات، الإنجازات والأهداف والخطة، تقدّم الكتاب والإشارات والملاحظات، المظهر وحجم النص، والإشعارات التي أغلقتها.')}
+      ${li('لا يرسل التطبيق هذه البيانات إلى أي خادم، ولا يحتوي ملفاته على أدوات تحليلات أو تتبع إعلاني.')}
+      ${li('عند فتح التطبيق يجلب المحتوى المنشور من خدمة المحتوى الخاصة بالمنصة، ويحمّل الخطوط من خدمة خطوط جوجل. وعند تشغيل فيديو يُحمَّل مشغّل يوتيوب (نطاق youtube-nocookie.com) ويتصل بخوادم يوتيوب. هذه الجهات ترى معلومات الاتصال المعتادة (مثل عنوان الشبكة) وفق سياساتها الخاصة.')}
+      ${li('الصفحة مستضافة على GitHub Pages، وتنطبق عليها سياسة الاستضافة.')}
+      ${li('سجل الأخطاء التقني محلي على جهازك ولا يُرسل تلقائيًا.')}
+    </ul>
+  </div>
+  <div class="qcard" style="font-size:14px;line-height:2">
+    <div class="qhead">حذف البيانات</div>
+    <p style="margin:6px 0">من صفحة «حسابي» يمكنك حذف كل بيانات هذا الجهاز بنقرة تأكيد صريحة. هذا لا يحذف أي حساب خارجي ولا أي بيانات خارج جهازك.</p>
+    <a class="btn2 sm ghost" href="#/account">فتح حسابي</a>
+  </div>
+  <div class="note">تصف هذه الصفحة سلوك التطبيق الحالي، وليست استشارة قانونية. تُحدَّث عند تغيّر السلوك.</div>`;
 }
 
 /* ===== router ===== */
@@ -1170,6 +1221,7 @@ function route() {
   else if (p[0] === 'lab') html = LAB.labHome();
   else if (p[0] === 'mistakes') html = mistakes();
   else if (p[0] === 'soon') html = soon();
+  else if (p[0] === 'privacy') html = privacy();
   else if (p[0] === 'account') html = account();
   else html = home();
   app.innerHTML = html;
@@ -1180,7 +1232,7 @@ function route() {
   document.querySelectorAll('#tabbar a').forEach((a) => a.classList.toggle('active',
     (p[0] === 'manhag' || p[0] === 'g' || p[0] === 't') ? a.dataset.route === 'manhag'
     : (p[0] === 'saved') ? a.dataset.route === 'saved'
-    : (p[0] === 'account' || p[0] === 'mistakes') ? a.dataset.route === 'account'
+    : (p[0] === 'account' || p[0] === 'mistakes' || p[0] === 'privacy') ? a.dataset.route === 'account'
     : a.dataset.route === 'home' && p.length === 0));
   const sy = trackNav();
   window.scrollTo(0, sy);
