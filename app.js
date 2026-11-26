@@ -254,7 +254,7 @@ function home() {
     <a class="tile" href="#/book"><span class="ic">${IC.book}</span><span class="name">الكتاب التفاعلي</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/lab"><span class="ic">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st on2">متاح الآن</span></a>
     <a class="tile" href="#/diagnostic"><span class="ic">${IC.target || IC.quiz}</span><span class="name">اكتشف مستواك</span><span class="st on2">متاح الآن</span></a>
-    <a class="tile" href="#/files"><span class="ic">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">بانتظار المحتوى</span></a>
+    <a class="tile" href="#/files"><span class="ic">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">${LIB_FILES.length ? toArNum(LIB_FILES.length) + ' ملف' : 'بانتظار المحتوى'}</span></a>
   </div></div>
 `;
   let lh = `
@@ -1315,6 +1315,13 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var iids = ['manhag', 'leh', 'qudurat', 'test', 'book', 'lab', 'diagnostic', 'files'];
           var il = function (a) { return (Array.isArray(a) ? a : []).filter(function (x) { return iids.indexOf(x) >= 0; }); };
           HOMECFG = { order: ord, hide: hl(p.hide), soon: hl(p.soon), hideItems: il(p.hideItems), soonItems: il(p.soonItems) };
+          applied++;
+        } else if (it.type === 'file') {
+          if (!it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id)) || typeof p.url !== 'string' || !/^https:\/\/[^ ]{1,300}$/.test(p.url)) return;
+          var fcat = LIB_CATS.some(function (c) { return c.id === p.cat; }) ? p.cat : 'educational';
+          var fobj = { id: 'cms-' + it.id, title: String(it.title || '').slice(0, 200), desc: String(p.desc || '').slice(0, 300), grade: String(p.grade || '').slice(0, 40), subject: String(p.subject || '').slice(0, 60), cat: fcat, url: p.url, added: '', allowDownload: p.allowDownload === true };
+          var fidx = LIB_FILES.findIndex(function (x) { return x.id === fobj.id; });
+          if (fidx >= 0) LIB_FILES[fidx] = fobj; else LIB_FILES.push(fobj);
           applied++;
         } else if (it.type === 'notice') {
           if (typeof p.text !== 'string' || !p.text.trim() || !it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id))) return;
