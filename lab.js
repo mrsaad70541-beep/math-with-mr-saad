@@ -103,24 +103,32 @@ window.LAB = (function () {
       hB.setAttribute('cx', B.x); hB.setAttribute('cy', B.y);
       hC.setAttribute('cx', C.x); hC.setAttribute('cy', C.y);
       const a = angleDeg(B, A, C), b = angleDeg(A, B, C), c = angleDeg(A, C, B);
-      const put = (t, p, v) => { t.setAttribute('x', p.x); t.setAttribute('y', p.y - 16); t.textContent = toAr(v, 1) + '°'; };
+      const cross = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+      const live = document.getElementById('labLive');
+      if (Math.abs(cross) < 600) {
+        tA.textContent = tB.textContent = tC.textContent = '';
+        live.innerHTML = '<div class="live-row dim">المثلث منحل (الرءوس على استقامة واحدة تقريبًا) — حرّك أي رأس لتشكيل مثلث.</div>';
+        return;
+      }
+      const put = (t, p, v) => { t.setAttribute('x', p.x); t.setAttribute('y', p.y - 16); t.textContent = '≈' + toAr(v, 1) + '°'; };
       put(tA, A, a); put(tB, B, b); put(tC, C, c);
-      document.getElementById('labLive').innerHTML =
-        `<div class="live-row"><span>${toAr(a, 1)}°</span> + <span>${toAr(b, 1)}°</span> + <span>${toAr(c, 1)}°</span> = <strong class="gold">${toAr(a + b + c, 1)}°</strong></div>`;
+      live.innerHTML =
+        `<div class="live-row"><span>${toAr(a, 1)}°</span> + <span>${toAr(b, 1)}°</span> + <span>${toAr(c, 1)}°</span> ≈ <strong class="gold">١٨٠°</strong></div>
+         <div class="live-row dim">القياسات مقرّبة لأقرب ٠٫١° فقد يظهر فرق جزء من العشرة في الجمع، لكن المجموع الحقيقي يساوي ١٨٠° تمامًا لأي مثلث.</div>`;
     }
     draw();
   }
 
   /* ٢) نظرية فيثاغورس */
   function mountPythagoras() {
-    const W = 340, H = 240, SC = 34;
+    const W = 340, H = 330, SC = 26;
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', class: 'labsvgel' });
     document.getElementById('labSvgHost').appendChild(svg);
     const st = { a: 3, b: 4 };
     const gTri = svgEl('g', {}, svg);
     function draw() {
       gTri.innerHTML = '';
-      const ax = 60, ay = 200, a = st.a * SC, b = st.b * SC;
+      const ax = 165, ay = 175, a = st.a * SC, b = st.b * SC;
       const P = { x: ax, y: ay }, Q = { x: ax + b, y: ay }, R = { x: ax, y: ay - a };
       // مربعا الساقين والوتر (أرقام داخل مناطق مبسطة)
       svgEl('rect', { x: ax - a, y: ay - a, width: a, height: a, fill: 'rgba(184,134,11,.15)', stroke: '#b8860b', 'stroke-width': 1.5 }, gTri);
