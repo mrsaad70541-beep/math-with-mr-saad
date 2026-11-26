@@ -591,3 +591,8 @@ body.th-teach .th-pred,body.th-teach .th-meta{font-size:1.1em}
 .th-app{margin-top:14px}
 .th-svg{color:#102B49}
 html.dark .th-svg{color:#e6edf7}
+.th-step.h{display:none}
+.th-tbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+html.dark .th-st.ok{background:#12372a;color:#7fe3a8}
+html.dark .th-st.no{background:#3d1a1a;color:#ff9a93}
+html.dark .th-fb{color:#e6edf7}
