@@ -1314,7 +1314,11 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var bpg = { cid: String(it.id), t: esc(p.t.slice(0, 120)), p: esc(p.p.slice(0, 1500)),
             f: '<span dir="ltr">' + esc(String(p.ft || '').slice(0, 200)) + '</span>', ex: esc(String(p.ex || '').slice(0, 300)) };
           var bi = BOOK.findIndex(function (x) { return x.cid === bpg.cid; });
+          bpg.o = Math.max(0, Math.min(999, parseInt(p.order, 10) || 0));
           if (bi >= 0) BOOK[bi] = bpg; else BOOK.push(bpg);
+          var bcms = BOOK.filter(function (x) { return x.cid; }).sort(function (x, y) { return x.o - y.o; });
+          var bsmp = BOOK.filter(function (x) { return !x.cid; });
+          BOOK.length = 0; bsmp.concat(bcms).forEach(function (x) { BOOK.push(x); });
           applied++;
         } else if (it.type === 'section') {
           if (p.track === 'qudurat' || p.track === 'leh') {
