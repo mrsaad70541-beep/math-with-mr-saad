@@ -937,8 +937,8 @@ function bookHtml() {
     <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${BOOK.length}</div>
     <h3>${pg.t}</h3>
     <p>${pg.p}</p>
-    <div class="f eqwrap">${pg.f}</div>
-    <div class="ex"><span class="exlabel">مثال</span><span class="eqline">${pg.ex}</span></div>
+    ${pg.cid && !pg.ft ? '' : `<div class="f eqwrap">${pg.f}</div>`}
+    ${pg.cid && !pg.ex ? '' : `<div class="ex"><span class="exlabel">مثال</span><span class="eqline">${pg.ex}</span></div>`}
   </div>
   <div class="booknav">
     <button onclick="bookGo(-1)" ${bp === 0 ? 'disabled' : ''}>‹ السابق</button>
@@ -1311,7 +1311,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           applied++;
         } else if (it.type === 'book') {
           if (typeof p.t !== 'string' || !p.t.trim() || typeof p.p !== 'string' || !p.p.trim() || !it.id) return;
-          var bpg = { cid: String(it.id), t: esc(p.t.slice(0, 120)), p: esc(p.p.slice(0, 1500)),
+          var bpg = { cid: String(it.id), ft: String(p.ft || '').trim(), t: esc(p.t.slice(0, 120)), p: esc(p.p.slice(0, 1500)),
             f: '<span dir="ltr">' + esc(String(p.ft || '').slice(0, 200)) + '</span>', ex: esc(String(p.ex || '').slice(0, 300)) };
           var bi = BOOK.findIndex(function (x) { return x.cid === bpg.cid; });
           bpg.o = Math.max(0, Math.min(999, parseInt(p.order, 10) || 0));
