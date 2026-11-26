@@ -570,7 +570,7 @@ window.THEO = (function () {
       const R = m.calc(P);
       gDyn.innerHTML = '';
       if (m.grid) d.grid();
-      m.draw(P, d, R);
+      m.draw(P, d, R); gDyn.querySelectorAll('.thtag').forEach((t) => { try { let fs = +t.getAttribute('font-size') || 13, w = t.getBBox().width; if (w > 322) { fs = Math.max(8, fs * 322 / w); t.setAttribute('font-size', fs.toFixed(2)); } } catch (e) {} });
       const bad = R.eq.filter((e) => Math.abs(e[0] - e[1]) > 0.06 * (Math.abs(e[1]) > 5 ? Math.abs(e[1]) / 5 : 1) && Math.abs(e[0] - e[1]) > 1e-6);
       let h = '';
       const dec = R.dec == null ? 1 : R.dec;
