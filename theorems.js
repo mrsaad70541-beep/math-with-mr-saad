@@ -220,7 +220,7 @@ window.THEO = (function () {
       const dg = ang(A, O, D), h1 = ang(P.B, A, C), h2 = ang(C, A, D);
       return { rows: [['أب = ب ج = ج د = د أ', r, 0, 1], ['الزاوية بين القطرين', dg, 1], ['∠ب أ ج', h1], ['∠ج أ د', h2]], eq: [[dg, 90], [h1, h2], [dist(P.B, C), dist(C, D)]], C, D, O };
     },
-    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ', -18, 16); d.label(P.B, 'ب', 14, 8); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); },
+    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ', -18, 16); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); },
     concl: 'الزاوية بين القطرين كانت ٩٠° دائمًا، وقطر المعين نصّف الزاوية عند الرأس.',
     proof: 'البرهان: المثلثان أبج وأدج متطابقان (ثلاثة أضلاع)، فالقطر ينصف الزاوية؛ ومن مثلث متساوي الساقين يكون المنصّف عموديًا على القاعدة.'
   });
