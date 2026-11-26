@@ -1,0 +1,11 @@
+{
+  "name": "رياضيات مع مستر سعد",
+  "short_name": "مستر سعد",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#eef2f8",
+  "theme_color": "#0e2a47",
+  "icons": []
+}
