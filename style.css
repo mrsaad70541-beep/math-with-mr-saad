@@ -442,6 +442,8 @@ a.card:active { transform: scale(.99); }
 /* ===== math rendering / achievements / diagnostic ===== */
 .eq{direction:ltr;unicode-bidi:isolate;display:inline-block;white-space:nowrap}
 .eq math{font-family:Alexandria,'Times New Roman',serif;font-style:normal;font-weight:700;font-size:1.08em}
+/* matrices/determinants: a font with an OpenType MATH table so brackets stretch to the table height */
+.eq math:has(mtable){font-family:'Noto Sans Math',Alexandria,'Times New Roman',serif;font-weight:400}
 .eq mi{font-style:normal;unicode-bidi:isolate}
 .eq mn{font-style:normal}
 .eq msqrt{font-family:sans-serif}
