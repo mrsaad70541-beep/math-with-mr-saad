@@ -536,15 +536,15 @@ window.THEO = (function () {
     const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || gDyn).appendChild(e); return e; };
     const pts = (ps) => ps.map((p) => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
     const d = {
-      poly(ps, alt) { el('polygon', { points: pts(ps), fill: alt ? 'rgba(184,134,11,.14)' : 'rgba(16,43,73,.12)', stroke: alt ? '#b8860b' : '#102B49', 'stroke-width': 2.4, 'stroke-linejoin': 'round' }); },
-      line(a, b) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: '#102B49', 'stroke-width': 2.2 }); },
-      clipLine(a, b, alt) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: alt ? '#b8860b' : '#102B49', 'stroke-width': 2.4 }); },
+      poly(ps, alt) { el('polygon', { points: pts(ps), fill: alt ? 'rgba(184,134,11,.14)' : 'currentColor', 'fill-opacity': alt ? 1 : 0.12, stroke: alt ? '#b8860b' : 'currentColor', 'stroke-width': 2.4, 'stroke-linejoin': 'round' }); },
+      line(a, b) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: 'currentColor', 'stroke-width': 2.2 }); },
+      clipLine(a, b, alt) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: alt ? '#b8860b' : 'currentColor', 'stroke-width': 2.4 }); },
       seg(a, b, kind) { el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: kind === 2 ? '#1e6fa3' : '#b8860b', 'stroke-width': kind === 2 ? 1.6 : 2.2, 'stroke-dasharray': kind === 2 ? '5 4' : '' }); },
       dot(p, big) { el('circle', { cx: p.x, cy: p.y, r: big ? 5 : 3.5, fill: '#b8860b' }); },
       label(p, t, dx, dy) { const e = el('text', { x: p.x + (dx == null ? 6 : dx), y: p.y + (dy == null ? -6 : dy), class: 'labtxt', 'font-size': 13, 'font-weight': 700 }); e.textContent = t; },
       tag(t, good) { const e = el('text', { x: 170, y: 18, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: good ? '#1a7f4b' : '#b3261e' }); e.textContent = t; },
       txt(p, t, col) {
-        const c = col || '#102B49';
+        const c = col || 'currentColor';
         if (t.charAt(0) === '√') {
           const rad = t.slice(1), w = Math.max(9, rad.length * 9), xr = p.x + w / 2, xl = p.x - w / 2, top = p.y - 14;
           el('path', { d: 'M' + (xl - 1) + ',' + top + ' H' + (xr + 1) + ' L' + (xr + 6) + ',' + (p.y + 3) + ' L' + (xr + 10) + ',' + (p.y - 4), fill: 'none', stroke: c, 'stroke-width': 1.5, 'stroke-linejoin': 'round' });
@@ -553,17 +553,17 @@ window.THEO = (function () {
         const e = el('text', { x: p.x, y: p.y, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: c, direction: 'ltr', style: 'unicode-bidi:isolate' }); e.textContent = t;
       },
       tick(a, b) { const c = mid(a, b), u = sub(b, a), n = Math.hypot(u.x, u.y), p = { x: -u.y / n * 6, y: u.x / n * 6 }; el('line', { x1: c.x - p.x, y1: c.y - p.y, x2: c.x + p.x, y2: c.y + p.y, stroke: '#b8860b', 'stroke-width': 2.4 }); },
-      rightMark(v, a, b) { const u = sub(a, v), w = sub(b, v), nu = Math.hypot(u.x, u.y), nw = Math.hypot(w.x, w.y), s = 12; const p1 = { x: v.x + u.x / nu * s, y: v.y + u.y / nu * s }, p3 = { x: v.x + w.x / nw * s, y: v.y + w.y / nw * s }, p2 = { x: p1.x + p3.x - v.x, y: p1.y + p3.y - v.y }; el('polyline', { points: pts([p1, p2, p3]), fill: 'none', stroke: '#102B49', 'stroke-width': 1.4 }); },
+      rightMark(v, a, b) { const u = sub(a, v), w = sub(b, v), nu = Math.hypot(u.x, u.y), nw = Math.hypot(w.x, w.y), s = 12; const p1 = { x: v.x + u.x / nu * s, y: v.y + u.y / nu * s }, p3 = { x: v.x + w.x / nw * s, y: v.y + w.y / nw * s }, p2 = { x: p1.x + p3.x - v.x, y: p1.y + p3.y - v.y }; el('polyline', { points: pts([p1, p2, p3]), fill: 'none', stroke: 'currentColor', 'stroke-width': 1.4 }); },
       angle(a, v, b, txt) {
         const r = 22, u = sub(a, v), w = sub(b, v), au = Math.atan2(u.y, u.x), aw = Math.atan2(w.y, w.x);
         let da = aw - au; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         const p1 = { x: v.x + r * Math.cos(au), y: v.y + r * Math.sin(au) }, p2 = { x: v.x + r * Math.cos(aw), y: v.y + r * Math.sin(aw) };
         el('path', { d: 'M' + p1.x + ',' + p1.y + ' A' + r + ',' + r + ' 0 0 ' + (da > 0 ? 1 : 0) + ' ' + p2.x + ',' + p2.y, fill: 'rgba(184,134,11,.25)', stroke: '#b8860b', 'stroke-width': 1.6 });
-        const am = au + da / 2, e = el('text', { x: v.x + (r + 20) * Math.cos(am), y: v.y + (r + 20) * Math.sin(am) + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#102B49', direction: 'ltr', style: 'unicode-bidi:isolate' });
+        const am = au + da / 2, e = el('text', { x: v.x + (r + 20) * Math.cos(am), y: v.y + (r + 20) * Math.sin(am) + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: 'currentColor', direction: 'ltr', style: 'unicode-bidi:isolate' });
         e.textContent = txt || toAr(ang(a, v, b), 0) + '°';
       },
-      grid() { for (let i = -8; i <= 8; i++) { el('line', { x1: 170 + 20 * i, y1: 10, x2: 170 + 20 * i, y2: 290, stroke: i ? '#d9dee6' : '#102B49', 'stroke-width': i ? 0.8 : 1.6 }); el('line', { x1: 10, y1: 150 + 20 * i, x2: 330, y2: 150 + 20 * i, stroke: i ? '#d9dee6' : '#102B49', 'stroke-width': i ? 0.8 : 1.6 }); } },
-      dots(mm, nn) { for (let i = 0; i < nn; i++) { el('rect', { x: 20, y: 20 + i * 62, width: 300, height: 52, rx: 8, fill: 'rgba(30,111,163,.1)', stroke: '#1e6fa3' }); const t = el('text', { x: 170, y: 20 + i * 62 + 20, 'text-anchor': 'middle', 'font-size': 12, fill: '#102B49', 'font-weight': 700, direction: 'rtl', style: 'unicode-bidi:isolate' }); t.textContent = '(أ'; const sp = document.createElementNS(NS, 'tspan'); sp.setAttribute('dy', '-5'); sp.setAttribute('font-size', '9'); sp.textContent = toAr(mm, 0); t.appendChild(sp); const sp2 = document.createElementNS(NS, 'tspan'); sp2.setAttribute('dy', '5'); sp2.textContent = ')'; t.appendChild(sp2); for (let j = 0; j < mm; j++) el('circle', { cx: 170 - (mm - 1) * 16 + j * 32, cy: 20 + i * 62 + 36, r: 9, fill: '#b8860b' }); } }
+      grid() { for (let i = -8; i <= 8; i++) { el('line', { x1: 170 + 20 * i, y1: 10, x2: 170 + 20 * i, y2: 290, stroke: i ? '#d9dee6' : 'currentColor', 'stroke-width': i ? 0.8 : 1.6 }); el('line', { x1: 10, y1: 150 + 20 * i, x2: 330, y2: 150 + 20 * i, stroke: i ? '#d9dee6' : 'currentColor', 'stroke-width': i ? 0.8 : 1.6 }); } },
+      dots(mm, nn) { for (let i = 0; i < nn; i++) { el('rect', { x: 20, y: 20 + i * 62, width: 300, height: 52, rx: 8, fill: 'rgba(30,111,163,.1)', stroke: '#1e6fa3' }); const t = el('text', { x: 170, y: 20 + i * 62 + 20, 'text-anchor': 'middle', 'font-size': 12, fill: 'currentColor', 'font-weight': 700, direction: 'rtl', style: 'unicode-bidi:isolate' }); t.textContent = '(أ'; const sp = document.createElementNS(NS, 'tspan'); sp.setAttribute('dy', '-5'); sp.setAttribute('font-size', '9'); sp.textContent = toAr(mm, 0); t.appendChild(sp); const sp2 = document.createElementNS(NS, 'tspan'); sp2.setAttribute('dy', '5'); sp2.textContent = ')'; t.appendChild(sp2); for (let j = 0; j < mm; j++) el('circle', { cx: 170 - (mm - 1) * 16 + j * 32, cy: 20 + i * 62 + 36, r: 9, fill: '#b8860b' }); } }
     };
     const out = document.getElementById('thRows'), status = document.getElementById('thStatus');
     function compute() {
