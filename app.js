@@ -728,3 +728,85 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     route();
   }
 })();
+
+/* ===== SecureAdmin public content loader (additive, fail-safe) =====
+   Loads published content from the private backend. Never removes or
+   overwrites bundled content; on any failure (offline, timeout,
+   invalid data) the app keeps the bundled DATA exactly as before. */
+(function () {
+  var REMOTE = 'https://secureadmin.mrsaad70541.workers.dev/api/public/content';
+  var TIMEOUT_MS = 3500;
+  var YT = /^[A-Za-z0-9_-]{6,15}$/;
+  function payloadOf(it) {
+    var p = it.payload;
+    if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { return null; } }
+    return (p && typeof p === 'object') ? p : null;
+  }
+  function mergeItems(rawItems) {
+    var applied = 0;
+    var items = rawItems.slice().sort(function (a, b) {
+      return (a.type === 'quiz' ? -1 : 0) - (b.type === 'quiz' ? -1 : 0);
+    });
+    items.forEach(function (it) {
+      try {
+        if (it.status && it.status !== 'published' && it.status !== 'scheduled') return;
+        var p = payloadOf(it);
+        if (!p) return;
+        if (it.type === 'video') {
+          var g = DATA.grades.find(function (x) { return x.id === p.g; });
+          if (!g || !YT.test(p.yt || '') || !p.n) return;
+          var l = (typeof p.li === 'number') ? g.lessons[p.li]
+            : g.lessons.find(function (x) { return x.title === p.lesson; });
+          if (!l || l.videos.some(function (v) { return v.yt === p.yt; })) return;
+          l.videos.push({ n: String(p.n).slice(0, 200), yt: p.yt });
+          SEARCH.push({ t: String(p.n) + ' — ' + l.title + ' · ' + g.title, u: '#/g/' + g.id + '/l/' + g.lessons.indexOf(l) + '/v/' + (l.videos.length - 1) });
+          applied++;
+        } else if (it.type === 'lesson') {
+          var g2 = DATA.grades.find(function (x) { return x.id === p.g; });
+          if (!g2 || !p.title || g2.lessons.some(function (x) { return x.title === p.title; })) return;
+          var vids = (Array.isArray(p.videos) ? p.videos : [])
+            .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
+            .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt }; });
+          var nl = { title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids };
+          if (p.quiz && QUIZSETS[p.quiz]) nl.quiz = p.quiz;
+          g2.lessons.push(nl);
+          SEARCH.push({ t: 'درس ' + nl.title + ' — ' + g2.title, u: '#/g/' + g2.id + '/l/' + (g2.lessons.length - 1) });
+          applied++;
+        } else if (it.type === 'quiz') {
+          if (!p.id || !Array.isArray(p.questions) || !p.questions.length) return;
+          QUIZSETS[p.id] = { title: p.title || it.title, skill: p.skill || '', questions: p.questions };
+          applied++;
+        } else if (it.type === 'challenge') {
+          if (!p.id || !p.q || !Array.isArray(p.o) || !p.o.length) return;
+          var nc = { id: p.id, date: p.date || '', iso: p.iso || '', title: p.title || it.title,
+            q: p.q, o: p.o, a: (typeof p.a === 'number' ? p.a : 0), exT: p.exT || '', exE: p.exE || '',
+            level: p.level || '', cat: p.cat || '' };
+          var ci = CHALLENGES.findIndex(function (c) { return c.id === p.id; });
+          if (ci >= 0) CHALLENGES[ci] = nc; else CHALLENGES.unshift(nc);
+          applied++;
+        } else if (it.type === 'section') {
+          if (p.track === 'qudurat' || p.track === 'leh') {
+            var t = DATA[p.track];
+            if (!p.title || t.groups.some(function (gr) { return gr.title === p.title; })) return;
+            t.groups.push({ title: String(p.title).slice(0, 120), skills: Array.isArray(p.skills) ? p.skills.slice(0, 60).map(String) : [] });
+            applied++;
+          } else if (p.id && p.title && /^[a-z0-9_-]{1,24}$/.test(p.id) && !DATA.grades.some(function (x) { return x.id === p.id; })) {
+            DATA.grades.push({ id: p.id, title: String(p.title).slice(0, 120), lessons: [] });
+            applied++;
+          }
+        }
+      } catch (e) { /* one bad item never breaks the app */ }
+    });
+    return applied;
+  }
+  var ac = ('AbortController' in window) ? new AbortController() : null;
+  var to = setTimeout(function () { if (ac) ac.abort(); }, TIMEOUT_MS);
+  fetch(REMOTE, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); })
+    .then(function (d) {
+      clearTimeout(to);
+      if (!d || !Array.isArray(d.items) || !d.items.length) return; // empty never wipes anything
+      if (mergeItems(d.items) > 0) route();
+    })
+    .catch(function () { clearTimeout(to); /* bundled content stands */ });
+})();
