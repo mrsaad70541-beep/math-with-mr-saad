@@ -101,16 +101,43 @@ LAB.EXPERIMENTS.forEach((e) => SEARCH.push({ t: 'تجربة: ' + e.title + ' —
 SEARCH.push({ t: 'الكتاب التفاعلي — نموذج قوى القوى', u: '#/book' });
 SEARCH.push({ t: 'محفوظاتي', u: '#/saved' });
 SEARCH.push({ t: 'أخطائي — بنك الأخطاء', u: '#/mistakes' });
+const SKINDS = [['all', 'الكل'], ['video', 'فيديو'], ['lesson', 'درس'], ['quiz', 'اختبار'], ['lab', 'تجربة'], ['file', 'ملفات وكتب'], ['other', 'أخرى']];
+function sKind(u) {
+  if (/^#\/g\/[^/]+\/l\/\d+\/v\//.test(u) || /^#\/v\//.test(u)) return 'video';
+  if (/^#\/g\/[^/]+\/l\//.test(u)) return 'lesson';
+  if (/^#\/(test|diagnostic|challenge)/.test(u)) return 'quiz';
+  if (/^#\/lab/.test(u)) return 'lab';
+  if (/^#\/(files|book)/.test(u)) return 'file';
+  return 'other';
+}
+let SFILTER = 'all';
+function saFilter(k) { SFILTER = k; const el = document.getElementById('q'); saSearch(el ? el.value : ''); }
 function saSearch(q) {
   const box = document.getElementById('sres');
   const nq = norm(q).trim();
   if (!nq) { box.classList.remove('open'); box.innerHTML = ''; return; }
-  const hits = SEARCH.filter((s) => norm(s.t + ' ' + (s.k || '')).includes(nq)).slice(0, 8);
-  box.innerHTML = hits.length
-    ? hits.map((h) => `<a href="${h.u}">${esc(h.t)}</a>`).join('')
-    : '<span class="none">لا توجد نتائج مطابقة</span>';
+  const scored = [];
+  SEARCH.forEach((s) => {
+    const t = norm(s.t), k = norm(s.k || '');
+    let sc = -1;
+    if (t.startsWith(nq)) sc = 0;
+    else if (t.split(/[\s—:·-]+/).some((w) => w.startsWith(nq))) sc = 1;
+    else if (t.includes(nq)) sc = 2;
+    else if (k.includes(nq)) sc = 3;
+    if (sc >= 0) scored.push({ s: s, sc: sc, kind: sKind(s.u) });
+  });
+  scored.sort((a, b) => a.sc - b.sc || a.s.t.length - b.s.t.length);
+  const counts = {};
+  scored.forEach((x) => { counts[x.kind] = (counts[x.kind] || 0) + 1; });
+  if (SFILTER !== 'all' && !counts[SFILTER]) SFILTER = 'all';
+  const hits = scored.filter((x) => SFILTER === 'all' || x.kind === SFILTER).slice(0, 8);
+  const chips = scored.length > 1 ? '<div class="schips">' + SKINDS.filter((c) => c[0] === 'all' || counts[c[0]]).map((c) => `<button type="button" class="${SFILTER === c[0] ? 'on' : ''}" onmousedown="event.preventDefault()" onclick="saFilter('${c[0]}')">${c[1]}${c[0] === 'all' ? '' : ' ' + counts[c[0]]}</button>`).join('') + '</div>' : '';
+  box.innerHTML = chips + (hits.length
+    ? hits.map((h) => `<a href="${h.s.u}">${esc(h.s.t)}</a>`).join('')
+    : '<span class="none">لا توجد نتائج مطابقة</span>');
   box.classList.add('open');
 }
+window.saFilter = saFilter;
 window.saSearch = saSearch;
 
 /* ===== icons (line SVG) ===== */
