@@ -875,6 +875,7 @@ function challengeHtml(c, done, picked) {
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='#/challenge'">محاولة تانية</button>
       <button class="btn2 ghost" onclick="shareLink('تحدي اليوم — رياضيات مع مستر سعد', '#/challenge', 'حل تحدي اليوم في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
+      <button class="btn2 ghost" onclick="chShareImage()">شارك كصورة</button>
     </div>`;
   }
   h += `</div></div>${chIsToday(c) ? '<div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>' : '<div class="note">هذا أحدث تحدٍ منشور بتاريخه الظاهر أعلاه — لا يوجد تحدٍ جديد اليوم بعد.</div>'}`;
@@ -904,6 +905,31 @@ function chAnswer(oi) {
 }
 window.chAnswer = chAnswer;
 
+
+/* ===== challenge share-image (question + options only, never the answer) ===== */
+function chImgSvg(c) {
+  const X = 'xmlns="http://www.w3.org/1999/xhtml"';
+  const mm = (t) => t.replace(/<math /g, '<math xmlns="http://www.w3.org/1998/Math/MathML" ');
+  const opts = c.o.map((o, i) => `<div style="display:flex;align-items:center;gap:18px;background:#14213d;border:2px solid #2b3d63;border-radius:22px;padding:18px 28px;margin-top:16px;font-size:44px;direction:ltr;justify-content:flex-end"><span>${mm(o)}</span><span style="font-size:30px;color:#e9c85a;font-family:sans-serif">${'ABCD'[i] || i + 1}</span></div>`).join('');
+  const body = `<div ${X} dir="rtl" style="width:1080px;height:1080px;box-sizing:border-box;padding:70px;background:#0b1424;color:#fff;font-family:Tahoma,Arial,sans-serif;display:flex;flex-direction:column"><div style="font-size:34px;color:#e9c85a;font-weight:bold">رياضيات مع مستر سعد</div><div style="font-size:30px;color:#9fb3d1;margin-top:10px">${esc(chLabel(c))} · ${esc(c.date)}</div><div style="font-size:54px;font-weight:bold;margin:48px 0 20px;direction:ltr;text-align:center">${mm(c.q)}</div>${opts}<div style="margin-top:auto;font-size:28px;color:#9fb3d1;text-align:center">${esc(c.cat)} · جرّب الحل في التطبيق</div></div>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"><foreignObject width="1080" height="1080">${body}</foreignObject></svg>`;
+}
+function chImgBlob() {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => { try { const cv = document.createElement('canvas'); cv.width = cv.height = 1080; cv.getContext('2d').drawImage(img, 0, 0); cv.toBlob((b) => b ? res(b) : rej(new Error('blob')), 'image/png'); } catch (e) { rej(e); } };
+    img.onerror = () => rej(new Error('img'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chImgSvg(CHALLENGES[0]));
+  });
+}
+function chShareImage() {
+  chImgBlob().then((b) => {
+    const f = new File([b], 'saad-challenge.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], title: 'تحدي اليوم — رياضيات مع مستر سعد', text: fullUrl('#/challenge') }).catch(() => {});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'saad-challenge.png'; document.body.appendChild(a); a.click(); a.remove(); toast('تم حفظ صورة التحدي');
+  }).catch(() => { toast('تعذر إنشاء الصورة على هذا المتصفح — استخدم مشاركة الرابط'); });
+}
+window.chShareImage = chShareImage; window.chImgBlob = chImgBlob;
 /* ===== mistakes bank ===== */
 function mistakes() {
   const ms = getMistakes();
