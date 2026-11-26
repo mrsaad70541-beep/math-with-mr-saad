@@ -104,7 +104,7 @@ function saSearch(q) {
   const box = document.getElementById('sres');
   const nq = norm(q).trim();
   if (!nq) { box.classList.remove('open'); box.innerHTML = ''; return; }
-  const hits = SEARCH.filter((s) => norm(s.t).includes(nq)).slice(0, 8);
+  const hits = SEARCH.filter((s) => norm(s.t + ' ' + (s.k || '')).includes(nq)).slice(0, 8);
   box.innerHTML = hits.length
     ? hits.map((h) => `<a href="${h.u}">${esc(h.t)}</a>`).join('')
     : '<span class="none">لا توجد نتائج مطابقة</span>';
@@ -245,6 +245,13 @@ function lesson(gid, li) {
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
   h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '#/g/${gid}/l/${li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
   if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
+  if (l.cmeta) {
+    h += '<div class="lmeta">';
+    if (l.cmeta.d) h += `<p>${esc(l.cmeta.d)}</p>`;
+    const chips = (l.cmeta.level ? [l.cmeta.level] : []).concat(l.cmeta.tags || []);
+    if (chips.length) h += `<div class="skillchips">${chips.map((c) => `<span class="skillchip">${esc(c)}</span>`).join('')}</div>`;
+    h += '</div>';
+  }
   h += `<h3 class="subhead">شرح الدرس بالفيديو</h3>`;
   l.videos.forEach((v, vi) => {
     if (v._gone) return;
@@ -882,8 +889,8 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var l = (typeof p.li === 'number') ? g.lessons[p.li]
             : g.lessons.find(function (x) { return x.title === p.lesson; });
           if (!l || l.videos.some(function (v) { return v.yt === p.yt; })) return;
-          l.videos.push({ n: String(p.n).slice(0, 200), yt: p.yt });
-          SEARCH.push({ t: String(p.n) + ' — ' + l.title + ' · ' + g.title, u: '#/g/' + g.id + '/l/' + g.lessons.indexOf(l) + '/v/' + (l.videos.length - 1) });
+          var vm = metaOf(p); l.videos.push({ n: String(p.n).slice(0, 200), yt: p.yt, cmeta: vm });
+          SEARCH.push({ k: metaKeys(vm), t: String(p.n) + ' — ' + l.title + ' · ' + g.title, u: '#/g/' + g.id + '/l/' + g.lessons.indexOf(l) + '/v/' + (l.videos.length - 1) });
           applied++;
         } else if (it.type === 'lesson') {
           var g2 = gradeOf(p.g);
@@ -891,10 +898,10 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var vids = (Array.isArray(p.videos) ? p.videos : [])
             .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
             .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt }; });
-          var nl = { title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids };
+          var nl = { title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids, cmeta: metaOf(p) };
           if (p.quiz && QUIZSETS[p.quiz]) nl.quiz = p.quiz;
           g2.lessons.push(nl);
-          SEARCH.push({ t: 'درس ' + nl.title + ' — ' + g2.title, u: '#/g/' + g2.id + '/l/' + (g2.lessons.length - 1) });
+          SEARCH.push({ k: metaKeys(nl.cmeta), t: 'درس ' + nl.title + ' — ' + g2.title, u: '#/g/' + g2.id + '/l/' + (g2.lessons.length - 1) });
           applied++;
         } else if (it.type === 'quiz') {
           if (!p.id || !Array.isArray(p.questions) || !p.questions.length) return;
@@ -933,6 +940,15 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     });
     return applied;
   }
+  function metaOf(p) {
+    var m = p && p.meta; if (!m || typeof m !== 'object') return null;
+    var o = {};
+    if (typeof m.desc === 'string' && m.desc.trim()) o.d = m.desc.trim().slice(0, 500);
+    if (Array.isArray(m.tags)) o.tags = m.tags.filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 10).map(function (x) { return x.trim().slice(0, 30); });
+    if (['سهل', 'متوسط', 'صعب'].indexOf(m.level) >= 0) o.level = m.level;
+    return (o.d || (o.tags && o.tags.length) || o.level) ? o : null;
+  }
+  function metaKeys(o) { return o ? ((o.d || '') + ' ' + (o.tags || []).join(' ')) : ''; }
   function currentRouteGone() {
     try {
       var m = (location.hash || '').match(/^#\/g\/([^/]+)\/l\/(\d+)(?:\/v\/(\d+))?/);
