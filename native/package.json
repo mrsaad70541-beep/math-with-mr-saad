@@ -1,0 +1,16 @@
+{
+  "name": "mr-saad-math-native-shell",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Optional Capacitor shell around the web app. Not built or published.",
+  "scripts": {
+    "prepare-www": "node -e \"const fs=require('fs');fs.rmSync('www',{recursive:true,force:true});fs.mkdirSync('www');['index.html','app.js','style.css','data.js','lab.js','sw.js','manifest.webmanifest','favicon.svg','icon.svg'].forEach(f=>fs.copyFileSync('../'+f,'www/'+f))\"",
+    "sync": "npm run prepare-www && npx cap sync"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  }
+}
