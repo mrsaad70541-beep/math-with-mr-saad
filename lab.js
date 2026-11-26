@@ -409,7 +409,7 @@ window.LAB = (function () {
         <div class="labtools"><button class="btn2 ghost sm" id="labReset">إعادة التجربة</button><button class="btn2 ghost sm" id="labFull">ملء الشاشة</button></div>
         <iframe id="labFrame" class="labframe" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(e.title)}" loading="lazy"></iframe>
       </div>
-      <div class="lactions">${saveBtn('#/lab/' + e.id, 'تجربة: ' + e.title + ' — مختبر الرياضيات')}</div>`;
+      <div class="lactions">${saveBtn('#/lab/' + e.id, 'تجربة: ' + e.title + ' — مختبر الرياضيات')}<button class="btn2 sm ghost" onclick="shareLink(this.dataset.t, '${WSHARE}${esc(e.id.slice(2))}', 'تجربة تفاعلية في تطبيق رياضيات مع مستر سعد')" data-t="${esc(e.title)} — رياضيات مع مستر سعد">مشاركة التجربة</button></div>`;
   }
   function labExp(id) {
     const c = CMS.find((x) => x.id === id);
