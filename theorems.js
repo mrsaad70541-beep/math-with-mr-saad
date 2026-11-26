@@ -570,7 +570,7 @@ window.THEO = (function () {
       const R = m.calc(P);
       gDyn.innerHTML = '';
       if (m.grid) d.grid();
-      m.draw(P, d, R); gDyn.querySelectorAll('.thtag').forEach((t) => { try { let fs = +t.getAttribute('font-size') || 13, w = t.getBBox().width; if (w > 322) { fs = Math.max(8, fs * 322 / w); t.setAttribute('font-size', fs.toFixed(2)); } } catch (e) {} });
+      m.draw(P, d, R); gDyn.querySelectorAll('.thtag').forEach((t) => { try { let fs = +t.getAttribute('font-size') || 13, w = t.getBBox().width; if (w > 322) { const tx = t.textContent, sp = []; for (let i = 0; i < tx.length; i++) if (tx[i] === ' ') sp.push(i); if (sp.length) { const mid = sp.reduce((a, b) => (Math.abs(b - tx.length / 2) < Math.abs(a - tx.length / 2) ? b : a)); t.textContent = ''; [tx.slice(0, mid), tx.slice(mid + 1)].forEach((ln, k) => { const ts = document.createElementNS(NS, 'tspan'); ts.setAttribute('x', 170); ts.setAttribute('dy', k ? 14 : 0); ts.textContent = ln; t.appendChild(ts); }); t.setAttribute('y', 14); fs = Math.min(fs, 11.5); t.setAttribute('font-size', fs); w = t.getBBox().width; } if (w > 322) { fs = Math.max(8, fs * 322 / w); t.setAttribute('font-size', fs.toFixed(2)); } } } catch (e) {} });
       const bad = R.eq.filter((e) => Math.abs(e[0] - e[1]) > 0.06 * (Math.abs(e[1]) > 5 ? Math.abs(e[1]) / 5 : 1) && Math.abs(e[0] - e[1]) > 1e-6);
       let h = '';
       const dec = R.dec == null ? 1 : R.dec;
