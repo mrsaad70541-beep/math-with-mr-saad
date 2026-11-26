@@ -730,9 +730,16 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
 })();
 
 /* ===== SecureAdmin public content loader (additive, fail-safe) =====
-   Loads published content from the private backend. Never removes or
-   overwrites bundled content; on any failure (offline, timeout,
-   invalid data) the app keeps the bundled DATA exactly as before. */
+   Loads published content from the private backend. Policy:
+   - Bundled DATA is the fallback and is never wiped by absence/empties/errors.
+   - A published CMS item whose payload carries `bundled` (key) REPLACES the
+     bundled entity it names. Keys: video:<g>:<li>:<vi> | lesson:<g>:<li> |
+     quiz:<id> | challenge:<id>.
+   - A tombstone item (status 'tombstone', payload {bundled:key}) REMOVES the
+     bundled entity for this session (CMS hidden/archived = suppressed).
+   - Deleting the CMS record entirely returns authority to the bundled copy.
+   - Merged content appears immediately only when no quiz is active and no
+     video player is open; otherwise it shows on the next navigation. */
 (function () {
   var REMOTE = 'https://secureadmin.mrsaad70541.workers.dev/api/public/content';
   var TIMEOUT_MS = 3500;
@@ -742,6 +749,47 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { return null; } }
     return (p && typeof p === 'object') ? p : null;
   }
+  function gradeOf(g) { return DATA.grades.find(function (x) { return x.id === g; }); }
+  function removeBundled(key) {
+    var k = String(key || '').split(':');
+    if (k[0] === 'video' && k.length === 4) {
+      var g = gradeOf(k[1]); if (!g) return false;
+      var l = g.lessons[+k[2]]; if (!l || !l.videos[+k[3]]) return false;
+      l.videos.splice(+k[3], 1); return true;
+    }
+    if (k[0] === 'lesson' && k.length === 3) {
+      var g2 = gradeOf(k[1]); if (!g2 || !g2.lessons[+k[2]]) return false;
+      g2.lessons.splice(+k[2], 1); return true;
+    }
+    if (k[0] === 'quiz' && k.length === 2) {
+      if (!QUIZSETS[k[1]]) return false; delete QUIZSETS[k[1]]; return true;
+    }
+    if (k[0] === 'challenge' && k.length === 2) {
+      var ci = CHALLENGES.findIndex(function (c) { return c.id === k[1]; });
+      if (ci < 0) return false; CHALLENGES.splice(ci, 1); return true;
+    }
+    return false;
+  }
+  function replaceBundled(key, it, p) {
+    var k = String(key || '').split(':');
+    if (k[0] === 'video' && k.length === 4 && YT.test(p.yt || '') && p.n) {
+      var g = gradeOf(k[1]); if (!g) return false;
+      var l = g.lessons[+k[2]]; if (!l || !l.videos[+k[3]]) return false;
+      l.videos[+k[3]] = { n: String(p.n).slice(0, 200), yt: p.yt }; return true;
+    }
+    if (k[0] === 'lesson' && k.length === 3 && p.title) {
+      var g2 = gradeOf(k[1]); if (!g2 || !g2.lessons[+k[2]]) return false;
+      var old = g2.lessons[+k[2]];
+      g2.lessons[+k[2]] = { title: String(p.title).slice(0, 120),
+        label: String(p.label || old.label || '').slice(0, 120),
+        videos: (Array.isArray(p.videos) ? p.videos : old.videos)
+          .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
+          .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt }; }) };
+      if (p.quiz && QUIZSETS[p.quiz]) g2.lessons[+k[2]].quiz = p.quiz;
+      return true;
+    }
+    return false;
+  }
   function mergeItems(rawItems) {
     var applied = 0;
     var items = rawItems.slice().sort(function (a, b) {
@@ -749,11 +797,16 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     });
     items.forEach(function (it) {
       try {
-        if (it.status && it.status !== 'published' && it.status !== 'scheduled') return;
         var p = payloadOf(it);
         if (!p) return;
+        if (it.status === 'tombstone' || p.tombstone === true) {
+          if (p.bundled && removeBundled(p.bundled)) applied++;
+          return;
+        }
+        if (it.status && it.status !== 'published' && it.status !== 'scheduled') return;
+        if (p.bundled && replaceBundled(p.bundled, it, p)) { applied++; return; }
         if (it.type === 'video') {
-          var g = DATA.grades.find(function (x) { return x.id === p.g; });
+          var g = gradeOf(p.g);
           if (!g || !YT.test(p.yt || '') || !p.n) return;
           var l = (typeof p.li === 'number') ? g.lessons[p.li]
             : g.lessons.find(function (x) { return x.title === p.lesson; });
@@ -762,7 +815,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           SEARCH.push({ t: String(p.n) + ' — ' + l.title + ' · ' + g.title, u: '#/g/' + g.id + '/l/' + g.lessons.indexOf(l) + '/v/' + (l.videos.length - 1) });
           applied++;
         } else if (it.type === 'lesson') {
-          var g2 = DATA.grades.find(function (x) { return x.id === p.g; });
+          var g2 = gradeOf(p.g);
           if (!g2 || !p.title || g2.lessons.some(function (x) { return x.title === p.title; })) return;
           var vids = (Array.isArray(p.videos) ? p.videos : [])
             .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
@@ -790,7 +843,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
             if (!p.title || t.groups.some(function (gr) { return gr.title === p.title; })) return;
             t.groups.push({ title: String(p.title).slice(0, 120), skills: Array.isArray(p.skills) ? p.skills.slice(0, 60).map(String) : [] });
             applied++;
-          } else if (p.id && p.title && /^[a-z0-9_-]{1,24}$/.test(p.id) && !DATA.grades.some(function (x) { return x.id === p.id; })) {
+          } else if (p.id && p.title && /^[a-z0-9_-]{1,24}$/.test(p.id) && !gradeOf(p.id)) {
             DATA.grades.push({ id: p.id, title: String(p.title).slice(0, 120), lessons: [] });
             applied++;
           }
@@ -799,6 +852,13 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     });
     return applied;
   }
+  function safeToRerender() {
+    try {
+      if (typeof qState !== 'undefined' && qState && !qState.done) return false; // quiz in progress
+      if (document.querySelector('#app iframe')) return false; // video player open
+    } catch (e) { return false; }
+    return true;
+  }
   var ac = ('AbortController' in window) ? new AbortController() : null;
   var to = setTimeout(function () { if (ac) ac.abort(); }, TIMEOUT_MS);
   fetch(REMOTE, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' })
@@ -806,7 +866,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
     .then(function (d) {
       clearTimeout(to);
       if (!d || !Array.isArray(d.items) || !d.items.length) return; // empty never wipes anything
-      if (mergeItems(d.items) > 0) route();
+      if (mergeItems(d.items) > 0 && safeToRerender()) route();
     })
     .catch(function () { clearTimeout(to); /* bundled content stands */ });
 })();
