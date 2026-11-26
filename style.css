@@ -502,3 +502,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) { .qfb, .chipbtn { transition: none; } }
 .mrun { direction: ltr; unicode-bidi: isolate; display: inline-block; }
 .cap.sub { font-size: 12px; color: var(--mut); margin-top: 4px; }
+.schips { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 10px 4px; }
+.schips button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line, rgba(255,255,255,.18)); background: transparent; color: inherit; cursor: pointer; }
+.schips button.on { background: var(--gold, #e9c46a); color: #102B49; border-color: transparent; }
