@@ -697,7 +697,18 @@ function route() {
   LAB.afterRender(p);
 }
 window.addEventListener('hashchange', route);
-route();
+/* First-paint playback gate: a direct deep link to a bundled video must not
+   mount its player before the CMS loader's first fetch resolves - a withdrawn
+   (tombstoned) video may never start, even briefly. Non-player routes render
+   immediately; the fallback timer matches the loader timeout so offline users
+   are never trapped. */
+var __initialRouteDone = false;
+function __initialRoute() { if (__initialRouteDone) return; __initialRouteDone = true; route(); }
+window.__resolveInitialRoute = __initialRoute;
+if (/^#\/g\/[^/]+\/l\/\d+\/v\/\d+/.test(location.hash || '')) {
+  app.innerHTML = '<div class="note">جارٍ التحميل…</div>';
+  setTimeout(__initialRoute, 4000);
+} else __initialRoute();
 if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.search.slice(5)));
 
 /* QA hooks (only active with ?qa= in URL) */
@@ -888,9 +899,11 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
       clearTimeout(to);
       if (!d || !Array.isArray(d.items) || !d.items.length) return; // empty never wipes anything
       var applied = mergeItems(d.items);
+      var alreadyRouted = __initialRouteDone;
+      if (window.__resolveInitialRoute) window.__resolveInitialRoute(); // gated first paint renders merged content
       // A tombstoned deep target must never keep playing: force re-render when the
       // current route's entity was withdrawn, even over the player-iframe guard.
-      if (applied > 0 && (currentRouteGone() || safeToRerender())) route();
+      if (applied > 0 && alreadyRouted && (currentRouteGone() || safeToRerender())) route();
     })
-    .catch(function () { clearTimeout(to); /* bundled content stands */ });
+    .catch(function () { clearTimeout(to); if (window.__resolveInitialRoute) window.__resolveInitialRoute(); /* bundled content stands */ });
 })();
