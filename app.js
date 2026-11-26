@@ -774,7 +774,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
       for (var i = 0; i < kids.length; i++) {
         var k = kids[i];
         if (k.nodeType === 1) {
-          if (!ALLOW[k.tagName]) { var t = document.createTextNode(k.textContent || ''); node.replaceChild(t, k); continue; }
+          if (!ALLOW[String(k.tagName).toUpperCase()]) { var t = document.createTextNode(k.textContent || ''); node.replaceChild(t, k); continue; }
           var attrs = [].slice.call(k.attributes);
           for (var j = 0; j < attrs.length; j++) { if (!ATTR[attrs[j].name.toUpperCase()]) k.removeAttribute(attrs[j].name); }
           walk(k);
