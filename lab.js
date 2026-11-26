@@ -113,7 +113,7 @@ window.LAB = (function () {
       const put = (t, p, v) => { t.setAttribute('x', p.x); t.setAttribute('y', p.y - 16); t.textContent = '≈' + toAr(v, 1) + '°'; };
       put(tA, A, a); put(tB, B, b); put(tC, C, c);
       live.innerHTML =
-        `<div class="live-row"><span>${toAr(a, 1)}°</span> + <span>${toAr(b, 1)}°</span> + <span>${toAr(c, 1)}°</span> ≈ <strong class="gold">١٨٠°</strong></div>
+        `<div class="live-row"><bdi><span>${toAr(a, 1)}°</span> + <span>${toAr(b, 1)}°</span> + <span>${toAr(c, 1)}°</span> ≈ <strong class="gold">١٨٠°</strong></bdi></div>
          <div class="live-row dim">القياسات مقرّبة لأقرب ٠٫١° فقد يظهر فرق جزء من العشرة في الجمع، لكن المجموع الحقيقي يساوي ١٨٠° تمامًا لأي مثلث.</div>`;
     }
     draw();
@@ -219,9 +219,86 @@ window.LAB = (function () {
       dist.setAttribute('x2', Math.max(pA.x, pB.x));
       document.getElementById('labLive').innerHTML =
         `<div class="live-row">النقطة الأولى: <strong>${toAr(va, 0)}</strong> · النقطة الثانية: <strong>${toAr(vb, 0)}</strong></div>
-         <div class="live-row">المسافة بينهما = |${toAr(vb, 0)} − ${toAr(va, 0)}| = <strong class="gold">${toAr(Math.abs(vb - va), 0)}</strong> وحدات</div>`;
+         <div class="live-row">المسافة بينهما = <bdi>|${toAr(vb, 0)} − ${toAr(va, 0)}|</bdi> = <strong class="gold">${toAr(Math.abs(vb - va), 0)}</strong> وحدات</div>`;
     }
     draw();
+  }
+
+
+  /* ٥) الكسور */
+  function mountFractions() {
+    const W = 340, H = 150;
+    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', class: 'labsvgel' });
+    document.getElementById('labSvgHost').appendChild(svg);
+    const st = { n: 3, d: 4 };
+    function draw() {
+      svg.innerHTML = '';
+      const X0 = 20, X1 = 320, Y = 45, BH = 60, bw = (X1 - X0) / st.d;
+      for (let i = 0; i < st.d; i++) {
+        svgEl('rect', { x: X0 + i * bw, y: Y, width: bw - 2, height: BH,
+          fill: i < st.n ? 'rgba(30,111,163,.55)' : 'rgba(16,43,73,.08)',
+          stroke: 'var(--navy)', 'stroke-width': 1.2, rx: 3 }, svg);
+      }
+      const val = st.n / st.d;
+      document.getElementById('labLive').innerHTML =
+        `<div class="live-row">الكسر = <strong class="gold"><bdi>${toAr(st.n, 0)} / ${toAr(st.d, 0)}</bdi></strong> ≈ ${toAr(val, 3)}${val > 1 ? ' (كسر غير حقيقي — أكبر من الواحد الصحيح)' : val === 1 ? ' (يساوي الواحد الصحيح)' : ''}</div>
+         <div class="live-row dim">الأجزاء المظللة ${toAr(Math.min(st.n, st.d), 0)} من ${toAr(st.d, 0)}${st.n > st.d ? ' — البسط أكبر من المقام فيحتاج التمثيل أكثر من شريط كامل' : ''}</div>`;
+    }
+    const ctrl = document.getElementById('labCtrl');
+    ctrl.innerHTML = `
+      <label class="rng">البسط = <span id="pvN"></span><input type="range" min="0" max="8" step="1" value="${st.n}" id="rgN"></label>
+      <label class="rng">المقام = <span id="pvD"></span><input type="range" min="1" max="8" step="1" value="${st.d}" id="rgD"></label>`;
+    const upd = () => {
+      st.n = +document.getElementById('rgN').value; st.d = +document.getElementById('rgD').value;
+      document.getElementById('pvN').textContent = toAr(st.n, 0);
+      document.getElementById('pvD').textContent = toAr(st.d, 0);
+      draw();
+    };
+    document.getElementById('rgN').oninput = upd;
+    document.getElementById('rgD').oninput = upd;
+    upd();
+  }
+
+  /* ٦) الدالة الخطية */
+  function mountLinear() {
+    const W = 340, H = 300, SC = 26, CX = 170, CY = 150;
+    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', class: 'labsvgel' });
+    document.getElementById('labSvgHost').appendChild(svg);
+    const st = { a: 1, b: 1 };
+    function draw() {
+      svg.innerHTML = '';
+      for (let i = -5; i <= 5; i++) {
+        svgEl('line', { x1: CX + i * SC, y1: 10, x2: CX + i * SC, y2: H - 10, stroke: i ? 'rgba(16,43,73,.08)' : 'var(--navy)', 'stroke-width': i ? 1 : 1.6 }, svg);
+        svgEl('line', { x1: 10, y1: CY + i * SC, x2: W - 10, y2: CY + i * SC, stroke: i ? 'rgba(16,43,73,.08)' : 'var(--navy)', 'stroke-width': i ? 1 : 1.6 }, svg);
+      }
+      const f = (x) => st.a * x + st.b;
+      const pts = [];
+      for (let x = -5.5; x <= 5.5; x += 0.25) {
+        const y = f(x);
+        if (y >= -4.8 && y <= 4.8) pts.push(`${CX + x * SC},${CY - y * SC}`);
+      }
+      if (pts.length > 1) svgEl('polyline', { points: pts.join(' '), fill: 'none', stroke: '#b8860b', 'stroke-width': 2.5 }, svg);
+      const y0 = f(0);
+      if (y0 >= -4.8 && y0 <= 4.8) svgEl('circle', { cx: CX, cy: CY - y0 * SC, r: 5, fill: '#1e6fa3', stroke: '#fff', 'stroke-width': 2 }, svg);
+      const aTxt = st.a === 1 ? 'س' : st.a === -1 ? '−س' : toAr(st.a, 0) + ' س';
+      const bTxt = st.b === 0 ? '' : (st.b > 0 ? ' + ' + toAr(st.b, 0) : ' − ' + toAr(-st.b, 0));
+      document.getElementById('labLive').innerHTML =
+        `<div class="live-row">ص = <strong class="gold">${aTxt}${bTxt}</strong></div>
+         <div class="live-row dim">الميل = ${toAr(st.a, 0)} (مقدار تغير ص عند زيادة س بمقدار ١) · الجزء المقطوع من محور ص = ${toAr(st.b, 0)}</div>`;
+    }
+    const ctrl = document.getElementById('labCtrl');
+    ctrl.innerHTML = `
+      <label class="rng">الميل أ = <span id="pvLA"></span><input type="range" min="-3" max="3" step="1" value="${st.a}" id="rgLA"></label>
+      <label class="rng">الثابت ب = <span id="pvLB"></span><input type="range" min="-5" max="5" step="1" value="${st.b}" id="rgLB"></label>`;
+    const upd = () => {
+      st.a = +document.getElementById('rgLA').value; st.b = +document.getElementById('rgLB').value;
+      document.getElementById('pvLA').textContent = toAr(st.a, 0);
+      document.getElementById('pvLB').textContent = toAr(st.b, 0);
+      draw();
+    };
+    document.getElementById('rgLA').oninput = upd;
+    document.getElementById('rgLB').oninput = upd;
+    upd();
   }
 
   const EXPERIMENTS = [
@@ -260,6 +337,24 @@ window.LAB = (function () {
       explain: 'العدد السالب يقع يسار الصفر. المسافة لا تهتم بالاتجاه، لذلك نأخذ القيمة المطلقة للفرق.',
       questions: ['ما المسافة بين −٧ و٥؟', 'عددان المسافة بينهما ٩ وأحدهما −٢، ما العددان المحتملان للآخر؟'],
       mount: mountNumberLine
+    },
+    {
+      id: 'fractions', title: 'الكسور وقيمتها',
+      problem: 'ماذا يحدث لقيمة الكسر عندما نغيّر البسط أو المقام؟ حرّك المؤشرين ولاحظ التمثيل والقيمة.',
+      observation: 'كلما زاد البسط زادت قيمة الكسر، وكلما زاد المقام قلّت قيمته، وعند تساويهما نحصل على الواحد الصحيح.',
+      conclusion: 'الكسر ب/م يمثل ب من أجزاء متساوية عددها م؛ وقيمته = ب ÷ م، وإذا كان ب أكبر من م كان الكسر أكبر من ١.',
+      explain: 'المقام يحدد عدد الأجزاء المتساوية، والبسط يحدد كم جزءًا نأخذ. عشان كده ١/٢ أكبر من ١/٤ رغم أن ٤ أكبر من ٢.',
+      questions: ['أي الكسرين أكبر: ٣/٥ أم ٣/٧؟ لماذا؟', 'ما قيمة ٨/٤؟ وماذا نسمي هذا النوع من الكسور؟'],
+      mount: mountFractions
+    },
+    {
+      id: 'linear-fn', title: 'الدالة الخطية وتمثيلها البياني',
+      problem: 'كيف يؤثر الميل (أ) والثابت (ب) على شكل خط الدالة ص = أ س + ب؟',
+      observation: 'تغيير الميل يغيّر انحدار الخط واتجاهه، وتغيير الثابت يحرّك الخط كله لأعلى أو لأسفل دون تغيير انحداره.',
+      conclusion: 'في ص = أ س + ب: الميل أ يحدد الانحدار (موجب يصعد، سالب يهبط، صفر أفقي)، والثابت ب هو نقطة تقاطع الخط مع محور ص.',
+      explain: 'كل خط مستقيم له معادلة من الصورة ص = أ س + ب. الميل يقيس مقدار صعود الخط لكل خطوة يمين، والثابت يخبرنا من أين يبدأ الخط عند محور ص.',
+      questions: ['ماذا يحدث للخط عندما أ = ٠؟ وماذا نسمي الدالة الناتجة؟', 'خطان لهما نفس الميل وثابتان مختلفان — ما العلاقة بينهما؟'],
+      mount: mountLinear
     }
   ];
 
