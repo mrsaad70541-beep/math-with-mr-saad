@@ -540,3 +540,11 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 
 .bkidx .qhead, .bknote .qhead { margin-bottom: 12px; }
 .bkidx input:focus, .bknote textarea:focus { outline-offset: 0; }
+
+.fcard{background:var(--card);border-radius:var(--r-md);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);display:grid;grid-template-columns:44px 1fr;gap:6px 12px;align-items:start}
+.fcard .fic{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--info-wash)}
+.fcard .fic svg{width:24px;height:24px}
+.fcard .ft{font-weight:800;font-size:15px;line-height:1.6}
+.fcard .fd{font-size:13.5px;line-height:1.7;color:var(--mut)}
+.fcard .ftags{font-size:12px;color:var(--mut);margin-top:2px}
+.fcard .fbtns{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
