@@ -9,6 +9,7 @@ const QUDURAT_CHAPTERS = [
   "الباب السادس: مسائل حياتية"
 ];
 
+const LEH_SAMPLE = { yt: 'aBPMV0Jkiec', n: 'سالب في سالب — الأعداد الصحيحة', t: 'نموذج تجريبي من سلسلة ليه؟', dur: '' };
 const LEH_CATS = [
   "الحيل الرياضية",
   "الألغاز والتحديات",
@@ -41,6 +42,7 @@ const CHALLENGES = [
   {
     id: 'c20261126',
     date: '٢٦ نوفمبر ٢٠٢٦',
+    iso: '2026-11-26',
     title: 'تحدي الأسس',
     q: '<span class="eq"><math dir="ltr"><msup><mrow><mo>(</mo><msup><mrow><mn>٢</mn></mrow><mrow><mn>٣</mn></mrow></msup><mo>)</mo></mrow><mrow><mn>٢</mn></mrow></msup><mo>=</mo><mn>؟</mn></math></span>',
     o: ['<span class="eq"><math dir="ltr"><msup><mrow><mn>٢</mn></mrow><mrow><mn>٥</mn></mrow></msup></math></span>', '<span class="eq"><math dir="ltr"><msup><mrow><mn>٢</mn></mrow><mrow><mn>٦</mn></mrow></msup></math></span>', '<span class="eq"><math dir="ltr"><msup><mrow><mn>٢</mn></mrow><mrow><mn>٩</mn></mrow></msup></math></span>', '<span class="eq"><math dir="ltr"><msup><mrow><mn>٢</mn></mrow><mrow><mn>١٢</mn></mrow></msup></math></span>'],
