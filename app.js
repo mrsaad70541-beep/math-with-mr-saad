@@ -855,7 +855,12 @@ let chState = null;
 let chCur = null;
 function challenge(id) {
   window._chDone = false;
-  chCur = (id && CHALLENGES.find((c) => String(c.id) === String(id))) || CHALLENGES[0];
+  const found = id ? CHALLENGES.find((c) => String(c.id) === String(id)) : CHALLENGES[0];
+  if (!found) {
+    chCur = CHALLENGES[0];
+    return '<div class="note" role="status"><b>هذا التحدي غير متاح</b><div>الرابط يشير إلى تحدٍ غير موجود أو غير منشور حاليًا.</div><button type="button" class="btn" onclick="location.hash=\'#/challenge\'">افتح أحدث تحدٍ</button> <button type="button" class="btn2 ghost" onclick="location.hash=\'#/\'">الرئيسية</button></div>';
+  }
+  chCur = found;
   chState = { done: false };
   return challengeHtml(chCur);
 }
