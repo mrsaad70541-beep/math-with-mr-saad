@@ -72,6 +72,8 @@ LEH_CATS.forEach((c) => SEARCH.push({ t: c + ' — ليه؟', u: '#/t/leh' }));
 SEARCH.push({ t: 'القدرات الكمي — المنهج السعودي', u: '#/t/qudurat' });
 SEARCH.push({ t: 'ليه؟ — رياضيات عامة', u: '#/t/leh' });
 CHALLENGES.forEach((c) => SEARCH.push({ t: 'تحدي اليوم: ' + c.title, u: '#/challenge' }));
+SEARCH.push({ t: 'مختبر الرياضيات — تجارب تفاعلية', u: '#/lab' });
+LAB.EXPERIMENTS.forEach((e) => SEARCH.push({ t: 'تجربة: ' + e.title + ' — مختبر الرياضيات', u: '#/lab/' + e.id }));
 SEARCH.push({ t: 'الكتاب التفاعلي — نموذج قوى القوى', u: '#/book' });
 SEARCH.push({ t: 'محفوظاتي', u: '#/saved' });
 SEARCH.push({ t: 'أخطائي — بنك الأخطاء', u: '#/mistakes' });
@@ -143,7 +145,7 @@ function home() {
   <div class="tools"><div class="grid">
     <a class="tile" href="#/test"><span class="ic" style="background:#e0f5f1">${IC.quiz}</span><span class="name">الاختبارات والتدريبات</span><span class="st on">نموذج متاح</span></a>
     <a class="tile" href="#/book"><span class="ic" style="background:#fdf3d8">${IC.book}</span><span class="name">الكتاب التفاعلي</span><span class="st on">نموذج متاح</span></a>
-    <a class="tile" href="#/soon"><span class="ic" style="background:#efeafc">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st">قريبًا</span></a>
+    <a class="tile" href="#/lab"><span class="ic" style="background:#efeafc">${IC.flask}</span><span class="name">مختبر الرياضيات</span><span class="st on2">متاح الآن</span></a>
     <a class="tile" href="#/soon"><span class="ic" style="background:#e7f0fd">${IC.folder}</span><span class="name">مكتبة الملفات</span><span class="st">قريبًا</span></a>
   </div></div>
   <div class="section-title">أحدث المحتويات</div>`;
@@ -250,7 +252,7 @@ function quizHtml() {
     return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
     <div class="quiz"><div class="qcard result">
       <div class="qhead">نتيجتك</div>
-      <div class="score">${qState.score} / ${set.questions.length}</div>
+      <div class="score">${qState.score} <span class="of">من</span> ${set.questions.length}</div>
       <div class="cap">${qState.score === set.questions.length ? 'ممتاز! جاهز للدرس اللي بعده' : 'راجع الدرس وحاول تاني — الأسئلة اللي غلطت فيها اتحفظت في «أخطائي»'}</div>
       <button class="btn2" onclick="location.hash='#/test'">إعادة الاختبار</button>
       <a class="btn2 ghost" href="#/g/g3/l/0">مراجعة الدرس</a>
@@ -314,6 +316,7 @@ function chAnswer(oi) {
   if (oi !== c.a) addMistake({ q: c.q, your: c.o[oi], right: c.o[c.a], ex: c.ex, skill: c.cat, from: '#/challenge' });
   app.innerHTML = challengeHtml(c, true, oi);
   window.scrollTo(0, 0);
+  LAB.afterRender(p);
 }
 window.chAnswer = chAnswer;
 
@@ -359,6 +362,7 @@ function bookGo(d) {
   bp = Math.min(BOOK.length - 1, Math.max(0, bp + d));
   app.innerHTML = bookHtml();
   window.scrollTo(0, 0);
+  LAB.afterRender(p);
 }
 window.bookGo = bookGo;
 
@@ -399,6 +403,8 @@ function route() {
   else if (p[0] === 'book') html = book();
   else if (p[0] === 'saved') html = saved();
   else if (p[0] === 'challenge') html = challenge();
+  else if (p[0] === 'lab' && p[1]) html = LAB.labExp(p[1]);
+  else if (p[0] === 'lab') html = LAB.labHome();
   else if (p[0] === 'mistakes') html = mistakes();
   else if (p[0] === 'account') html = account();
   else html = home();
@@ -413,6 +419,7 @@ function route() {
     : (p[0] === 'account' || p[0] === 'mistakes') ? a.dataset.route === 'account'
     : a.dataset.route === 'home' && p.length === 0));
   window.scrollTo(0, 0);
+  LAB.afterRender(p);
   if (p[0] === 'soon') toast('غير متاح حاليًا — شغالين عليها');
 }
 window.addEventListener('hashchange', route);
