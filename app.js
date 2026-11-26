@@ -922,26 +922,32 @@ function mistakes() {
 
 /* ===== interactive book sample ===== */
 let bp = 0;
-function bkGet(k, d) { return jget('saad.book.' + k, d); }
+let CURBK = '';
+const BOOKS = {};
+function bkp() { return CURBK ? CURBK + '.' : ''; }
+function curPages() { return CURBK && BOOKS[CURBK] ? BOOKS[CURBK].pages : BOOK; }
+function bkUrl(n) { return CURBK ? '#/bk/' + CURBK + '/' + n : '#/book/' + n; }
+function bkGet(k, d) { return jget('saad.book.' + bkp() + k, d); }
 function bkZ() { return Math.min(1.6, Math.max(0.8, +bkGet('zoom', 1) || 1)); }
 function bookZ(d) { bkSet('zoom', Math.round((bkZ() + d) * 10) / 10); const y = window.scrollY; app.innerHTML = bookHtml(); window.scrollTo(0, y); }
 window.bookZ = bookZ;
-function bkSet(k, v) { localStorage.setItem('saad.book.' + k, JSON.stringify(v)); }
+function bkSet(k, v) { localStorage.setItem('saad.book.' + bkp() + k, JSON.stringify(v)); }
 function book() {
+  CURBK = '';
   const m = /^#\/book\/(\d+)/.exec(location.hash);
   const n = m ? +m[1] : (+bkGet('last', 1) || 1);
-  bp = Math.min(BOOK.length - 1, Math.max(0, n - 1));
+  bp = Math.min(curPages().length - 1, Math.max(0, n - 1));
   bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
   return bookHtml();
 }
 function bookHtml() {
-  const pg = BOOK[bp];
+  const pg = curPages()[bp];
   const bms = bkGet('bm', []), isbm = bms.indexOf(bp + 1) >= 0;
   const note = (bkGet('notes', {}))[bp + 1] || '';
-  return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">الكتاب التفاعلي — نموذج</div>
-  <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.max(bkGet('maxp', 0), bp + 1)} من ${BOOK.length} صفحات</span></div>
+  return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${CURBK ? esc(BOOKS[CURBK].name) : 'الكتاب التفاعلي — نموذج'}</div>
+  <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.max(bkGet('maxp', 0), bp + 1)} من ${curPages().length} صفحات</span></div>
   <div class="bookpg" style="zoom:${bkZ()}">
-    <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${BOOK.length}</div>
+    <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${curPages().length}</div>
     <h3>${pg.t}</h3>
     <p>${pg.p}</p>
     ${pg.cid && !pg.ft ? '' : `<div class="f eqwrap">${pg.f}</div>`}
@@ -949,13 +955,13 @@ function bookHtml() {
   </div>
   <div class="booknav">
     <button onclick="bookGo(-1)" ${bp === 0 ? 'disabled' : ''}>‹ السابق</button>
-    <button onclick="bookGo(1)" ${bp === BOOK.length - 1 ? 'disabled' : ''}>التالي ›</button>
+    <button onclick="bookGo(1)" ${bp === curPages().length - 1 ? 'disabled' : ''}>التالي ›</button>
   </div>
-  <div class="dots">${BOOK.map((_, i) => `<i class="${i === bp ? 'on' : ''}"></i>`).join('')}</div>
+  <div class="dots">${curPages().map((_, i) => `<i class="${i === bp ? 'on' : ''}"></i>`).join('')}</div>
   <div class="bktools">
-    <label>اذهب إلى صفحة <select id="bkgo" onchange="bookTo(+this.value)">${BOOK.map((_, i) => `<option value="${i + 1}"${i === bp ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>
+    <label>اذهب إلى صفحة <select id="bkgo" onchange="bookTo(+this.value)">${curPages().map((_, i) => `<option value="${i + 1}"${i === bp ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>
     <button type="button" class="btn2 sm ${isbm ? '' : 'ghost'}" onclick="bookBm()">${isbm ? 'إزالة الإشارة المرجعية' : 'إشارة مرجعية للصفحة'}</button>
-    <button type="button" class="btn2 sm ghost" onclick="shareLink('الكتاب التفاعلي — صفحة ${bp + 1}', '#/book/${bp + 1}', 'صفحة ${bp + 1} من الكتاب التفاعلي')">مشاركة الصفحة</button>
+    <button type="button" class="btn2 sm ghost" onclick="shareLink('الكتاب التفاعلي — صفحة ${bp + 1}', '${bkUrl(bp + 1)}', 'صفحة ${bp + 1} من الكتاب التفاعلي')">مشاركة الصفحة</button>
   </div>
   <div class="qcard bkidx"><div class="qhead">فهرس الكتاب والبحث فيه</div>
     <input id="bksearch" type="search" placeholder="ابحث في صفحات الكتاب…" oninput="bookSearch(this.value)" aria-label="بحث في الكتاب">
@@ -963,21 +969,22 @@ function bookHtml() {
   ${pg.cid ? '' : '<div class="bktools"><a class="btn2 sm ghost" href="#/g/g3/l/0">فيديوهات الدرس</a><a class="btn2 sm ghost" href="#/test/g3l1">اختبار الدرس</a></div>'}
   <div class="qcard bknote"><div class="qhead">ملاحظتي على هذه الصفحة (محفوظة على جهازك فقط)</div>
     <textarea id="bknote" rows="3" placeholder="اكتب ملاحظتك…" oninput="bookNote(this.value)">${esc(note)}</textarea></div>
-  ${bms.length ? '<div class="note">صفحاتك المُشار إليها: ' + bms.slice().sort((x, y) => x - y).map((x) => '<a href="#/book/' + x + '">' + x + '</a>').join(' · ') + '</div>' : ''}
-  <div class="note">نموذج تجريبي من ٤ صفحات — الكتاب الكامل قريبًا</div>`;
+  ${bms.length ? '<div class="note">صفحاتك المُشار إليها: ' + bms.slice().sort((x, y) => x - y).map((x) => '<a href="' + bkUrl(x) + '">' + x + '</a>').join(' · ') + '</div>' : ''}
+  ${CURBK ? '<a class="btn2 sm ghost" href="#/book">‹ الكتاب التفاعلي</a>' : '<div class="note">نموذج تجريبي من ٤ صفحات — الكتاب الكامل قريبًا</div>'}
+  ${CURBK ? '' : otherBooksHtml()}`;
 }
 function bkPlain(h) { const d = document.createElement('div'); d.innerHTML = String(h || ''); return (d.textContent || '').replace(/\s+/g, ' '); }
 function bookIndexHtml(q) {
   const k = (q || '').trim();
-  const r = BOOK.map((p, i) => ({ i, p })).filter((x) => !k || (x.p.t + ' ' + bkPlain(x.p.p)).indexOf(k) >= 0);
-  return r.length ? r.map((x) => '<a class="bkrow' + (x.i === bp ? ' on' : '') + '" href="#/book/' + (x.i + 1) + '"><b>' + (x.i + 1) + '</b> ' + esc(x.p.t) + '</a>').join('') : '<div class="dim" style="font-size:13px">لا توجد صفحة تطابق بحثك.</div>';
+  const r = curPages().map((p, i) => ({ i, p })).filter((x) => !k || (x.p.t + ' ' + bkPlain(x.p.p)).indexOf(k) >= 0);
+  return r.length ? r.map((x) => '<a class="bkrow' + (x.i === bp ? ' on' : '') + '" href="' + bkUrl(x.i + 1) + '"><b>' + (x.i + 1) + '</b> ' + esc(x.p.t) + '</a>').join('') : '<div class="dim" style="font-size:13px">لا توجد صفحة تطابق بحثك.</div>';
 }
 function bookSearch(v) { const e = document.getElementById('bkres'); if (e) e.innerHTML = bookIndexHtml(v); }
 window.bookSearch = bookSearch;
 function bookTo(n) {
-  bp = Math.min(BOOK.length - 1, Math.max(0, n - 1));
+  bp = Math.min(curPages().length - 1, Math.max(0, n - 1));
   bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
-  history.replaceState(null, '', '#/book/' + (bp + 1));
+  history.replaceState(null, '', bkUrl(bp + 1));
   app.innerHTML = bookHtml();
   window.scrollTo(0, 0);
 }
@@ -995,6 +1002,18 @@ function bookNote(v) { const n = bkGet('notes', {}); if (v.trim()) n[bp + 1] = v
 window.bookNote = bookNote;
 window.bookGo = bookGo;
 
+function otherBooksHtml() {
+  const ids = Object.keys(BOOKS);
+  if (!ids.length) return '';
+  return '<div class="qcard"><div class="qhead">كتب أخرى</div>' + ids.map((id) => '<a class="bkrow" href="#/bk/' + id + '/1">' + esc(BOOKS[id].name) + ' <span class="dim">(' + toArNum(BOOKS[id].pages.length) + ' صفحة)</span></a>').join('') + '</div>';
+}
+function bookExtra(id, n) {
+  if (!BOOKS[id]) return soon();
+  CURBK = id;
+  bp = Math.min(curPages().length - 1, Math.max(0, (n || +bkGet('last', 1) || 1) - 1));
+  bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
+  return bookHtml();
+}
 /* ===== sample video (approved ليه؟ sample) ===== */
 function watchSample(yt) {
   const v = LEH_SAMPLE;
@@ -1087,6 +1106,7 @@ function route() {
   else if (p[0] === 't' && p[2] === 'c') html = trackGroup(p[1], +p[3]);
   else if (p[0] === 't') html = track(p[1]);
   else if (p[0] === 'test') html = test(p[1]);
+  else if (p[0] === 'bk') html = bookExtra(p[1], +p[2]);
   else if (p[0] === 'book') html = book();
   else if (p[0] === 'saved') html = saved();
   else if (p[0] === 'challenge') html = challenge();
@@ -1333,6 +1353,18 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           if (typeof p.t !== 'string' || !p.t.trim() || typeof p.p !== 'string' || !p.p.trim() || !it.id) return;
           var bpg = { cid: String(it.id), ft: String(p.ft || '').trim(), t: esc(p.t.slice(0, 120)), p: esc(p.p.slice(0, 1500)),
             f: '<span dir="ltr">' + esc(String(p.ft || '').slice(0, 200)) + '</span>', ex: esc(String(p.ex || '').slice(0, 300)) };
+          if (typeof p.bk === 'string' && p.bk.trim()) {
+            var bname = p.bk.trim().slice(0, 80), hh = 0;
+            for (var hi = 0; hi < bname.length; hi++) hh = (hh * 31 + bname.charCodeAt(hi)) | 0;
+            var bslug = 'k' + Math.abs(hh).toString(36);
+            var bxo = BOOKS[bslug] || (BOOKS[bslug] = { name: bname, pages: [] });
+            bpg.o = Math.max(0, Math.min(999, parseInt(p.order, 10) || 0));
+            var bxi = bxo.pages.findIndex(function (x) { return x.cid === bpg.cid; });
+            if (bxi >= 0) bxo.pages[bxi] = bpg; else bxo.pages.push(bpg);
+            bxo.pages.sort(function (x, y) { return x.o - y.o; });
+            applied++;
+            return;
+          }
           var bi = BOOK.findIndex(function (x) { return x.cid === bpg.cid; });
           bpg.o = Math.max(0, Math.min(999, parseInt(p.order, 10) || 0));
           if (bi >= 0) BOOK[bi] = bpg; else BOOK.push(bpg);
