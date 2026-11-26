@@ -69,7 +69,14 @@ function addMistake(m) {
 }
 
 /* ===== share (real links) ===== */
-function fullUrl(u) { return /^https?:\/\//.test(u) ? u : location.origin + location.pathname + u; }
+function seoUrl(u) {
+  const m = /^#\/g\/(g\d)\/l\/(\d+)\/v\/(\d+)$/.exec(u);
+  if (!m || typeof DATA === 'undefined') return null;
+  const g = DATA.grades.find((x) => x.id === m[1]), l = g && g.lessons[+m[2]];
+  return l && l.videos[+m[3]] ? location.origin + location.pathname + 's/' + m[1] + '-l' + m[2] + '-v' + m[3] + '.html' : null;
+}
+function fullUrl(u) { return /^https?:\/\//.test(u) ? u : (seoUrl(u) || location.origin + location.pathname + u); }
+window.fullUrl = fullUrl;
 function shareLink(title, u, text) {
   const url = fullUrl(u);
   const body = (text || title) + '\n' + url;
