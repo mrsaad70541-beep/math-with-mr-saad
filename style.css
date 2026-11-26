@@ -5,7 +5,7 @@
   --navy2: #1d3d63;
   --gold: #EAC65B;
   --gold-ink: #5c4700;
-  --gold-deep: var(--gold-deep);
+  --gold-deep: #b8860b;
   --brand-ink: #102B49;
   /* surfaces and text */
   --bg: #F7F9FC;
@@ -13,24 +13,24 @@
   --ink: #102B49;
   --mut: #64748B;
   --line: #E2E8F0;
-  --soft: var(--soft);
-  --on-navy-mut: var(--on-navy-mut);
+  --soft: #b6bfd1;
+  --on-navy-mut: #b9c6d8;
   --link: #1d3d63;
   /* semantic */
   --ok: #16A34A;
   --bad: #DC2626;
   /* tints */
-  --chip: var(--chip);
+  --chip: #e6f0fd;
   --chip-ink: #102B49;
-  --gold-tint: var(--gold-tint);
-  --gold-tint-ink: var(--gold-tint-ink);
+  --gold-tint: #fdf3d3;
+  --gold-tint-ink: #7c5a04;
   --gold-wash: rgba(234, 198, 91, .25);
-  --ok-tint: var(--ok-tint);
-  --ok-ink: var(--ok-ink);
-  --bad-tint: var(--bad-tint);
-  --bad-ink: var(--bad-ink);
-  --ex-tint: var(--ex-tint);
-  --ex-ink: var(--ex-ink);
+  --ok-tint: #eafaf1;
+  --ok-ink: #127a51;
+  --bad-tint: #fdeeee;
+  --bad-ink: #b33737;
+  --ex-tint: #fdf8e6;
+  --ex-ink: #6b5410;
   --info-wash: rgba(16, 43, 73, .10);
   --info-wash2: rgba(16, 43, 73, .06);
   /* radii */
@@ -42,11 +42,13 @@
   --pill: 999px;
   /* elevation */
   --shadow: 0 1px 4px rgba(16, 43, 73, .07);
-  --shadow-pop: var(--shadow-pop);
+  --shadow-pop: 0 16px 36px rgba(10, 20, 40, .22);
   /* type */
   --font: 'Alexandria', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
 }
 html.dark {
+  --ok: #4ade80;
+  --on-navy-mut: #9db0c8;
   --gold-ink: #3a2f10;
   --gold-deep: #EAC65B;
   --brand-ink: #EAC65B;
@@ -165,7 +167,7 @@ main { padding: 16px; max-width: 640px; margin: 0 auto; }
 .trio .ic svg { width: 25px; height: 25px; }
 .trio h3 { font-size: 12.5px; font-weight: 800; }
 .trio .st { display: block; font-size: 10px; color: var(--mut); margin-top: 3px; font-weight: 600; }
-.trio .st.on { color: var(--ok); }
+.trio .st.on { color: var(--ok-ink); }
 
 /* ===== daily challenge card (spec 4.هـ) ===== */
 .chcard {
@@ -203,8 +205,8 @@ main { padding: 16px; max-width: 640px; margin: 0 auto; }
 .tile .ic svg { width: 21px; height: 21px; }
 .tile .name { font-size: 10px; font-weight: 700; display: block; line-height: 1.5; }
 .tile .st { font-size: 8.5px; color: var(--mut); display: block; margin-top: 2px; }
-.tile .st.on { color: var(--ok); }
-.st.on2 { color: var(--ok); }
+.tile .st.on { color: var(--ok-ink); }
+.st.on2 { color: var(--ok-ink); }
 
 /* ===== list cards / rows ===== */
 .card {
@@ -316,7 +318,7 @@ a.card:active { transform: scale(.99); }
 /* ===== mistakes bank ===== */
 .mcard .mline { font-size: 13px; font-weight: 700; margin-top: 6px; }
 .mcard .mline.bad { color: var(--bad); }
-.mcard .mline.good { color: var(--ok); }
+.mcard .mline.good { color: var(--ok-ink); }
 .mcard .mex { font-size: 12px; color: var(--mut); line-height: 1.8; margin-top: 6px; }
 
 /* ===== book sample ===== */
@@ -463,3 +465,15 @@ a.card:active { transform: scale(.99); }
 .certtitle{font-size:19px;font-weight:800;color:var(--navy);margin-bottom:10px}
 .certline{font-size:13.5px;line-height:2;color:var(--ink)}
 .certmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin:14px 0}
+
+/* ===== interaction quality (brief §4) ===== */
+a, button { -webkit-tap-highlight-color: transparent; }
+.card, .tile, .trio a, .play, .btn2, .nextbtn, .savebtn, .tbtn, .labitem, .vrow, .contcard, .chcard, .booknav button {
+  transition: transform .2s, box-shadow .2s, background-color .2s, border-color .2s, color .2s;
+}
+.tile:active, .trio a:active, .labitem:active, .vrow:active, .contcard:active, .chcard:active { transform: scale(.98); }
+.play:active, .btn2:active, .nextbtn:active, .tbtn:active, .savebtn:active, .booknav button:active { transform: scale(.96); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+}
