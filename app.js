@@ -81,7 +81,7 @@ DATA.grades.forEach((g) => g.lessons.forEach((l, li) => {
   if (l._gone) return;
   l.videos.forEach((v, vi) => { if (v.yt && !v._gone) SEARCH.push({ t: `${v.n} — ${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}` }); });
   SEARCH.push({ t: `درس ${l.title} — ${g.title}`, u: `#/g/${g.id}/l/${li}` });
-  if (l.quiz) SEARCH.push({ t: `اختبار درس ${l.title}`, u: '#/test' });
+  if (l.quiz) SEARCH.push({ t: `اختبار درس ${l.title}`, u: '#/test/' + l.quiz });
 }));
 DATA.grades.forEach((g) => SEARCH.push({ t: g.title + ' — المنهج المصري', u: `#/g/${g.id}` }));
 SEARCH.push({ t: 'المنهج المصري — الصفوف الإعدادية', u: '#/manhag' });
@@ -265,7 +265,7 @@ function lesson(gid, li) {
   if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${meta.summary}</p></div>`;
   if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<span class="skillchip">${esc(s)}</span>`).join('')}</div></div>`;
   if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq"><span class="exlabel">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}</span><span class="eqline">${e.q} = ؟</span></div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol"><span class="ot">${esc(e.solT)}</span><span class="eqline">${e.solE}</span></div></div>`).join('')}</div>`;
-  if (l.quiz) h += `<a class="card quizlink" href="#/test"><span class="chip">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
+  if (l.quiz) h += `<a class="card quizlink" href="#/test/${l.quiz}"><span class="chip">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
   const prev = li > 0 ? g.lessons[li - 1] : null;
   const next = li < g.lessons.length - 1 ? g.lessons[li + 1] : null;
   if (prev || next) {
@@ -336,48 +336,193 @@ function saved() {
 
 /* ===== quiz engine (real, local, mistakes captured) ===== */
 let qState = null;
-function test() {
-  qState = { set: QUIZSETS.g3l1, i: 0, score: 0, locked: false };
+const QPROG = 'saad.quizprog.v1';
+const QTEXT = ['num', 'frac', 'fill'];
+function qProg() { try { return JSON.parse(localStorage.getItem(QPROG) || 'null'); } catch (e) { return null; } }
+function qSave() {
+  try {
+    if (!qState || qState.done) { localStorage.removeItem(QPROG); return; }
+    localStorage.setItem(QPROG, JSON.stringify({ id: qState.id, i: qState.i, score: qState.score, shuffle: qState.shuffle, practice: qState.practice, timer: qState.timer, orders: qState.orders }));
+  } catch (e) { /* storage unavailable: quiz still works */ }
+}
+function qTimerStop() { if (qState && qState.tid) { clearInterval(qState.tid); qState.tid = 0; } }
+function test(id) {
+  qTimerStop();
+  id = (id && QUIZSETS[id]) ? id : 'g3l1';
+  const pr = qProg();
+  const n = QUIZSETS[id].questions.length;
+  qState = { id: id, set: QUIZSETS[id], i: 0, score: 0, locked: false, shuffle: false, practice: false, timer: 0, orders: [], tid: 0,
+    resume: (pr && pr.id === id && pr.i > 0 && pr.i < n) ? pr : null };
   return quizHtml();
+}
+function qOrder(i) {
+  const cur = qState.set.questions[i];
+  if (!qState.orders[i]) {
+    const idx = cur.o.map((x, k) => k);
+    if (qState.shuffle && cur.t !== 'tf') for (let k = idx.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); const t = idx[k]; idx[k] = idx[j]; idx[j] = t; }
+    qState.orders[i] = idx;
+  }
+  return qState.orders[i];
+}
+function qDigits(s) {
+  return String(s || '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[٫،]/g, '.').replace(/[−–]/g, '-').replace(/[÷⁄∕]/g, '/').replace(/\s+/g, '');
+}
+function qGcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a; }
+function qCheckText(cur, raw) {
+  const v = qDigits(raw);
+  if (!v) return false;
+  if (cur.t === 'num') {
+    const x = parseFloat(v), a = parseFloat(qDigits(cur.ans));
+    return isFinite(x) && /^-?\d*\.?\d+$/.test(v) && isFinite(a) && Math.abs(x - a) <= (Number(cur.tol) || 0) + 1e-9;
+  }
+  if (cur.t === 'frac') {
+    const m = v.match(/^(-?\d+)\/(-?\d+)$/), k = qDigits(cur.ans).match(/^(-?\d+)\/(-?\d+)$/);
+    if (!m || !k) return false;
+    const a = +m[1], b = +m[2], c = +k[1], d = +k[2];
+    if (!b || !d || a * d !== c * b) return false;
+    return cur.reduced ? qGcd(a, b) === 1 : true;
+  }
+  const n = norm(String(raw).trim().replace(/\s+/g, ' '));
+  return [cur.ans].concat(cur.alts || []).some((x) => norm(String(x).trim().replace(/\s+/g, ' ')) === n);
+}
+function geoSvg(g) {
+  if (!g || typeof g !== 'object') return '';
+  const f = (x) => (isFinite(Number(x)) ? Number(x) : 0);
+  const T = (x, y, s) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="11" fill="currentColor">${esc(String(s))}</text>`;
+  let b = '';
+  if (g.shape === 'rect') {
+    const w = Math.max(f(g.w), 1), hh = Math.max(f(g.h), 1), k = Math.min(140 / w, 80 / hh), W = w * k, H = hh * k, x0 = (200 - W) / 2, y0 = (120 - H) / 2;
+    b = `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="none" stroke="currentColor" stroke-width="2"/>${T(100, y0 + H + 14, g.w)}${T(x0 - 12, y0 + H / 2 + 4, g.h)}`;
+  } else if (g.shape === 'tri') {
+    const a = Math.max(f(g.a), 1), c = Math.max(f(g.b), 1), k = Math.min(140 / a, 90 / c), A = a * k, C = c * k, x0 = (200 - A) / 2, y0 = 110;
+    b = `<polygon points="${x0},${y0} ${x0 + A},${y0} ${x0},${y0 - C}" fill="none" stroke="currentColor" stroke-width="2"/><path d="M${x0} ${y0 - 10}h10v10" fill="none" stroke="currentColor"/>${T(100, y0 + 14, g.a)}${T(x0 - 12, y0 - C / 2, g.b)}${g.c ? T(x0 + A / 2 + 14, y0 - C / 2 - 4, g.c) : ''}`;
+  } else if (g.shape === 'circle') {
+    b = `<circle cx="100" cy="60" r="45" fill="none" stroke="currentColor" stroke-width="2"/><line x1="100" y1="60" x2="145" y2="60" stroke="currentColor" stroke-width="2"/><circle cx="100" cy="60" r="2" fill="currentColor"/>${T(124, 54, g.r)}`;
+  } else if (g.shape === 'angle') {
+    const d = Math.min(Math.max(f(g.deg), 1), 179), r = d * Math.PI / 180, L = 80;
+    b = `<line x1="40" y1="100" x2="${40 + L * 1.6}" y2="100" stroke="currentColor" stroke-width="2"/><line x1="40" y1="100" x2="${40 + L * Math.cos(r)}" y2="${100 - L * Math.sin(r)}" stroke="currentColor" stroke-width="2"/><path d="M${40 + 28} 100 A28 28 0 0 0 ${40 + 28 * Math.cos(r)} ${100 - 28 * Math.sin(r)}" fill="none" stroke="currentColor"/>${T(40 + 46, 92, g.deg + '°')}`;
+  } else return '';
+  return `<svg class="qgeo" viewBox="0 0 200 130" role="img" aria-label="شكل هندسي">${b}</svg>`;
+}
+function qOptsBar() {
+  if (qState.i !== 0 || qState.locked) return '';
+  const on = (v) => (v ? ' on' : '');
+  return `<div class="qopts">
+    <button class="chipbtn${on(qState.shuffle)}" onclick="qOpt('shuffle')">ترتيب عشوائي</button>
+    <button class="chipbtn${on(qState.timer)}" onclick="qOpt('timer')">مؤقت ٣٠ ثانية</button>
+    <button class="chipbtn${on(qState.practice)}" onclick="qOpt('practice')">وضع التدريب</button>
+  </div>${qState.resume ? `<div class="note">لديك تقدم محفوظ في سؤال ${qState.resume.i + 1} <button class="btn2 sm" onclick="qResume()">استكمال</button> <button class="btn2 sm ghost" onclick="qFresh()">بدء من جديد</button></div>` : ''}`;
 }
 function quizHtml() {
   const set = qState.set;
+  qTimerStop();
   if (qState.i >= set.questions.length) {
-    if (!qState.done) { qState.done = true; onQuizDone(); }
+    if (!qState.done) { qState.done = true; qSave(); onQuizDone(); }
+    const others = Object.keys(QUIZSETS).filter((k) => k !== qState.id && QUIZSETS[k].questions.length);
     return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
     <div class="quiz"><div class="qcard result">
       <div class="qhead">نتيجتك</div>
       <div class="score">${qState.score} <span class="of">من</span> ${set.questions.length}</div>
       <div class="cap">${qState.score === set.questions.length ? 'ممتاز! جاهز للدرس اللي بعده' : 'راجع الدرس وحاول تاني — الأسئلة اللي غلطت فيها اتحفظت في «أخطائي»'}</div>
-      <button class="btn2" onclick="location.hash='#/test'">إعادة الاختبار</button>
+      <button class="btn2" onclick="restartQuiz()">إعادة الاختبار</button>
       <a class="btn2 ghost" href="#/g/g3/l/0">مراجعة الدرس</a>
       ${getMistakes().length ? `<a class="btn2 ghost" href="#/mistakes">أخطائي (${getMistakes().length})</a>` : ''}
+      ${others.length ? `<div class="qmore"><h3>اختبارات أخرى</h3>${others.map((k) => `<a class="btn2 sm ghost" href="#/test/${esc(k)}">${esc(QUIZSETS[k].title)}</a>`).join(' ')}</div>` : ''}
     </div></div>`;
   }
   const cur = set.questions[qState.i];
-  return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
-  <div class="quiz"><div class="qcard">
-    <div class="qhead">سؤال ${qState.i + 1} من ${set.questions.length}</div>
-    <div class="qtext eqwrap">${cur.q}</div>
-    <div class="opts">${cur.o.map((o, oi) => `<button onclick="answer(${oi})">${o}</button>`).join('')}</div>
+  const t = cur.t || 'mcq';
+  let vis = '';
+  if (cur.img && /^https:\/\//.test(cur.img)) vis += `<img class="qimg" src="${esc(cur.img)}" alt="${esc(cur.alt || '')}" loading="lazy">`;
+  if (cur.geo) vis += geoSvg(cur.geo);
+  let inp;
+  if (QTEXT.indexOf(t) >= 0) {
+    inp = `<div class="qin"><input id="qin" type="text" dir="ltr" inputmode="${t === 'fill' ? 'text' : 'decimal'}" autocomplete="off" placeholder="${t === 'frac' ? 'مثال: ٣/٤' : t === 'num' ? 'اكتب الرقم' : 'اكتب الإجابة'}" onkeydown="if(event.key==='Enter')answerText()"><button class="btn2" onclick="answerText()">تحقق</button></div>`;
+  } else {
+    const ord = qOrder(qState.i);
+    inp = `<div class="opts">${ord.map((oi, pos) => `<button onclick="answer(${pos})">${cur.o[oi]}</button>`).join('')}</div>`;
+  }
+  const timer = qState.timer ? `<div class="qtimer" id="qtimer" aria-live="off">⏱ ${qState.timer}</div>` : '';
+  const html = `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${esc(set.title)}</div>
+  <div class="quiz">${qOptsBar()}<div class="qcard">
+    <div class="qhead">سؤال ${qState.i + 1} من ${set.questions.length}${timer}</div>
+    <div class="qtext eqwrap">${cur.q}</div>${vis}
+    ${inp}
+    <div id="qfb"></div>
   </div></div>`;
+  if (qState.timer) setTimeout(qTimerStart, 0);
+  return html;
 }
-function answer(oi) {
+function qTimerStart() {
+  qTimerStop();
+  if (!qState || !qState.timer || qState.done) return;
+  qState.left = qState.timer;
+  qState.tid = setInterval(() => {
+    if (!qState || qState.locked) return qTimerStop();
+    if (!location.hash.startsWith('#/test')) return qTimerStop();
+    qState.left--;
+    const el = document.getElementById('qtimer'); if (el) el.textContent = '⏱ ' + Math.max(qState.left, 0);
+    if (qState.left <= 0) { qTimerStop(); qFinish(false, '', true); }
+  }, 1000);
+}
+function qRight(cur) {
+  if (QTEXT.indexOf(cur.t) >= 0) return String(cur.ans);
+  return cur.o[cur.a];
+}
+function qFinish(ok, yourText, timeout) {
   if (qState.locked) return;
-  qState.locked = true;
-  const set = qState.set;
-  const cur = set.questions[qState.i];
+  qState.locked = true; qTimerStop();
+  const set = qState.set, cur = set.questions[qState.i];
+  if (ok) qState.score++;
+  else addMistake({ q: cur.q, your: timeout ? 'انتهى الوقت' : yourText, right: qRight(cur), exT: cur.exT, exE: cur.exE, skill: set.skill, from: '#/test/' + qState.id });
+  const fb = document.getElementById('qfb');
+  if (fb) {
+    let m = ok ? '<b>إجابة صحيحة</b>' : (timeout ? '<b>انتهى الوقت</b>' : '<b>إجابة غير صحيحة</b>');
+    if (!ok) m += ' الإجابة الصحيحة: <span class="eqwrap">' + (QTEXT.indexOf(cur.t) >= 0 ? esc(qRight(cur)) : qRight(cur)) + '</span>';
+    if (qState.practice) m += (cur.exT ? '<div>' + esc(cur.exT) + '</div>' : '') + (cur.exE ? '<div class="eqwrap">' + cur.exE + '</div>' : '');
+    fb.innerHTML = '<div class="qfb ' + (ok ? 'ok' : 'no') + '">' + m + '</div>' + (qState.practice ? '<button class="btn2" id="qnext" onclick="qNext()">التالي</button>' : '');
+  }
+  if (!qState.practice) setTimeout(qNext, 1100);
+}
+function qNext() {
+  if (!qState || !qState.locked) return;
+  if (!location.hash.startsWith('#/test')) return;
+  qState.i++; qState.locked = false; qState.resume = null; qSave();
+  app.innerHTML = quizHtml(); window.scrollTo(0, 0);
+}
+function answer(pos) {
+  if (qState.locked) return;
+  const set = qState.set, cur = set.questions[qState.i], ord = qOrder(qState.i), oi = ord[pos];
   const btns = document.querySelectorAll('.quiz .opts button');
   btns.forEach((b, bi) => {
     b.disabled = true;
-    if (bi === cur.a) b.classList.add('ok');
-    else if (bi === oi) b.classList.add('no');
+    if (ord[bi] === cur.a) b.classList.add('ok');
+    else if (bi === pos) b.classList.add('no');
   });
-  if (oi === cur.a) qState.score++;
-  else addMistake({ q: cur.q, your: cur.o[oi], right: cur.o[cur.a], exT: cur.exT, exE: cur.exE, skill: set.skill, from: '#/test' });
-  setTimeout(() => { if (!location.hash.startsWith('#/test')) return; qState.i++; qState.locked = false; app.innerHTML = quizHtml(); window.scrollTo(0, 0); }, 1100);
+  qFinish(oi === cur.a, cur.o[oi], false);
 }
-window.answer = answer;
+function answerText() {
+  if (qState.locked) return;
+  const el = document.getElementById('qin'); if (!el || !String(el.value).trim()) return;
+  const cur = qState.set.questions[qState.i];
+  el.disabled = true;
+  qFinish(qCheckText(cur, el.value), el.value, false);
+}
+function qOpt(k) {
+  if (!qState || qState.i !== 0 || qState.locked) return;
+  if (k === 'timer') qState.timer = qState.timer ? 0 : 30; else qState[k] = !qState[k];
+  if (k === 'shuffle') qState.orders = [];
+  app.innerHTML = quizHtml();
+}
+function qResume() {
+  const pr = qState.resume; if (!pr) return;
+  qState.i = pr.i; qState.score = pr.score; qState.shuffle = !!pr.shuffle; qState.practice = !!pr.practice; qState.timer = pr.timer || 0; qState.orders = Array.isArray(pr.orders) ? pr.orders : []; qState.resume = null;
+  app.innerHTML = quizHtml();
+}
+function qFresh() { try { localStorage.removeItem(QPROG); } catch (e) {} qState.resume = null; app.innerHTML = quizHtml(); }
+function restartQuiz() { const id = qState && qState.id; try { localStorage.removeItem(QPROG); } catch (e) {} app.innerHTML = test(id); window.scrollTo(0, 0); }
+window.answer = answer; window.answerText = answerText; window.qOpt = qOpt; window.qResume = qResume; window.qFresh = qFresh; window.qNext = qNext; window.restartQuiz = restartQuiz;
 
 
 /* ===== achievements (local, learning-tied) ===== */
@@ -707,7 +852,7 @@ function route() {
   else if (p[0] === 'g') html = grade(p[1]);
   else if (p[0] === 't' && p[2] === 'c') html = trackGroup(p[1], +p[3]);
   else if (p[0] === 't') html = track(p[1]);
-  else if (p[0] === 'test') html = test();
+  else if (p[0] === 'test') html = test(p[1]);
   else if (p[0] === 'book') html = book();
   else if (p[0] === 'saved') html = saved();
   else if (p[0] === 'challenge') html = challenge();
@@ -907,8 +1052,18 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           applied++;
         } else if (it.type === 'quiz') {
           if (!p.id || !Array.isArray(p.questions) || !p.questions.length) return;
-          var sani = function (q) { return { q: sanHTML(q.q), o: (Array.isArray(q.o) ? q.o : []).map(sanHTML), a: (typeof q.a === 'number' ? q.a : 0), exT: typeof q.exT === 'string' ? q.exT : '', exE: sanHTML(q.exE) }; };
-          QUIZSETS[p.id] = { title: String(p.title || it.title || '').slice(0, 200), skill: String(p.skill || '').slice(0, 120), questions: p.questions.map(sani).filter(function (q) { return q.q && q.o.length; }) };
+          var sani = function (q) {
+            var t = ['mcq', 'tf', 'num', 'frac', 'fill'].indexOf(q.t) >= 0 ? q.t : 'mcq';
+            var o = { q: sanHTML(q.q), o: (Array.isArray(q.o) ? q.o : []).map(sanHTML), a: (typeof q.a === 'number' ? q.a : 0), exT: typeof q.exT === 'string' ? q.exT : '', exE: sanHTML(q.exE), t: t };
+            if (t === 'tf' && o.o.length !== 2) o.o = ['صح', 'خطأ'];
+            if (t === 'tf' && o.a > 1) o.a = 0;
+            if (t === 'num' || t === 'frac' || t === 'fill') { o.ans = String(q.ans == null ? '' : q.ans).slice(0, 80); o.alts = (Array.isArray(q.alts) ? q.alts : []).slice(0, 10).map(function (x) { return String(x).slice(0, 80); }); o.tol = Math.max(0, Number(q.tol) || 0); o.reduced = q.reduced === true; if (!o.ans) o.q = ''; }
+            if (typeof q.img === 'string' && /^https:\/\/[^ ]{1,300}$/.test(q.img)) { o.img = q.img; o.alt = String(q.alt || '').slice(0, 200); }
+            var gg = q.geo;
+            if (gg && typeof gg === 'object' && ['rect', 'tri', 'circle', 'angle'].indexOf(gg.shape) >= 0) { var nn = function (x) { x = Number(x); return isFinite(x) ? x : 0; }; o.geo = { shape: gg.shape, w: nn(gg.w), h: nn(gg.h), a: nn(gg.a), b: nn(gg.b), c: gg.c ? String(gg.c).slice(0, 12) : '', r: String(gg.r == null ? '' : gg.r).slice(0, 12), deg: nn(gg.deg) }; }
+            return o;
+          };
+          QUIZSETS[p.id] = { title: String(p.title || it.title || '').slice(0, 200), skill: String(p.skill || '').slice(0, 120), questions: p.questions.map(sani).filter(function (q) { return q.q && (q.o.length || ['num', 'frac', 'fill'].indexOf(q.t) >= 0); }) };
           if (!QUIZSETS[p.id].questions.length) { delete QUIZSETS[p.id]; return; }
           applied++;
         } else if (it.type === 'challenge') {
