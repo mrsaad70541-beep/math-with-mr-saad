@@ -1070,11 +1070,11 @@ function filesHome() {
 function filesCat(id) {
   const c = LIB_CATS.find((x) => x.id === id);
   if (!c) return filesHome();
-  const files = LIB_FILES.filter((f) => f.cat === id);
+  const files = LIB_FILES.filter((f) => f.cat === id).sort((x, y) => (x.book ? 1 : 0) - (y.book ? 1 : 0) || (x.book || '').localeCompare(y.book || '', 'ar') || (x.order || 0) - (y.order || 0));
   let h = `<a class="back" href="#/files">‹ مكتبة الملفات</a><div class="section-title">${esc(c.n)}</div>`;
   if (!files.length) {
     h += `<div class="labcard"><p class="dim" style="text-align:center;padding:18px 0">لا توجد ملفات منشورة في هذا التصنيف بعد.<br>تُضاف الملفات هنا بعد اعتمادها للنشر.</p></div>`;
-  } else files.forEach((f) => { h += fileCard(f); });
+  } else { let lastBook = ''; files.forEach((f) => { if (f.book && f.book !== lastBook) { h += `<div class="section-title" style="font-size:15px;margin-top:14px">${esc(f.book)}</div>`; } lastBook = f.book || ''; h += fileCard(f); }); }
   return h;
 }
 function route() {
@@ -1319,7 +1319,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
         } else if (it.type === 'file') {
           if (!it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id)) || typeof p.url !== 'string' || !/^https:\/\/[^ ]{1,300}$/.test(p.url)) return;
           var fcat = LIB_CATS.some(function (c) { return c.id === p.cat; }) ? p.cat : 'educational';
-          var fobj = { id: 'cms-' + it.id, title: String(it.title || '').slice(0, 200), desc: String(p.desc || '').slice(0, 300), grade: String(p.grade || '').slice(0, 40), subject: String(p.subject || '').slice(0, 60), cat: fcat, url: p.url, added: '', allowDownload: p.allowDownload === true };
+          var fobj = { id: 'cms-' + it.id, title: String(it.title || '').slice(0, 200), desc: String(p.desc || '').slice(0, 300), grade: String(p.grade || '').slice(0, 40), subject: String(p.subject || '').slice(0, 60), cat: fcat, url: p.url, added: '', allowDownload: p.allowDownload === true, book: String(p.book || '').slice(0, 80), order: Math.max(0, Math.min(999, parseInt(p.order, 10) || 0)) };
           var fidx = LIB_FILES.findIndex(function (x) { return x.id === fobj.id; });
           if (fidx >= 0) LIB_FILES[fidx] = fobj; else LIB_FILES.push(fobj);
           applied++;
