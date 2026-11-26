@@ -22,40 +22,41 @@ const LEH_CATS = [
 
 const QUIZSETS = {
   g3l1: {
-    title: "اختبار درس قوى القوى",
-    skill: "قوى القوى",
+    title: 'اختبار درس قوى القوى',
+    skill: 'قوى القوى',
     questions: [
-      { q: "(٥²)³ = ؟", o: ["٥⁵", "٥⁶", "٥⁸", "٥⁹"], a: 1, ex: "قوة القوة: نضرب الأسس — (٥²)³ = ٥^(٢×٣) = ٥⁶" },
-      { q: "٢³ × ٢⁴ = ؟", o: ["٢⁷", "٢¹²", "٤⁷", "٢¹"], a: 0, ex: "حاصل الضرب لنفس الأساس: نجمع الأسس — ٢³ × ٢⁴ = ٢^(٣+٤) = ٢⁷" },
-      { q: "٥⁸ ÷ ٥² = ؟", o: ["٥⁴", "٥⁶", "٥¹⁰", "٥¹⁶"], a: 1, ex: "حاصل القسمة لنفس الأساس: نطرح الأسس — ٥⁸ ÷ ٥² = ٥^(٨−٢) = ٥⁶" },
-      { q: "(−٢)³ = ؟", o: ["٨", "−٨", "−٦", "٦"], a: 1, ex: "الأس الفردي يحافظ على الإشارة: (−٢)³ = −٨" },
-      { q: "(٣²)⁴ = ؟", o: ["٣⁶", "٣⁸", "٩⁶", "٣¹⁶"], a: 1, ex: "قوة القوة: نضرب الأسس — (٣²)⁴ = ٣^(٢×٤) = ٣⁸" },
-      { q: "٧⁵ ÷ ٧⁵ = ؟", o: ["٧", "١", "٠", "٧¹⁰"], a: 1, ex: "نطرح الأسس: ٧^(٥−٥) = ٧⁰، وأي عدد غير الصفر أس صفر يساوي ١" },
-      { q: "(−٣)⁴ = ؟", o: ["−٨١", "٨١", "١٢", "−١٢"], a: 1, ex: "الأس الزوجي يعطي ناتجًا موجبًا دائمًا: (−٣)⁴ = ٣⁴ = ٨١" },
-      { q: "أ³ × أ⁴ = ؟", o: ["أ⁷", "أ¹²", "أ³⁴", "٢أ⁷"], a: 0, ex: "حاصل الضرب لنفس الأساس: نجمع الأسس — أ³ × أ⁴ = أ^(٣+٤) = أ⁷" }
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٥</span><sup>٢</sup></span>)</span><sup>٣</sup></span> = ؟</span>', o: ['<span class="pw"><span class="bs">٥</span><sup>٥</sup></span>', '<span class="pw"><span class="bs">٥</span><sup>٦</sup></span>', '<span class="pw"><span class="bs">٥</span><sup>٨</sup></span>', '<span class="pw"><span class="bs">٥</span><sup>٩</sup></span>'], a: 1, exT: 'قوة القوة: نضرب الأسس', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٥</span><sup>٢</sup></span>)</span><sup>٣</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٢×٣</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٦</sup></span></span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٢</span><sup>٣</sup></span> × <span class="pw"><span class="bs">٢</span><sup>٤</sup></span> = ؟</span>', o: ['<span class="pw"><span class="bs">٢</span><sup>٧</sup></span>', '<span class="pw"><span class="bs">٢</span><sup>١٢</sup></span>', '<span class="pw"><span class="bs">٤</span><sup>٧</sup></span>', '<span class="pw"><span class="bs">٢</span><sup>١</sup></span>'], a: 0, exT: 'حاصل الضرب لنفس الأساس: نجمع الأسس', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٢</span><sup>٣</sup></span> × <span class="pw"><span class="bs">٢</span><sup>٤</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٣+٤</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٧</sup></span></span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٥</span><sup>٨</sup></span> ÷ <span class="pw"><span class="bs">٥</span><sup>٢</sup></span> = ؟</span>', o: ['<span class="pw"><span class="bs">٥</span><sup>٤</sup></span>', '<span class="pw"><span class="bs">٥</span><sup>٦</sup></span>', '<span class="pw"><span class="bs">٥</span><sup>١٠</sup></span>', '<span class="pw"><span class="bs">٥</span><sup>١٦</sup></span>'], a: 1, exT: 'حاصل القسمة لنفس الأساس: نطرح الأسس', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٥</span><sup>٨</sup></span> ÷ <span class="pw"><span class="bs">٥</span><sup>٢</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٨−٢</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٦</sup></span></span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٢)</span><sup>٣</sup></span> = ؟</span>', o: ['٨', '−٨', '−٦', '٦'], a: 1, exT: 'الأس الفردي يحافظ على الإشارة', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٢)</span><sup>٣</sup></span> = −٨</span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٣</span><sup>٢</sup></span>)</span><sup>٤</sup></span> = ؟</span>', o: ['<span class="pw"><span class="bs">٣</span><sup>٦</sup></span>', '<span class="pw"><span class="bs">٣</span><sup>٨</sup></span>', '<span class="pw"><span class="bs">٩</span><sup>٦</sup></span>', '<span class="pw"><span class="bs">٣</span><sup>١٦</sup></span>'], a: 1, exT: 'قوة القوة: نضرب الأسس', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٣</span><sup>٢</sup></span>)</span><sup>٤</sup></span> = <span class="pw"><span class="bs">٣</span><sup>٢×٤</sup></span> = <span class="pw"><span class="bs">٣</span><sup>٨</sup></span></span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٧</span><sup>٥</sup></span> ÷ <span class="pw"><span class="bs">٧</span><sup>٥</sup></span> = ؟</span>', o: ['٧', '١', '٠', '<span class="pw"><span class="bs">٧</span><sup>١٠</sup></span>'], a: 1, exT: 'نطرح الأسس، وأي عدد غير الصفر أس صفر يساوي ١', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٧</span><sup>٥</sup></span> ÷ <span class="pw"><span class="bs">٧</span><sup>٥</sup></span> = <span class="pw"><span class="bs">٧</span><sup>٥−٥</sup></span> = <span class="pw"><span class="bs">٧</span><sup>٠</sup></span> = ١</span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٣)</span><sup>٤</sup></span> = ؟</span>', o: ['−٨١', '٨١', '١٢', '−١٢'], a: 1, exT: 'الأس الزوجي يعطي ناتجًا موجبًا لأي أساس غير صفري', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٣)</span><sup>٤</sup></span> = <span class="pw"><span class="bs">٣</span><sup>٤</sup></span> = ٨١</span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">أ</span><sup>٣</sup></span> × <span class="pw"><span class="bs">أ</span><sup>٤</sup></span> = ؟</span>', o: ['<span class="pw"><span class="bs">أ</span><sup>٧</sup></span>', '<span class="pw"><span class="bs">أ</span><sup>١٢</sup></span>', '<span class="pw"><span class="bs">أ</span><sup>٣٤</sup></span>', '٢<span class="pw"><span class="bs">أ</span><sup>٧</sup></span>'], a: 0, exT: 'حاصل الضرب لنفس الأساس: نجمع الأسس', exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">أ</span><sup>٣</sup></span> × <span class="pw"><span class="bs">أ</span><sup>٤</sup></span> = <span class="pw"><span class="bs">أ</span><sup>٣+٤</sup></span> = <span class="pw"><span class="bs">أ</span><sup>٧</sup></span></span>' }
     ]
   }
 };
 
 const CHALLENGES = [
   {
-    id: "c20261126",
-    date: "٢٦ نوفمبر ٢٠٢٦",
-    title: "تحدي الأسس",
-    q: "ما ناتج (٢³)² ؟",
-    o: ["٢⁵", "٢⁶", "٢⁹", "٢¹²"],
+    id: 'c20261126',
+    date: '٢٦ نوفمبر ٢٠٢٦',
+    title: 'تحدي الأسس',
+    q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٢</span><sup>٣</sup></span>)</span><sup>٢</sup></span> = ؟</span>',
+    o: ['<span class="pw"><span class="bs">٢</span><sup>٥</sup></span>', '<span class="pw"><span class="bs">٢</span><sup>٦</sup></span>', '<span class="pw"><span class="bs">٢</span><sup>٩</sup></span>', '<span class="pw"><span class="bs">٢</span><sup>١٢</sup></span>'],
     a: 1,
-    ex: "عند رفع قوة إلى قوة نضرب الأسس: (٢³)² = ٢^(٣×٢) = ٢⁶",
-    level: "سهل",
-    cat: "الأسس"
+    exT: 'عند رفع قوة إلى قوة نضرب الأسس',
+    exE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٢</span><sup>٣</sup></span>)</span><sup>٢</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٣×٢</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٦</sup></span></span>',
+    level: 'سهل',
+    cat: 'الأسس'
   }
 ];
 
 const BOOK = [
-  { t: 'قاعدة قوة القوة', p: 'لما ترفع قوة لقوة تانية، بنضرب الأسس في بعض.', f: '(أ^م)^ن = أ^(م×ن)', ex: 'مثال: (٥^٢)^٣ = ٥^(٢×٣) = ٥^٦' },
-  { t: 'حاصل الضرب', p: 'لو الأساس واحد وبتضرب، بنجمع الأسس.', f: 'أ^م × أ^ن = أ^(م+ن)', ex: 'مثال: ٢^٣ × ٢^٤ = ٢^(٣+٤) = ٢^٧' },
-  { t: 'حاصل القسمة', p: 'ولو الأساس واحد وبتقسم، بنطرح الأسس — بشرط الأساس مايساويش صفر.', f: 'أ^م ÷ أ^ن = أ^(م−ن) بشرط أ ≠ ٠', ex: 'مثال: ٥^٨ ÷ ٥^٢ = ٥^(٨−٢) = ٥^٦' },
-  { t: 'الإشارة', p: 'الأس الفردي بيحافظ على إشارة العدد، والأس الزوجي بيخلي ناتج أي عدد غير صفري موجب دايمًا.', f: '(−٢)^٣ = −٨   ،   (−٢)^٤ = ١٦', ex: 'عشان كده (−٣)^٥ ناتجه سالب، و(−٣)^٤ ناتجه موجب.' }
+  { t: 'قاعدة قوة القوة', p: 'لما ترفع قوة لقوة تانية، بنضرب الأسس في بعض.', f: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">أ</span><sup>م</sup></span>)</span><sup>ن</sup></span> = <span class="pw"><span class="bs">أ</span><sup>م×ن</sup></span></span>', ex: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٥</span><sup>٢</sup></span>)</span><sup>٣</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٢×٣</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٦</sup></span></span>' },
+  { t: 'حاصل الضرب', p: 'لو الأساس واحد وبتضرب، بنجمع الأسس.', f: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">أ</span><sup>م</sup></span> × <span class="pw"><span class="bs">أ</span><sup>ن</sup></span> = <span class="pw"><span class="bs">أ</span><sup>م+ن</sup></span></span>', ex: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٢</span><sup>٣</sup></span> × <span class="pw"><span class="bs">٢</span><sup>٤</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٣+٤</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٧</sup></span></span>' },
+  { t: 'حاصل القسمة', p: 'ولو الأساس واحد وبتقسم، بنطرح الأسس — بشرط الأساس مايساويش صفر.', f: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">أ</span><sup>م</sup></span> ÷ <span class="pw"><span class="bs">أ</span><sup>ن</sup></span> = <span class="pw"><span class="bs">أ</span><sup>م−ن</sup></span></span><div class="econd">بشرط <span class="eq" dir="ltr">أ ≠ ٠</span></div>', ex: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٥</span><sup>٨</sup></span> ÷ <span class="pw"><span class="bs">٥</span><sup>٢</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٨−٢</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٦</sup></span></span>' },
+  { t: 'الإشارة', p: 'الأس الفردي بيحافظ على إشارة العدد، والأس الزوجي بيخلي ناتج أي عدد غير صفري موجب دايمًا.', f: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٢)</span><sup>٣</sup></span> = −٨</span><span class="fsep">،</span><span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٢)</span><sup>٤</sup></span> = ١٦</span>', ex: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٣)</span><sup>٥</sup></span> = −٢٤٣</span><span class="fsep">،</span><span class="eq" dir="ltr"><span class="pw"><span class="bs">(−٣)</span><sup>٤</sup></span> = ٨١</span>' }
 ];
 
 /* ===== مكتبة الملفات (structure; files added here when publication is approved) =====
@@ -77,17 +78,17 @@ const LIB_FILES = [];
 const LESSON_META = {
   'g3/0': {
     objectives: [
-      'أن يتعرف الطالب قاعدة قوة القوة: (أ^م)^ن = أ^(م×ن)',
-      'أن يطبق قاعدة حاصل ضرب القوى لنفس الأساس: أ^م × أ^ن = أ^(م+ن)',
-      'أن يطبق قاعدة حاصل قسمة القوى لنفس الأساس: أ^م ÷ أ^ن = أ^(م−ن) بشرط أ ≠ ٠ وم ≥ ن',
-      'أن يتعرف أن أ^٠ = ١ لأي أساس أ ≠ ٠',
-      'أن يحدد إشارة ناتج القوة حسب زوجية الأس وفرديته'
+      { t: 'أن يتعرف الطالب قاعدة قوة القوة', e: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">أ</span><sup>م</sup></span>)</span><sup>ن</sup></span> = <span class="pw"><span class="bs">أ</span><sup>م×ن</sup></span></span>' },
+      { t: 'أن يطبق قاعدة حاصل ضرب القوى لنفس الأساس', e: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">أ</span><sup>م</sup></span> × <span class="pw"><span class="bs">أ</span><sup>ن</sup></span> = <span class="pw"><span class="bs">أ</span><sup>م+ن</sup></span></span>' },
+      { t: 'أن يطبق قاعدة حاصل قسمة القوى لنفس الأساس', e: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">أ</span><sup>م</sup></span> ÷ <span class="pw"><span class="bs">أ</span><sup>ن</sup></span> = <span class="pw"><span class="bs">أ</span><sup>م−ن</sup></span></span>', c: 'بشرط <span class="eq" dir="ltr">أ ≠ ٠</span> و <span class="eq" dir="ltr">م ≥ ن</span>' },
+      { t: 'أن يتعرف أن أي أساس غير صفري مرفوع للأس صفر يساوي واحدًا', e: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">أ</span><sup>٠</sup></span> = ١</span>', c: 'بشرط <span class="eq" dir="ltr">أ ≠ ٠</span>' },
+      { t: 'أن يحدد إشارة ناتج القوة حسب زوجية الأس وفرديته' }
     ],
-    summary: 'الدرس بيجمع قواعد التعامل مع القوى ذات الأسس الصحيحة غير السالبة: قوة القوة (ضرب الأسس)، وحاصل الضرب (جمع الأسس)، وحاصل القسمة (طرح الأسس بشرط أن الأساس لا يساوي صفرًا، وأن يكون م ≥ ن حتى يبقى الأس غير سالب)، وقاعدة الإشارة: الأس الزوجي ناتجه موجب لأي أساس غير صفري، والأس الفردي بيحافظ على إشارة الأساس.',
+    summary: 'الدرس بيجمع قواعد التعامل مع القوى ذات الأسس الصحيحة غير السالبة: قوة القوة (ضرب الأسس)، وحاصل الضرب (جمع الأسس)، وحاصل القسمة: نطرح الأسس بشرط أن الأساس لا يساوي صفرًا وأن <span class="eq" dir="ltr">م ≥ ن</span> حتى يبقى الأس غير سالب، وقاعدة الإشارة: الأس الزوجي ناتجه موجب لأي أساس غير صفري، والأس الفردي بيحافظ على إشارة الأساس.',
     skills: ['قوة القوة', 'حاصل ضرب القوى', 'حاصل قسمة القوى', 'إشارة القوة'],
     examples: [
-      { q: '(٢^٣)^٢', sol: 'نضرب الأسس: (٢^٣)^٢ = ٢^(٣×٢) = ٢^٦ = ٦٤' },
-      { q: '٥^٧ ÷ ٥^٤', sol: 'نطرح الأسس: ٥^٧ ÷ ٥^٤ = ٥^(٧−٤) = ٥^٣ = ١٢٥' }
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٢</span><sup>٣</sup></span>)</span><sup>٢</sup></span></span>', solT: 'نضرب الأسس', solE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٢</span><sup>٣</sup></span>)</span><sup>٢</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٣×٢</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٦</sup></span> = ٦٤</span>' },
+      { q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٥</span><sup>٧</sup></span> ÷ <span class="pw"><span class="bs">٥</span><sup>٤</sup></span></span>', solT: 'نطرح الأسس', solE: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٥</span><sup>٧</sup></span> ÷ <span class="pw"><span class="bs">٥</span><sup>٤</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٧−٤</sup></span> = <span class="pw"><span class="bs">٥</span><sup>٣</sup></span> = ١٢٥</span>' }
     ]
   }
 };
@@ -97,12 +98,12 @@ const DIAG = {
   title: 'اكتشف مستواك',
   note: 'تشخيص أولي من ٦ أسئلة على ٣ مهارات — مؤشر يعتمد على إجاباتك هنا فقط، وليس قياسًا شاملًا لمستواك.',
   questions: [
-    { skill: 'النسبة والتناسب', lesson: '#/g/g1/l/0', q: 'النسبة ٣ : ٥ تكافئ النسبة؟', o: ['٦ : ١٠', '٥ : ٣', '٩ : ٢٠', '٣ : ١٠'], a: 0, ex: 'ضرب الطرفين في ٢: ٣ : ٥ = ٦ : ١٠' },
-    { skill: 'النسبة والتناسب', lesson: '#/g/g1/l/0', q: 'إذا كان ٢/٥ = س/١٥ فإن س = ؟', o: ['٣', '٥', '٦', '١٠'], a: 2, ex: 'المقام ضُرب في ٣، إذن البسط يُضرب في ٣: س = ٢ × ٣ = ٦' },
-    { skill: 'الأعداد الحقيقية', lesson: '#/g/g2/l/0', q: 'أي الأعداد التالية غير نسبي؟', o: ['√٩', '√٥', '٠٫٥', '٢/٣'], a: 1, ex: '√٩ = ٣ نسبي، أما √٥ فلا يُكتب كسرًا — عدد غير نسبي' },
-    { skill: 'الأعداد الحقيقية', lesson: '#/g/g2/l/0', q: '√١٦ + √٩ = ؟', o: ['٥', '٧', '١٢', '٢٥'], a: 1, ex: '√١٦ = ٤ و√٩ = ٣، والمجموع ٧' },
-    { skill: 'قوى القوى', lesson: '#/g/g3/l/0', q: '(٢⁵)² = ؟', o: ['٢⁷', '٢¹⁰', '٤⁷', '٢³'], a: 1, ex: 'قوة القوة: نضرب الأسس — (٢⁵)² = ٢^(٥×٢) = ٢¹⁰' },
-    { skill: 'قوى القوى', lesson: '#/g/g3/l/0', q: '٩⁴ ÷ ٩⁴ = ؟', o: ['٩', '١', '٠', '٩⁸'], a: 1, ex: '٩^(٤−٤) = ٩⁰ = ١ (أي أساس غير صفري أس صفر يساوي ١)' }
+    { skill: 'النسبة والتناسب', lesson: '#/g/g1/l/0', q: 'النسبة <span class="eq" dir="ltr">٣ : ٥</span> تكافئ النسبة؟', o: ['<span class="eq" dir="ltr">٦ : ١٠</span>', '<span class="eq" dir="ltr">٥ : ٣</span>', '<span class="eq" dir="ltr">٩ : ٢٠</span>', '<span class="eq" dir="ltr">٣ : ١٠</span>'], a: 0, ex: 'ضرب الطرفين في ٢: <span class="eq" dir="ltr">٣ : ٥ = ٦ : ١٠</span>' },
+    { skill: 'النسبة والتناسب', lesson: '#/g/g1/l/0', q: 'إذا كان <span class="eq" dir="ltr">٢/٥ = س/١٥</span> فإن س = ؟', o: ['٣', '٥', '٦', '١٠'], a: 2, ex: 'المقام ضُرب في ٣، إذن البسط يُضرب في ٣: س = <span class="eq" dir="ltr">٢ × ٣ = ٦</span>' },
+    { skill: 'الأعداد الحقيقية', lesson: '#/g/g2/l/0', q: 'أي الأعداد التالية غير نسبي؟', o: ['<span class="eq" dir="ltr">√٩</span>', '<span class="eq" dir="ltr">√٥</span>', '<span class="eq" dir="ltr">٠٫٥</span>', '<span class="eq" dir="ltr">٢/٣</span>'], a: 1, ex: '<span class="eq" dir="ltr">√٩ = ٣</span> نسبي، أما <span class="eq" dir="ltr">√٥</span> فلا يُكتب كسرًا — عدد غير نسبي' },
+    { skill: 'الأعداد الحقيقية', lesson: '#/g/g2/l/0', q: '<span class="eq" dir="ltr">√١٦ + √٩ = ؟</span>', o: ['٥', '٧', '١٢', '٢٥'], a: 1, ex: '<span class="eq" dir="ltr">√١٦ = ٤</span> و<span class="eq" dir="ltr">√٩ = ٣</span>، والمجموع ٧' },
+    { skill: 'قوى القوى', lesson: '#/g/g3/l/0', q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٢</span><sup>٥</sup></span>)</span><sup>٢</sup></span> = ؟</span>', o: ['<span class="pw"><span class="bs">٢</span><sup>٧</sup></span>', '<span class="pw"><span class="bs">٢</span><sup>١٠</sup></span>', '<span class="pw"><span class="bs">٤</span><sup>٧</sup></span>', '<span class="pw"><span class="bs">٢</span><sup>٣</sup></span>'], a: 1, ex: 'قوة القوة: نضرب الأسس — <span class="eq" dir="ltr"><span class="pw"><span class="bs">(<span class="pw"><span class="bs">٢</span><sup>٥</sup></span>)</span><sup>٢</sup></span> = <span class="pw"><span class="bs">٢</span><sup>٥×٢</sup></span> = <span class="pw"><span class="bs">٢</span><sup>١٠</sup></span></span>' },
+    { skill: 'قوى القوى', lesson: '#/g/g3/l/0', q: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٩</span><sup>٤</sup></span> ÷ <span class="pw"><span class="bs">٩</span><sup>٤</sup></span> = ؟</span>', o: ['٩', '١', '٠', '<span class="pw"><span class="bs">٩</span><sup>٨</sup></span>'], a: 1, ex: '<span class="eq" dir="ltr"><span class="pw"><span class="bs">٩</span><sup>٤−٤</sup></span> = <span class="pw"><span class="bs">٩</span><sup>٠</sup></span> = ١</span> — أي أساس غير صفري أس صفر يساوي ١' }
   ]
 };
 
