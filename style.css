@@ -500,3 +500,5 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .qmore { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .qmore h3 { width: 100%; margin: 0; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .qfb, .chipbtn { transition: none; } }
+.mrun { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.cap.sub { font-size: 12px; color: var(--mut); margin-top: 4px; }
