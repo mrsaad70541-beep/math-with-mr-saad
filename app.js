@@ -144,6 +144,22 @@ function soon() {
 var HOME_IDS = ['paths', 'challenge', 'tools', 'latest'];
 var HOME_NAMES = { paths: 'مسارات التعلم', challenge: 'تحدي اليوم', tools: 'أدوات التعلم', latest: 'أحدث المحتويات' };
 var HOMECFG = { order: HOME_IDS.slice(), hide: [], soon: [] };
+var HOME_ITEMS = { '#/manhag': 'manhag', '#/t/leh': 'leh', '#/t/qudurat': 'qudurat', '#/test': 'test', '#/book': 'book', '#/lab': 'lab', '#/diagnostic': 'diagnostic', '#/files': 'files' };
+function homeItems(html) {
+  var hi = HOMECFG.hideItems || [], si = HOMECFG.soonItems || [];
+  if (!hi.length && !si.length) return html;
+  return html.split('\n').map(function (ln) {
+    var m = ln.match(/<a [^>]*href="(#\/[^"]+)"/);
+    var id = m && HOME_ITEMS[m[1]];
+    if (!id) return ln;
+    if (hi.indexOf(id) >= 0) return '';
+    if (si.indexOf(id) >= 0) {
+      return ln.replace(/<a ([^>]*?)href="#\/[^"]+"/, '<a aria-disabled="true" style="opacity:.75;cursor:default" $1')
+        .replace(/<span class="st[^"]*">[^<]*<\/span>/, '<span class="st">قريبًا</span>');
+    }
+    return ln;
+  }).join('\n');
+}
 function home() {
   const last = getLast();
   const ch = CHALLENGES[0];
@@ -201,7 +217,7 @@ function home() {
   const cfg = (typeof HOMECFG !== 'undefined') ? HOMECFG : { order: ['paths','challenge','tools','latest'], hide: [], soon: [] };
   cfg.order.forEach((id) => {
     if (!B[id] || cfg.hide.indexOf(id) >= 0) return;
-    h += (cfg.soon.indexOf(id) >= 0) ? `<div class="section-title">${HOME_NAMES[id]}</div><div class="note">قريبًا</div>` : B[id];
+    h += (cfg.soon.indexOf(id) >= 0) ? `<div class="section-title">${HOME_NAMES[id]}</div><div class="note">قريبًا</div>` : ((id === 'paths' || id === 'tools') ? homeItems(B[id]) : B[id]);
   });
   return h;
 }
@@ -898,7 +914,9 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var ids = ['paths', 'challenge', 'tools', 'latest'];
           var hl = function (a) { return (Array.isArray(a) ? a : []).filter(function (x, i, ar) { return ids.indexOf(x) >= 0 && ar.indexOf(x) === i; }); };
           var ord = hl(p.order); ids.forEach(function (x) { if (ord.indexOf(x) < 0) ord.push(x); });
-          HOMECFG = { order: ord, hide: hl(p.hide), soon: hl(p.soon) };
+          var iids = ['manhag', 'leh', 'qudurat', 'test', 'book', 'lab', 'diagnostic', 'files'];
+          var il = function (a) { return (Array.isArray(a) ? a : []).filter(function (x) { return iids.indexOf(x) >= 0; }); };
+          HOMECFG = { order: ord, hide: hl(p.hide), soon: hl(p.soon), hideItems: il(p.hideItems), soonItems: il(p.soonItems) };
           applied++;
         } else if (it.type === 'section') {
           if (p.track === 'qudurat' || p.track === 'leh') {
