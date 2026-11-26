@@ -53,3 +53,18 @@ const BOOK = [
   { t: "حاصل القسمة", p: "ولو الأساس واحد وبتقسم، بنطرح الأسس.", f: "a^m ÷ a^n = a^(m−n)", ex: "مثال: <span class=\"mx\">٥⁸ ÷ ٥² = ٥^(٨−٢) = ٥⁶</span>" },
   { t: "الإشارة", p: "الأس الفردي بيحافظ على إشارة العدد، والأس الزوجي بيخلي الناتج موجب دايمًا.", f: "(−٢)³ = −٨   ،   (−٢)⁴ = ١٦", ex: "عشان كده <span class=\"mx\">(−٣)⁵</span> ناتجه سالب، و<span class=\"mx\">(−٣)⁴</span> ناتجه موجب" }
 ];
+
+/* ===== مكتبة الملفات (structure; files added here when publication is approved) =====
+   LIB_FILES schema: {id, title, desc, grade, subject, cat, url, thumb?, added, allowDownload} */
+const LIB_CATS = [
+  { id: 'worksheets', n: 'أوراق العمل' },
+  { id: 'exams', n: 'الاختبارات' },
+  { id: 'summaries', n: 'الملخصات' },
+  { id: 'final-reviews', n: 'المراجعات النهائية' },
+  { id: 'educational', n: 'الملفات التعليمية' },
+  { id: 'books', n: 'الكتب المصرح بنشرها' },
+  { id: 'activities', n: 'الأنشطة الصفية' },
+  { id: 'aids', n: 'الوسائل التعليمية' },
+  { id: 'figures', n: 'الرسومات الرياضية' }
+];
+const LIB_FILES = [];
