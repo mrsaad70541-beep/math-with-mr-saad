@@ -51,17 +51,18 @@ function toast(msg, undo) {
 function jget(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }
 /* ===== local technical error log: stays on this device, never sent; only name/short message (quoted text removed), file name and line ===== */
 const ERRKEY = 'saad.errlog.v1';
+const ERRTYPES = ['Error', 'TypeError', 'RangeError', 'ReferenceError', 'SyntaxError', 'EvalError', 'URIError', 'DOMException'];
 function logErr(kind, msg, src, line) {
   try {
     const l = jget(ERRKEY, []);
-    const file = String(src || '').split('?')[0].split('#')[0].split('/').pop().slice(0, 40);
-    const mm = /^(?:Uncaught )?([A-Za-z]*Error)\b/.exec(String(msg || '')); const m = mm ? mm[1] : 'Error'; /* error type only: the message text can contain page or typed content */
+    const fb = String(src || '').split('?')[0].split('#')[0].split('/').pop(); const file = ['app.js', 'lab.js', 'data.js', 'sw.js', 'index.html'].indexOf(fb) > -1 ? fb : (src ? 'other' : '');
+    const mm = /^(?:Uncaught )?([A-Za-z]*Error)\b/.exec(String(msg || '')); const m = mm && ERRTYPES.indexOf(mm[1]) > -1 ? mm[1] : 'Error'; /* error type only: the message text can contain page or typed content */
     l.unshift({ t: new Date().toISOString().slice(0, 16), k: kind, m: m, f: file, l: +line || 0 });
     localStorage.setItem(ERRKEY, JSON.stringify(l.slice(0, 20)));
   } catch (e) { /* storage unavailable */ }
 }
 window.addEventListener('error', (e) => logErr('error', e.message, e.filename, e.lineno));
-window.addEventListener('unhandledrejection', (e) => logErr('promise', e.reason && e.reason.name ? e.reason.name : 'Error', '', 0));
+window.addEventListener('unhandledrejection', (e) => logErr('promise', String(e.reason && e.reason.name || 'Error') + ':', '', 0));
 function localKeys() { const k = []; try { for (let i = 0; i < localStorage.length; i++) { const n = localStorage.key(i); if (n && n.indexOf('saad.') === 0) k.push(n); } } catch (e) { /* none */ } return k; }
 function askClearLocal() { const b = document.getElementById('clrbox'); if (b) b.hidden = !b.hidden; }
 function doClearLocal() { localKeys().forEach((n) => localStorage.removeItem(n)); toast('تم حذف بيانات هذا الجهاز'); location.hash = '#/'; route(); }
@@ -1123,14 +1124,14 @@ function account() {
   </div>
   <div class="qcard">
     <div class="qhead">الخصوصية وبيانات هذا الجهاز</div>
-    <p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">بياناتك محفوظة في هذا المتصفح فقط ولا يرسلها التطبيق إلى أي جهة.</p>
+    <p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">تقدّمك وتفضيلاتك وملاحظاتك وسجل الأخطاء محفوظة في هذا المتصفح، ولا يرسلها التطبيق تلقائيًا. الخدمات الخارجية التي يستخدمها التطبيق (المحتوى والخطوط ويوتيوب) تستقبل معلومات الاتصال المعتادة، وتفاصيلها في صفحة الخصوصية.</p>
     <div class="themerow"><a class="tbtn" href="#/privacy" style="text-align:center;text-decoration:none">صفحة الخصوصية</a><button type="button" class="tbtn" onclick="askClearLocal()">حذف بيانات هذا الجهاز</button></div>
     <div id="clrbox" hidden style="margin-top:12px;font-size:13.5px;line-height:1.9">
       <p style="margin:0 0 8px">سيُحذف من هذا المتصفح فقط: المحفوظات، آخر ما شاهدت، مواضع المشاهدة، أخطائي، نتائج الاختبارات والتحديات، الإنجازات والأهداف والخطة، تقدّم الكتاب والإشارات والملاحظات، المظهر وحجم النص، الإشعارات التي أغلقتها، وسجل الأخطاء التقني. لا يُحذف أي حساب في يوتيوب أو جوجل، ولا أي بيانات خارج هذا الجهاز، ولا نسخة التطبيق المخزّنة للعمل دون إنترنت. لا يمكن التراجع.</p>
       <div class="themerow"><button type="button" class="tbtn on" onclick="doClearLocal()">نعم، احذف بيانات هذا الجهاز</button><button type="button" class="tbtn" onclick="askClearLocal()">إلغاء</button></div>
     </div>
   </div>
-  ${(() => { const l = jget(ERRKEY, []); return `<div class="qcard"><div class="qhead">سجل الأخطاء التقني</div><p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">يحفظ التطبيق على جهازك فقط آخر ${l.length ? l.length : 'عدة'} أخطاء برمجية (الوقت ونوع الخطأ واسم الملف ورقم السطر، دون نص الرسالة). لا يُرسل تلقائيًا، ولا يتضمن محتوى الصفحات أو ما تكتبه أو ملاحظاتك. الحالي: ${l.length} ${l.length ? '' : '(لا أخطاء)'}</p>${l.length ? '<div class="themerow"><button type="button" class="tbtn" onclick="copyErrLog()">نسخ السجل</button><button type="button" class="tbtn" onclick="clearErrLog()">مسح السجل</button></div>' : ''}</div>`; })()}
+  ${(() => { const l = jget(ERRKEY, []); return `<div class="qcard"><div class="qhead">سجل الأخطاء التقني</div><p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">يحفظ التطبيق على جهازك فقط أحدث الأخطاء البرمجية (حتى 20) (الوقت ونوع الخطأ واسم الملف ورقم السطر، دون نص الرسالة). لا يُرسل تلقائيًا، ولا يتضمن محتوى الصفحات أو ما تكتبه أو ملاحظاتك. الحالي: ${l.length} ${l.length ? '' : '(لا أخطاء)'}</p>${l.length ? '<div class="themerow"><button type="button" class="tbtn" onclick="copyErrLog()">نسخ السجل</button><button type="button" class="tbtn" onclick="clearErrLog()">مسح السجل</button></div>' : ''}</div>`; })()}
   ${achBlock()}`;
 }
 
@@ -1142,8 +1143,8 @@ function privacy() {
     <ul style="margin:6px 0;padding-inline-start:20px">
       ${li('لا توجد حسابات ولا تسجيل دخول. التطبيق يعمل بوضع الزائر.')}
       ${li('يحفظ على جهازك فقط (تخزين المتصفح): المحفوظات، آخر ما شاهدت ومواضع المشاهدة، أخطائي، نتائج الاختبارات والتحديات، الإنجازات والأهداف والخطة، تقدّم الكتاب والإشارات والملاحظات، المظهر وحجم النص، والإشعارات التي أغلقتها.')}
-      ${li('لا يرسل التطبيق هذه البيانات إلى أي خادم، ولا يحتوي ملفاته على أدوات تحليلات أو تتبع إعلاني.')}
-      ${li('عند فتح التطبيق يجلب المحتوى المنشور من خدمة المحتوى الخاصة بالمنصة، ويحمّل الخطوط من خدمة خطوط جوجل. وعند تشغيل فيديو يُحمَّل مشغّل يوتيوب (نطاق youtube-nocookie.com) ويتصل بخوادم يوتيوب. هذه الجهات ترى معلومات الاتصال المعتادة (مثل عنوان الشبكة) وفق سياساتها الخاصة.')}
+      ${li('لا يرسل التطبيق هذه البيانات المحفوظة (التقدّم والتفضيلات والملاحظات) ولا سجل الأخطاء إلى أي خادم، ولا تحتوي ملفاته على أدوات تحليلات أو تتبع إعلاني.')}
+      ${li('عند فتح التطبيق يجلب المحتوى المنشور من خدمة المحتوى الخاصة بالمنصة، ويحمّل الخطوط من خدمة خطوط جوجل. وعند فتح صفحة فيديو يُنشأ مشغّل يوتيوب (نطاق youtube-nocookie.com) ويحمّل سكربت واجهة المشغّل من youtube.com ويتصل بخوادم يوتيوب، وذلك قبل الضغط على تشغيل. هذه الجهات تستقبل معلومات الطلب والاتصال المعتادة (مثل عنوان الشبكة ونوع المتصفح والصفحة المرجعية) وفق سياساتها الخاصة، ولا يتحكم التطبيق في ذلك.')}
       ${li('الصفحة مستضافة على GitHub Pages، وتنطبق عليها سياسة الاستضافة.')}
       ${li('سجل الأخطاء التقني محلي على جهازك ولا يُرسل تلقائيًا.')}
     </ul>
