@@ -55,13 +55,13 @@ function logErr(kind, msg, src, line) {
   try {
     const l = jget(ERRKEY, []);
     const file = String(src || '').split('?')[0].split('#')[0].split('/').pop().slice(0, 40);
-    const m = String(msg || '').replace(/["'`][^"'`]*["'`]/g, '…').slice(0, 100);
+    const mm = /^(?:Uncaught )?([A-Za-z]*Error)\b/.exec(String(msg || '')); const m = mm ? mm[1] : 'Error'; /* error type only: the message text can contain page or typed content */
     l.unshift({ t: new Date().toISOString().slice(0, 16), k: kind, m: m, f: file, l: +line || 0 });
     localStorage.setItem(ERRKEY, JSON.stringify(l.slice(0, 20)));
   } catch (e) { /* storage unavailable */ }
 }
 window.addEventListener('error', (e) => logErr('error', e.message, e.filename, e.lineno));
-window.addEventListener('unhandledrejection', (e) => logErr('promise', e.reason && e.reason.message, '', 0));
+window.addEventListener('unhandledrejection', (e) => logErr('promise', e.reason && e.reason.name ? e.reason.name : 'Error', '', 0));
 function localKeys() { const k = []; try { for (let i = 0; i < localStorage.length; i++) { const n = localStorage.key(i); if (n && n.indexOf('saad.') === 0) k.push(n); } } catch (e) { /* none */ } return k; }
 function askClearLocal() { const b = document.getElementById('clrbox'); if (b) b.hidden = !b.hidden; }
 function doClearLocal() { localKeys().forEach((n) => localStorage.removeItem(n)); toast('تم حذف بيانات هذا الجهاز'); location.hash = '#/'; route(); }
@@ -1130,7 +1130,7 @@ function account() {
       <div class="themerow"><button type="button" class="tbtn on" onclick="doClearLocal()">نعم، احذف بيانات هذا الجهاز</button><button type="button" class="tbtn" onclick="askClearLocal()">إلغاء</button></div>
     </div>
   </div>
-  ${(() => { const l = jget(ERRKEY, []); return `<div class="qcard"><div class="qhead">سجل الأخطاء التقني</div><p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">يحفظ التطبيق على جهازك فقط آخر ${l.length ? l.length : 'عدة'} أخطاء برمجية (الوقت ونوع الخطأ واسم الملف ورقم السطر). لا يُرسل تلقائيًا، ولا يتضمن محتوى الصفحات أو ما تكتبه أو ملاحظاتك. الحالي: ${l.length} ${l.length ? '' : '(لا أخطاء)'}</p>${l.length ? '<div class="themerow"><button type="button" class="tbtn" onclick="copyErrLog()">نسخ السجل</button><button type="button" class="tbtn" onclick="clearErrLog()">مسح السجل</button></div>' : ''}</div>`; })()}
+  ${(() => { const l = jget(ERRKEY, []); return `<div class="qcard"><div class="qhead">سجل الأخطاء التقني</div><p style="font-size:13.5px;line-height:1.9;color:var(--mut);margin:6px 0 0">يحفظ التطبيق على جهازك فقط آخر ${l.length ? l.length : 'عدة'} أخطاء برمجية (الوقت ونوع الخطأ واسم الملف ورقم السطر، دون نص الرسالة). لا يُرسل تلقائيًا، ولا يتضمن محتوى الصفحات أو ما تكتبه أو ملاحظاتك. الحالي: ${l.length} ${l.length ? '' : '(لا أخطاء)'}</p>${l.length ? '<div class="themerow"><button type="button" class="tbtn" onclick="copyErrLog()">نسخ السجل</button><button type="button" class="tbtn" onclick="clearErrLog()">مسح السجل</button></div>' : ''}</div>`; })()}
   ${achBlock()}`;
 }
 
