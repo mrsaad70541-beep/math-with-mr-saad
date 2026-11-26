@@ -495,7 +495,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .qfb.ok { background: var(--ok-tint); color: var(--ok-ink); }
 .qfb.no { background: var(--bad-tint); color: var(--bad-ink); }
 #qnext { margin-top: 10px; width: 100%; }
-.qimg { display: block; max-width: 100%; max-height: 240px; margin: 10px auto; border-radius: 12px; }
+.qimg { display: block; max-width: 100%; max-height: 150px; object-fit: contain; margin: 10px auto; border-radius: 12px; }
 .qgeo { display: block; width: 100%; max-width: 280px; margin: 10px auto; color: var(--ink); }
 .qmore { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .qmore h3 { width: 100%; margin: 0; font-size: 14px; }
