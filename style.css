@@ -554,3 +554,5 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 .labstage:fullscreen .labframe,#labStage:fullscreen .labframe{height:calc(100vh - 56px)}
 #labStage.labfs{position:fixed;inset:0;z-index:50;margin:0;border-radius:0;overflow:auto}
 #labStage.labfs .labframe{height:calc(100vh - 60px)}
+
+.btn2.gold { background: var(--gold); color: #102B49; }
