@@ -29,13 +29,18 @@ window.addEventListener('online', () => toast('رجع الاتصال بالإن�
 function setTheme(t) { localStorage.setItem('saad.theme.v1', t); applyTheme(); route(); }
 window.setTheme = setTheme;
 
-function toast(msg) {
+function toast(msg, undo) {
   let t = document.querySelector('.toast');
   if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
   t.textContent = msg;
+  if (undo) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'toast-undo'; b.textContent = 'تراجع';
+    b.onclick = () => { clearTimeout(t._h); t.classList.remove('show'); undo(); };
+    t.appendChild(b);
+  }
   requestAnimationFrame(() => t.classList.add('show'));
   clearTimeout(t._h);
-  t._h = setTimeout(() => t.classList.remove('show'), 2200);
+  t._h = setTimeout(() => t.classList.remove('show'), undo ? 6000 : 2200);
 }
 
 /* ===== storage: saved / last-watched / mistakes ===== */
@@ -44,7 +49,10 @@ const getSaved = () => jget('saad.saved.v1', []);
 const isSaved = (u) => getSaved().some((x) => x.u === u);
 function toggleSave(u, t) {
   let s = getSaved();
-  if (s.some((x) => x.u === u)) { s = s.filter((x) => x.u !== u); toast('اتشالت من محفوظاتك'); }
+  if (s.some((x) => x.u === u)) {
+    const old = s.slice(); s = s.filter((x) => x.u !== u);
+    toast('اتشالت من محفوظاتك', () => { localStorage.setItem('saad.saved.v1', JSON.stringify(old)); route(); });
+  }
   else { s.unshift({ u, t }); toast('اتحفظت في محفوظاتك'); }
   localStorage.setItem('saad.saved.v1', JSON.stringify(s));
   route();
