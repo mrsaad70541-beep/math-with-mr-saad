@@ -284,7 +284,8 @@ function manhag() {
 function grade(gid) {
   const g = DATA.grades.find((x) => x.id === gid);
   let h = `<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="section-title">${esc(g.title)} — الدروس</div>`;
-  g.lessons.map((l, i) => ({ l, i })).sort((x, y) => ((x.l.ord || x.i + 1) - (y.l.ord || y.i + 1)) || (x.i - y.i)).forEach((o, pos) => {
+function lessonOrder(g) { return g.lessons.map((l, i) => ({ l, i })).sort((x, y) => ((x.l.ord || x.i + 1) - (y.l.ord || y.i + 1)) || ((y.l.ord ? 1 : 0) - (x.l.ord ? 1 : 0)) || (x.i - y.i)); }
+  lessonOrder(g).forEach((o, pos) => {
     const l = o.l, i = o.i;
     if (l._gone) { h += `<div class="card"><span class="chip">${pos + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`; return; }
     h += `<a class="card" href="#/g/${g.id}/l/${i}"><span class="chip">${pos + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
@@ -321,12 +322,13 @@ function lesson(gid, li) {
   if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<span class="skillchip">${esc(s)}</span>`).join('')}</div></div>`;
   if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq"><span class="exlabel">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}</span><span class="eqline">${e.q} = ؟</span></div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol"><span class="ot">${esc(e.solT)}</span><span class="eqline">${e.solE}</span></div></div>`).join('')}</div>`;
   if (l.quiz) h += `<a class="card quizlink" href="#/test/${l.quiz}"><span class="chip">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
-  const prev = li > 0 ? g.lessons[li - 1] : null;
-  const next = li < g.lessons.length - 1 ? g.lessons[li + 1] : null;
+  const ordl = lessonOrder(g), dpos = ordl.findIndex((o) => o.i === li);
+  const pe = dpos > 0 ? ordl[dpos - 1] : null, ne = dpos >= 0 && dpos < ordl.length - 1 ? ordl[dpos + 1] : null;
+  const prev = pe && pe.l, next = ne && ne.l;
   if (prev || next) {
     h += '<div class="lessonnav">';
-    h += prev ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${li - 1}">‹ السابق: ${esc(prev.title)}</a>` : '<span></span>';
-    h += next ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${li + 1}">التالي: ${esc(next.title)} ›</a>` : '<span></span>';
+    h += prev ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${pe.i}">‹ السابق: ${esc(prev.title)}</a>` : '<span></span>';
+    h += next ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${ne.i}">التالي: ${esc(next.title)} ›</a>` : '<span></span>';
     h += '</div>';
   }
   if (!meta) h += `<div class="note">باقي تفاصيل الدرس قريبًا</div>`;
