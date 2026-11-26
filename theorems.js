@@ -633,13 +633,15 @@ window.THEO = (function () {
     compute(); sync();
     // سجل الملاحظات
     const rec = document.getElementById('thRec'), tbl = document.getElementById('thObs'), concl = document.getElementById('thConcl');
-    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + esc(o) + '</span></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; if (obs.length >= 3) document.getElementById('thGo').disabled = false; }
+    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + esc(o.txt) + '</span></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; if (obs.length >= 3) document.getElementById('thGo').disabled = false; }
     rec.onclick = () => {
       if (!last || !last.eq.length) { toastMsg('الشرط غير متحقق الآن، لا فائدة من تسجيل هذه الحالة'); return; }
       const key = last.rows.map((r) => (typeof r[1] === 'number' ? toAr(r[1], 1) : r[1])).join('|');
-      const txt = last.rows.filter((r) => r[2] === 1 || r[3] === 1).map((r) => r[0] + ': ' + (typeof r[1] === 'number' ? toAr(r[1], (last.dec != null ? last.dec === 0 ? 0 : 2 : 1)) : r[1])).join(' | ') || last.rows.map((r) => r[0] + ': ' + (typeof r[1] === 'number' ? toAr(r[1], 1) : r[1])).join(' | ');
-      if (obs.some((o) => o === txt)) { toastMsg('غيّر الشكل أولًا لتسجّل حالة مختلفة'); return; }
-      obs.push(txt); renderObs();
+      const dd = last.dec != null ? (last.dec === 0 ? 0 : 2) : 1;
+      const txt = last.rows.filter((r) => r[0] !== '').map((r) => r[0] + ': ' + (typeof r[1] === 'number' ? toAr(r[1], dd) : r[1])).join(' | ');
+      if (obs.some((o) => o.key === key)) { toastMsg('غيّر الشكل أولًا لتسجّل حالة مختلفة'); return; }
+      obs.push({ key, txt });
+      renderObs();
     };
     document.getElementById('thGo').onclick = () => { concl.hidden = false; concl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
     document.getElementById('thReset').onclick = () => mount(host, m);
