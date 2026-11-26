@@ -532,3 +532,8 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 .bkzoom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; margin: 8px 0; }
 .bkzoom button { min-width: 36px; height: 34px; border-radius: 10px; border: 1px solid rgba(128,128,128,.4); background: var(--navy); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
 .bkprog { margin-inline-start: auto; opacity: .85; }
+
+.bkidx input { width: 100%; box-sizing: border-box; background: transparent; color: inherit; border: 1px solid rgba(128,128,128,.4); border-radius: 10px; padding: 9px 10px; font: inherit; margin-bottom: 8px; }
+.bkrow { display: block; padding: 8px 6px; border-bottom: 1px solid rgba(128,128,128,.2); text-decoration: none; color: inherit; font-size: 14px; }
+.bkrow.on { font-weight: 800; }
+.bkrow b { color: var(--gold-deep); margin-inline-end: 6px; }
