@@ -579,3 +579,11 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 .eq msqrt{direction:ltr;transform:scaleX(-1)}.eq msqrt>*{transform:scaleX(-1)}
 .rt{direction:rtl;unicode-bidi:isolate;display:inline-flex;align-items:flex-end}.rg{display:inline-block;transform:scaleX(-1);font-weight:400}.rr{border-top:1.5px solid currentColor;padding:0 1px}
 .labcard sup,.th-r sup,.tbtn sup{font-size:.75em;line-height:0}
+
+.th-bar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.th-del{margin-inline-start:auto;border:1px solid #c9d2de;background:#fff;color:#b3261e;border-radius:8px;padding:2px 8px;font:inherit;font-size:12px;cursor:pointer}
+.th-or{display:flex;align-items:center;gap:8px}
+body.th-teach .th-svg{max-width:none;width:100%}
+.labcard.stage:fullscreen{background:#fff;padding:18px;overflow:auto;display:flex;flex-direction:column;justify-content:center}
+.labcard.stage:fullscreen .th-svg{max-height:70vh}
+body.th-teach .th-pred,body.th-teach .th-meta{font-size:1.1em}
