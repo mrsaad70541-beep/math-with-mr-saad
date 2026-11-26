@@ -589,3 +589,5 @@ body.th-teach .th-svg{max-width:none;width:100%}
 body.th-teach .th-pred,body.th-teach .th-meta{font-size:1.1em}
 .fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.2;margin:0 3px;direction:rtl}.fn{border-bottom:1.5px solid currentColor;padding:0 4px}.fd{padding:0 4px}
 .th-app{margin-top:14px}
+.th-svg{color:#102B49}
+html.dark .th-svg{color:#e6edf7}
