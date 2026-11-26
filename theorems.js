@@ -403,7 +403,7 @@ window.THEO = (function () {
     ok: (P) => triOK(P.A, P.B, P.C),
     sample() { for (;;) { const P = { O: { x: rnd(15, 325), y: rnd(15, 285) }, A: { x: rnd(15, 325), y: rnd(15, 285) }, B: { x: rnd(15, 325), y: rnd(15, 285) }, C: { x: rnd(15, 325), y: rnd(15, 285) }, k: Math.round(rnd(5, 25)) / 10 }; if (this.ok(P)) return P; } },
     calc(P) { const f = (p) => add(P.O, mul(sub(p, P.O), P.k)), A2 = f(P.A), B2 = f(P.B), C2 = f(P.C); return { rows: [['م أ′ / م أ', dist(P.O, A2) / dist(P.O, P.A)], ['أ′ب′ / أب', dist(A2, B2) / dist(P.A, P.B)], ['فرق الزاويتين عند ب', Math.abs(ang(A2, B2, C2) - ang(P.A, P.B, P.C))], ['مساحة الصورة / الأصل', area3(A2, B2, C2) / area3(P.A, P.B, P.C)]], eq: [[dist(A2, B2) / dist(P.A, P.B), P.k], [dist(B2, C2) / dist(P.B, P.C), P.k], [ang(A2, B2, C2), ang(P.A, P.B, P.C)], [area3(A2, B2, C2) / area3(P.A, P.B, P.C), P.k * P.k]], A2, B2, C2 }; },
-    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.poly([r.A2, r.B2, r.C2], 1); d.seg(P.O, r.A2, 2); d.seg(P.O, r.B2, 2); d.seg(P.O, r.C2, 2); d.dot(P.O, 1); d.label(P.O, 'م'); },
+    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.poly([r.A2, r.B2, r.C2], 1); d.seg(P.O, r.A2, 2); d.seg(P.O, r.B2, 2); d.seg(P.O, r.C2, 2); d.dot(P.O, 1); d.label(P.O, 'م'); d.label(r.A2, 'أ′'); d.label(r.B2, 'ب′'); d.label(r.C2, 'ج′'); },
     concl: 'الأطوال تضاعفت ك مرة، والزوايا بقيت، والمساحة تضاعفت ك² مرة.',
     proof: 'تتناسب كل المسافات مع ك لأن م أ′ = ك·م أ لكل نقطة، فالمثلثان متشابهان بالتناسب الثلاثي (SSS)، والمساحة تتناسب مع مربع الأطوال.'
   });
