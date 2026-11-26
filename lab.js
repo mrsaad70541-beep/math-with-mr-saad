@@ -358,6 +358,22 @@ window.LAB = (function () {
     }
   ];
 
+  /* تجارب HTML المضافة من لوحة الإدارة: تُعرض داخل iframe معزول (sandbox="allow-scripts" فقط، بدون same-origin)،
+     مع CSP يمنع الشبكة والنماذج. التحكم بالحركة والسرعة يوفّره ملف التجربة نفسه. */
+  const CMS = [];
+  const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data:; form-action 'none'; base-uri 'none'";
+  function cmsDoc(html) {
+    return '<!DOCTYPE html><meta http-equiv="Content-Security-Policy" content="' + CSP + '"><meta name="viewport" content="width=device-width,initial-scale=1">' + html;
+  }
+  function addCms(it) {
+    const p = it.payload || {};
+    if (!it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id))) return false;
+    if (typeof p.html !== 'string' || !p.html.trim() || p.html.length > 150000) return false;
+    const e = { id: 'x-' + it.id, title: String(it.title || '').slice(0, 200), desc: String(p.desc || '').slice(0, 300), html: p.html };
+    const i = CMS.findIndex((x) => x.id === e.id);
+    if (i >= 0) CMS[i] = e; else CMS.push(e);
+    return true;
+  }
   function labHome() {
     let h = '<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">مختبر الرياضيات</div>';
     h += '<p class="dim labintro">كل تجربة تسير بنفس الطريقة: مشكلة ← تجربة ← ملاحظة ← استنتاج. اسحب وحرّك واكتشف بنفسك.</p>';
@@ -365,19 +381,47 @@ window.LAB = (function () {
     EXPERIMENTS.forEach((e) => {
       h += `<a class="labitem" href="#/lab/${e.id}"><span class="ic">${IC.flask}</span><span class="lt">${esc(e.title)}</span><span class="go">ابدأ التجربة</span></a>`;
     });
+    CMS.forEach((e) => {
+      h += `<a class="labitem" href="#/lab/${e.id}"><span class="ic">${IC.flask}</span><span class="lt">${esc(e.title)}</span><span class="go">ابدأ التجربة</span></a>`;
+    });
     h += '</div>';
     h += '<p class="dim labmore">تجارب جديدة تُضاف تباعًا دون تحديث التطبيق.</p>';
     return h;
   }
+  function cmsShell(e) {
+    return `<a class="back" href="#/lab">‹ مختبر الرياضيات</a><div class="section-title">${esc(e.title)}</div>
+      ${e.desc ? `<div class="labcard problem"><p>${esc(e.desc)}</p></div>` : ''}
+      <div class="labcard stage" id="labStage">
+        <div class="labtools"><button class="btn2 ghost sm" id="labReset">إعادة التجربة</button><button class="btn2 ghost sm" id="labFull">ملء الشاشة</button></div>
+        <iframe id="labFrame" class="labframe" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(e.title)}" loading="lazy"></iframe>
+      </div>
+      <div class="lactions">${saveBtn('#/lab/' + e.id, 'تجربة: ' + e.title + ' — مختبر الرياضيات')}</div>`;
+  }
   function labExp(id) {
+    const c = CMS.find((x) => x.id === id);
+    if (c) return cmsShell(c);
     const e = EXPERIMENTS.find((x) => x.id === id);
     if (!e) return labHome();
     return expShell(e);
   }
+  function wireCms(e) {
+    const f = document.getElementById('labFrame');
+    if (!f) return;
+    const load = () => { f.srcdoc = cmsDoc(e.html); };
+    load();
+    document.getElementById('labReset').onclick = load;
+    document.getElementById('labFull').onclick = () => {
+      const st = document.getElementById('labStage');
+      const fn = st.requestFullscreen || st.webkitRequestFullscreen;
+      if (fn) fn.call(st); else st.classList.toggle('labfs');
+    };
+  }
   function afterRender(p) {
     if (p[0] !== 'lab' || !p[1]) return;
+    const c = CMS.find((x) => x.id === p[1]);
+    if (c) { wireCms(c); return; }
     const e = EXPERIMENTS.find((x) => x.id === p[1]);
     if (e) wireShell(e, e.mount);
   }
-  return { EXPERIMENTS, labHome, labExp, afterRender };
+  return { EXPERIMENTS, CMS, addCms, labHome, labExp, afterRender };
 })();
