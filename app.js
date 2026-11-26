@@ -388,6 +388,7 @@ function vpInit(yt, nu, nname, tries) {
           const st = ev.data;
           if (st === 0) {
             const o = vpGet(); delete o[yt]; vpSet(o);
+            const rz = document.querySelector('.vresume'); if (rz) rz.remove();
             const nx = document.getElementById('vnext');
             if (nx && nu) { nx.hidden = false; nx.innerHTML = '<a class="nextbtn" href="' + nu + '">التالي: ' + esc(nname || 'المهارة التالية') + ' ‹</a>'; }
           }
