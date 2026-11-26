@@ -73,6 +73,7 @@ function addMistake(m) {
 }
 
 /* ===== share (real links) ===== */
+const WSHARE = 'https://secureadmin.mrsaad70541.workers.dev/s/c/';
 function seoUrl(u) {
   const m = /^#\/g\/(g\d)\/l\/(\d+)\/v\/(\d+)$/.exec(u);
   if (!m || typeof DATA === 'undefined') return null;
@@ -299,7 +300,7 @@ function lesson(gid, li) {
   if (!l || l._gone) return `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="note">هذا الدرس غير متاح حاليًا</div>`;
   const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
-  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '#/g/${gid}/l/${li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
+  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '${l.cid ? WSHARE + esc(l.cid) : '#/g/' + gid + '/l/' + li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
   if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
   if (l.term || l.unit) h += `<div class="lmeta"><p>${esc([l.term, l.unit].filter(Boolean).join(' · '))}</p></div>`;
   if (l.skills && l.skills.length) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${l.skills.map((x) => `<span class="skillchip">${esc(x)}</span>`).join('')}</div></div>`;
@@ -1128,7 +1129,12 @@ function filesCat(id) {
 function route() {
   const p = location.hash.replace(/^#\//, '').split('/').filter(Boolean);
   let html;
-  if (p[0] === 'manhag') html = manhag();
+  if (p[0] === 'c' && p[1]) {
+    let fg = null, fi = -1;
+    DATA.grades.forEach((g) => g.lessons.forEach((l, i) => { if (!fg && l.cid && l.cid === p[1] && !l._gone) { fg = g; fi = i; } }));
+    if (fg) { history.replaceState(null, '', '#/g/' + fg.id + '/l/' + fi); html = lesson(fg.id, fi); }
+    else html = '<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="note">هذا الدرس غير متاح حاليًا.</div>';
+  } else if (p[0] === 'manhag') html = manhag();
   else if (p[0] === 'g' && p[2] === 'l' && p[4] === 'v') html = watch(p[1], +p[3], +p[5]);
   else if (p[0] === 'g' && p[2] === 'l') html = lesson(p[1], +p[3]);
   else if (p[0] === 'g') html = grade(p[1]);
@@ -1329,7 +1335,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
           var vids = (Array.isArray(p.videos) ? p.videos : [])
             .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
             .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt }; });
-          var nl = { ord: ordOf(p), title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids, cmeta: metaOf(p), term: String(p.term || '').slice(0, 80), unit: String(p.unit || '').slice(0, 80), skills: (Array.isArray(p.skills) ? p.skills : []).filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }) };
+          var nl = { cid: String(it.id || ''), ord: ordOf(p), title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids, cmeta: metaOf(p), term: String(p.term || '').slice(0, 80), unit: String(p.unit || '').slice(0, 80), skills: (Array.isArray(p.skills) ? p.skills : []).filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }) };
           if (p.quiz && QUIZSETS[p.quiz]) nl.quiz = p.quiz;
           g2.lessons.push(nl);
           SEARCH.push({ k: metaKeys(nl.cmeta) + ' ' + nl.term + ' ' + nl.unit + ' ' + nl.skills.join(' '), t: 'درس ' + nl.title + ' — ' + g2.title, u: '#/g/' + g2.id + '/l/' + (g2.lessons.length - 1) });
