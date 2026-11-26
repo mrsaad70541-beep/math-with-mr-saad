@@ -1,0 +1,6 @@
+{
+  "appId": "io.github.mrsaad70541.mathwithmrsaad",
+  "appName": "رياضيات مع مستر سعد",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
