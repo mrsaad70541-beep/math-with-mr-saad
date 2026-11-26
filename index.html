@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e2a47">
+<title>رياضيات مع مستر سعد</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="top">
+  <img class="avatar" src="avatar.png" alt="مستر سعد">
+  <div class="who">
+    <h1>رياضيات مع مستر سعد</h1>
+    <p id="tagline">اختر القسم وابدأ التعلّم</p>
+  </div>
+</header>
+<main id="app"></main>
+<nav id="tabbar">
+  <a href="#/" data-route="home">الرئيسية</a>
+  <a href="#/manhag" data-route="manhag">المنهج</a>
+</nav>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+</body>
+</html>
