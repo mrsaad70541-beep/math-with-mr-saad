@@ -607,3 +607,4 @@ html.dark .th-svg text.thtag.ok{fill:#7ee2a8}html.dark .th-svg text.thtag.no{fil
 .th-pl>*{animation:thfade .7s ease both}@keyframes thfade{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.th-pl>*{animation:none}}
 body.th-teach .th-eng{display:none}
+.th-tbar[hidden]{display:none!important}
