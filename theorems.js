@@ -15,6 +15,8 @@ window.THEO = (function () {
   };
   const deg = (n) => toAr(n, 1) + '°';
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const mxh = (t) => esc(t).replace(/√([٠-٩0-9]+)/g, '<span class="rt"><b class="rg">√</b><span class="rr">$1</span></span>').replace(/\^\(([^)]*)\)/g, '<sup>$1</sup>').replace(/\^([٠-٩0-9]+|[أ-ي])/g, '<sup>$1</sup>');
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
   const add = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
@@ -539,7 +541,15 @@ window.THEO = (function () {
       dot(p, big) { el('circle', { cx: p.x, cy: p.y, r: big ? 5 : 3.5, fill: '#b8860b' }); },
       label(p, t) { const e = el('text', { x: p.x + 6, y: p.y - 6, class: 'labtxt', 'font-size': 13, 'font-weight': 700 }); e.textContent = t; },
       tag(t, good) { const e = el('text', { x: 170, y: 18, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: good ? '#1a7f4b' : '#b3261e' }); e.textContent = t; },
-      txt(p, t, col) { const e = el('text', { x: p.x, y: p.y, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: col || '#102B49', direction: 'ltr', style: 'unicode-bidi:isolate' }); e.textContent = t; },
+      txt(p, t, col) {
+        const c = col || '#102B49';
+        if (t.charAt(0) === '√') {
+          const rad = t.slice(1), w = Math.max(9, rad.length * 9), xr = p.x + w / 2, xl = p.x - w / 2, top = p.y - 14;
+          el('path', { d: 'M' + (xl - 1) + ',' + top + ' H' + (xr + 1) + ' L' + (xr + 6) + ',' + (p.y + 3) + ' L' + (xr + 10) + ',' + (p.y - 4), fill: 'none', stroke: c, 'stroke-width': 1.5, 'stroke-linejoin': 'round' });
+          const e0 = el('text', { x: p.x, y: p.y, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: c, direction: 'ltr', style: 'unicode-bidi:isolate' }); e0.textContent = rad; return;
+        }
+        const e = el('text', { x: p.x, y: p.y, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: c, direction: 'ltr', style: 'unicode-bidi:isolate' }); e.textContent = t;
+      },
       tick(a, b) { const c = mid(a, b), u = sub(b, a), n = Math.hypot(u.x, u.y), p = { x: -u.y / n * 6, y: u.x / n * 6 }; el('line', { x1: c.x - p.x, y1: c.y - p.y, x2: c.x + p.x, y2: c.y + p.y, stroke: '#b8860b', 'stroke-width': 2.4 }); },
       rightMark(v, a, b) { const u = sub(a, v), w = sub(b, v), nu = Math.hypot(u.x, u.y), nw = Math.hypot(w.x, w.y), s = 12; const p1 = { x: v.x + u.x / nu * s, y: v.y + u.y / nu * s }, p3 = { x: v.x + w.x / nw * s, y: v.y + w.y / nw * s }, p2 = { x: p1.x + p3.x - v.x, y: p1.y + p3.y - v.y }; el('polyline', { points: pts([p1, p2, p3]), fill: 'none', stroke: '#102B49', 'stroke-width': 1.4 }); },
       angle(a, v, b, txt) {
@@ -562,7 +572,7 @@ window.THEO = (function () {
       const bad = R.eq.filter((e) => Math.abs(e[0] - e[1]) > 0.06 * (Math.abs(e[1]) > 5 ? Math.abs(e[1]) / 5 : 1) && Math.abs(e[0] - e[1]) > 1e-6);
       let h = '';
       const dec = R.dec == null ? 1 : R.dec;
-      R.rows.forEach((r) => { const v = typeof r[1] === 'number' ? (r[2] === 1 && dec === 1 && r[0].indexOf('∠') > -1 || /مجموع|المجموع|الخارجية|∠|أ \+ ب|بعد/.test(r[0]) ? toAr(r[1], 1) + (/∠|مجموع|المجموع|الخارجية|أ \+ ب/.test(r[0]) ? '°' : '') : toAr(r[1], dec === 0 ? 0 : 2)) : r[1]; h += '<div class="th-r' + (r[3] === 1 ? ' prem' : '') + (r[2] === 1 ? ' key' : '') + '"><span>' + esc(r[0]) + '</span><b>' + esc(v) + '</b></div>'; });
+      R.rows.forEach((r) => { const v = typeof r[1] === 'number' ? (r[2] === 1 && dec === 1 && r[0].indexOf('∠') > -1 || /مجموع|المجموع|الخارجية|∠|أ \+ ب|بعد/.test(r[0]) ? toAr(r[1], 1) + (/∠|مجموع|المجموع|الخارجية|أ \+ ب/.test(r[0]) ? '°' : '') : toAr(r[1], dec === 0 ? 0 : 2)) : r[1]; h += '<div class="th-r' + (r[3] === 1 ? ' prem' : '') + (r[2] === 1 ? ' key' : '') + '"><span>' + esc(r[0]) + '</span><b>' + mxh(v) + '</b></div>'; });
       out.innerHTML = h;
       last = R;
       status.textContent = R.eq.length ? (bad.length ? 'العلاقة المتوقعة لا تتحقق هنا' : 'العلاقة تتحقق في هذه الحالة ✓') : 'الشرط غير متحقق، فلا علاقة مضمونة';
@@ -633,7 +643,7 @@ window.THEO = (function () {
     compute(); sync();
     // سجل الملاحظات
     const rec = document.getElementById('thRec'), tbl = document.getElementById('thObs'), concl = document.getElementById('thConcl');
-    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + esc(o.txt) + '</span></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; if (obs.length >= 3) document.getElementById('thGo').disabled = false; }
+    function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + mxh(o.txt) + '</span></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; if (obs.length >= 3) document.getElementById('thGo').disabled = false; }
     rec.onclick = () => {
       if (!last || !last.eq.length) { toastMsg('الشرط غير متحقق الآن، لا فائدة من تسجيل هذه الحالة'); return; }
       const key = last.rows.map((r) => (typeof r[1] === 'number' ? toAr(r[1], 1) : r[1])).join('|');
@@ -672,10 +682,10 @@ window.THEO = (function () {
     const m = M.find((x) => x.id === id); if (!m) return home();
     return '<a class="back" href="#/theorems">‹ اكتشف النظرية بنفسك</a><div class="section-title">' + esc(m.title) + '</div>' +
       '<div class="th-meta">' + GR[m.g] + ' · ' + esc(m.lesson) + '</div>' +
-      '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + esc(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + esc(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
-      '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + esc(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
+      '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
+      '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
       '<div class="labcard obs"><span class="labtag">٣ · لاحظ</span><div id="thRows" class="th-rows"></div><div class="th-rec"><button class="btn2 sm" id="thRec" type="button">سجّل هذه الحالة</button><span id="thCount">٠ / ٣</span></div><div id="thObs" class="th-obs"></div><button class="btn2 sm" id="thGo" type="button" disabled>٤ · استنتج (بعد ٣ حالات مختلفة)</button></div>' +
-      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p><b>' + esc(m.claim) + '</b></p><p>' + esc(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + esc(m.proof) + '</p></div>';
+      '<div class="labcard concl" id="thConcl" hidden><span class="labtag">٤ · الاستنتاج</span><p><b>' + mxh(m.claim) + '</b></p><p>' + mxh(m.concl) + '</p><span class="labtag" style="margin-top:10px;display:inline-block">٥ · ملاحظة التجريب والبرهان</span><p>التجريب يقنعنا بحالات كثيرة لكنه لا يغطي كل الحالات الممكنة. ' + mxh(m.proof) + '</p></div>';
   }
   function after(p) {
     if (p[0] !== 'theorem' || !p[1]) return;
