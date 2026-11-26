@@ -59,7 +59,7 @@ window.THEO = (function () {
     ok: (P) => triOK(P.A, P.B, P.C),
     sample() { for (;;) { const P = { A: { x: rnd(20, 320), y: rnd(20, 280) }, B: { x: rnd(20, 320), y: rnd(20, 280) }, C: { x: rnd(20, 320), y: rnd(20, 280) } }; if (this.ok(P)) return P; } },
     calc(P) { const a = ang(P.B, P.A, P.C), b = ang(P.A, P.B, P.C), c = ang(P.A, P.C, P.B); return { rows: [['∠أ', a], ['∠ب', b], ['∠ج', c], ['المجموع', a + b + c, 1]], eq: [[a + b + c, 180]] }; },
-    draw(P, d) { d.poly([P.A, P.B, P.C]); d.angle(P.A, P.B, P.C); d.angle(P.B, P.A, P.C); d.angle(P.C, P.A, P.B, 'C'); },
+    draw(P, d) { d.poly([P.A, P.B, P.C]); d.angle(P.A, P.B, P.C); d.angle(P.B, P.A, P.C); d.angle(P.A, P.C, P.B); },
     concl: 'في كل الأشكال التي جرّبتها كان المجموع ١٨٠°.',
     proof: 'البرهان: نرسم من أحد الرءوس مستقيمًا يوازي الضلع المقابل. الزاويتان المتبادلتان تساويان زاويتين من المثلث، فيكوّن مع الزاوية الثالثة زاوية مستقيمة ١٨٠°.'
   });
@@ -127,9 +127,15 @@ window.THEO = (function () {
       return { rows: [['زاويتان متناظرتان', cor1], ['', cor2], ['زاويتان متبادلتان', alt1], ['', alt2], ['داخلتان في جهة واحدة (المجموع)', co1 + co2, 1]], eq: par ? [[cor1, cor2], [alt1, alt2], [co1 + co2, 180]] : [], par, t };
     },
     draw(P, d, r) {
-      const y1 = 70, y2 = 230, ext = 150;
-      d.line({ x: 10, y: y1 }, { x: 330, y: y1 }); d.line({ x: 10, y: y2 - 160 * Math.tan(r.t) * 0 }, { x: 330, y: y2 }, 0, r.t ? r.t : 0, P.T2);
-      d.line(add(P.T1, mul(sub(P.T1, P.T2), 0.3)), add(P.T2, mul(sub(P.T2, P.T1), 0.3)), 1);
+      const y1 = 70, y2 = 230, T1 = P.T1, T2 = P.T2;
+      const R2 = { x: Math.cos(r.t), y: Math.sin(r.t) }, u = sub(T2, T1);
+      d.line({ x: 10, y: y1 }, { x: 330, y: y1 });
+      d.line(add(T2, mul(R2, -150)), add(T2, mul(R2, 150)));
+      d.line(add(T1, mul(u, -0.3)), add(T2, mul(u, 0.3)), 1);
+      d.angle({ x: T1.x + 40, y: T1.y }, T1, T2);
+      d.angle(add(T2, mul(R2, 40)), T2, add(T2, u));
+      d.angle({ x: T1.x - 40, y: T1.y }, T1, T2);
+      d.angle(add(T2, mul(R2, 40)), T2, T1);
       d.tag(r.par ? 'المستقيمان متوازيان' : 'المستقيمان غير متوازيين: لا تنطبق العلاقات', r.par);
     },
     concl: 'مع التوازي تساوت المتناظرتان والمتبادلتان وتكاملت الداخلتان. وعند كسر التوازي لم تتحقق.',
@@ -252,7 +258,7 @@ window.THEO = (function () {
 
   /* عكس المثلث المتساوي الساقين + الأكبر يقابل الأكبر */
   M.push({
-    id: 'isosceles-conv', g: 'g2', lesson: 'المثلث المتساوي الساقين (العكس)', title: 'عكس النظرية: زاويتان متساويتان ⇒ ضلعان متساويان',
+    id: 'isosceles-conv', g: 'g2', lesson: 'المثلث المتساوي الساقين (العكس)', title: 'عكس نظرية المتساوي الساقين: تساوي زاويتين يعني تساوي الضلعين المقابلين لهما',
     claim: 'إذا تساوت زاويتان في مثلث فإن الضلعين المقابلين لهما متساويان.',
     cond: 'نتحكم في الزاويتين ب وج. أبقِ الزرّ «ساوِ الزاويتين» مفعلًا ثم ألغِه.',
     q: 'لو جعلنا ∠ب = ∠ج، ماذا نتوقع عن الضلعين المقابلين لهما أج وأب؟',
@@ -270,7 +276,9 @@ window.THEO = (function () {
     draw(P, d, r) {
       const B = { x: 70, y: 250 }, C = { x: 270, y: 250 }, bb = P.b * D2R, A = { x: B.x + r.AB * Math.cos(bb) * 200 / 200, y: B.y - r.AB * Math.sin(bb) };
       d.poly([A, B, C]); d.angle(A, B, C); d.angle(A, C, B);
-      d.tag(r.par ? 'الزاويتان متساويتان ⇒ الضلعان أب وأج متساويان' : 'الزاويتان غير متساويتين: الضلع الأكبر يقابل الزاوية الأكبر', r.par);
+      if (r.par) { d.tick(A, B); d.tick(A, C); }
+      d.label(A, 'أ'); d.label(B, 'ب'); d.label(C, 'ج');
+      d.tag(r.par ? 'الزاويتان متساويتان، إذن الضلعان أب وأج متساويان' : 'الزاويتان غير متساويتين: الضلع الأكبر يقابل الزاوية الأكبر', r.par);
     },
     concl: 'عندما تساوت الزاويتان تساوى الضلعان المقابلان، وعندما اختلفتا كان الضلع الأطول مقابلًا للزاوية الأكبر.',
     proof: 'البرهان يتم بالتناقض أو بتطابق مثلثين بعد رسم الارتفاع من الرأس. هذه ملاحظة تجريبية موجّهة وليست برهانًا.'
@@ -408,7 +416,7 @@ window.THEO = (function () {
     ok: () => true,
     sample() { return { th: rnd(10, 80), h: rnd(80, 230) }; },
     calc(P) { const t = P.th * D2R, o = P.h * Math.sin(t), a = P.h * Math.cos(t); return { rows: [['المقابل', o, 0], ['المجاور', a, 0], ['المقابل ÷ الوتر', o / P.h, 0, 1], ['المجاور ÷ الوتر', a / P.h, 0, 1], ['المقابل ÷ المجاور', o / a, 0, 1]], eq: [[o / P.h, Math.sin(t)], [a / P.h, Math.cos(t)], [o / a, Math.tan(t)], [o * o + a * a, P.h * P.h]], o, a, dec: 3 }; },
-    draw(P, d, r) { const C = { x: 50, y: 260 }, B = { x: 50 + r.a * 1.1, y: 260 }, A = { x: 50 + r.a * 1.1, y: 260 - r.o * 1.1 }; d.poly([C, B, A]); d.rightMark(B, C, A); d.angle(A, C, B, 'θ'); d.label(mid(A, B), 'مقابل'); d.label(mid(C, B), 'مجاور'); d.label(mid(C, A), 'وتر'); },
+    draw(P, d, r) { const C = { x: 50, y: 260 }, B = { x: 50 + r.a * 1.1, y: 260 }, A = { x: 50 + r.a * 1.1, y: 260 - r.o * 1.1 }; d.poly([C, B, A]); d.rightMark(B, C, A); d.angle(A, C, B, 'θ'); const m1 = mid(A, B), m2 = mid(C, B), m3 = mid(C, A); d.txt({ x: m1.x + 26, y: m1.y + 4 }, 'مقابل'); d.txt({ x: m2.x, y: m2.y + 20 }, 'مجاور'); d.txt({ x: m3.x - 22, y: m3.y - 10 }, 'وتر'); },
     concl: 'غيّرتَ الحجم فتغيّر الضلعان، لكن النسب الثلاث لم تتغير. وعند تغيير θ تغيّرت.',
     proof: 'المثلثان القائمان بنفس الزاوية الحادة متشابهان (زاويتان)، فنسب أضلاعهما المتناظرة متساوية. هذه هي فكرة النسب المثلثية.'
   });
@@ -430,7 +438,15 @@ window.THEO = (function () {
       const s = Math.sin(t * D2R), c = Math.cos(t * D2R), tn = Math.tan(t * D2R);
       return { rows: [['جا ' + toAr(t, 0) + '°', toAr(s, 3) + '  =  ' + nm[0], 0, 0], ['جتا ' + toAr(t, 0) + '°', toAr(c, 3) + '  =  ' + nm[1], 0, 0], ['ظا ' + toAr(t, 0) + '°', toAr(tn, 3) + '  =  ' + nm[2], 0, 0]], eq: [[s, ex[0]], [c, ex[1]], [tn, ex[2]], [sides[0] / sides[2], s]], t, sides, nm, ex, s, c, tn };
     },
-    draw(P, d, r) { const u = 90, C = { x: 60, y: 250 }, a = r.sides, B = { x: 60 + a[1 - (P.sel === 2 ? 1 : 0)] * 0 + (P.sel === 2 ? a[1] : a[1]) * u * 0, y: 250 }; const adj = (P.sel === 2 ? 1 : (P.sel === 1 ? 1 : Math.sqrt(3))), opp = (P.sel === 2 ? Math.sqrt(3) : 1); const Bp = { x: 60 + adj * u, y: 250 }, Ap = { x: 60 + adj * u, y: 250 - opp * u }; d.poly([C, Bp, Ap]); d.rightMark(Bp, C, Ap); d.angle(Ap, C, Bp, 'θ'); },
+    draw(P, d, r) {
+      const u = 80, a = r.sides, nmS = [['١', '√٣', '٢'], ['١', '١', '√٢'], ['√٣', '١', '٢']][P.sel];
+      const C = { x: 70, y: 255 }, Bp = { x: 70 + a[1] * u, y: 255 }, Ap = { x: 70 + a[1] * u, y: 255 - a[0] * u };
+      d.poly([C, Bp, Ap]); d.rightMark(Bp, C, Ap); d.angle(Ap, C, Bp, toAr(r.t, 0) + '°');
+      d.txt({ x: Bp.x + 16, y: (Bp.y + Ap.y) / 2 + 4 }, nmS[0]);
+      d.txt({ x: (C.x + Bp.x) / 2, y: 275 }, nmS[1]);
+      d.txt({ x: (C.x + Ap.x) / 2 - 12, y: (C.y + Ap.y) / 2 - 8 }, nmS[2]);
+      d.tag('الأضلاع بالنسبة لوحدة الطول (مقابل، مجاور، وتر)', true);
+    },
     fmt(rw) { return rw; },
     concl: 'النسب الثلاث ظهرت بقيم جذرية دقيقة من أطوال المثلث نفسه، وهي تطابق ما تعطيه الآلة الحاسبة.',
     proof: 'البرهان: مثلث متساوي الأضلاع ضلعه ٢ ينقسم بالارتفاع إلى مثلثين ٣٠-٦٠-٩٠ أضلاعهما ١، √٣، ٢. ونصف مربع ضلعه ١ يعطي ٤٥-٤٥-٩٠ بأضلاع ١، ١، √٢.'
@@ -523,6 +539,7 @@ window.THEO = (function () {
       dot(p, big) { el('circle', { cx: p.x, cy: p.y, r: big ? 5 : 3.5, fill: '#b8860b' }); },
       label(p, t) { const e = el('text', { x: p.x + 6, y: p.y - 6, class: 'labtxt', 'font-size': 13, 'font-weight': 700 }); e.textContent = t; },
       tag(t, good) { const e = el('text', { x: 170, y: 18, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: good ? '#1a7f4b' : '#b3261e' }); e.textContent = t; },
+      txt(p, t, col) { const e = el('text', { x: p.x, y: p.y, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: col || '#102B49', direction: 'ltr', style: 'unicode-bidi:isolate' }); e.textContent = t; },
       tick(a, b) { const c = mid(a, b), u = sub(b, a), n = Math.hypot(u.x, u.y), p = { x: -u.y / n * 6, y: u.x / n * 6 }; el('line', { x1: c.x - p.x, y1: c.y - p.y, x2: c.x + p.x, y2: c.y + p.y, stroke: '#b8860b', 'stroke-width': 2.4 }); },
       rightMark(v, a, b) { const u = sub(a, v), w = sub(b, v), nu = Math.hypot(u.x, u.y), nw = Math.hypot(w.x, w.y), s = 12; const p1 = { x: v.x + u.x / nu * s, y: v.y + u.y / nu * s }, p3 = { x: v.x + w.x / nw * s, y: v.y + w.y / nw * s }, p2 = { x: p1.x + p3.x - v.x, y: p1.y + p3.y - v.y }; el('polyline', { points: pts([p1, p2, p3]), fill: 'none', stroke: '#102B49', 'stroke-width': 1.4 }); },
       angle(a, v, b, txt) {
@@ -530,7 +547,7 @@ window.THEO = (function () {
         let da = aw - au; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         const p1 = { x: v.x + r * Math.cos(au), y: v.y + r * Math.sin(au) }, p2 = { x: v.x + r * Math.cos(aw), y: v.y + r * Math.sin(aw) };
         el('path', { d: 'M' + p1.x + ',' + p1.y + ' A' + r + ',' + r + ' 0 0 ' + (da > 0 ? 1 : 0) + ' ' + p2.x + ',' + p2.y, fill: 'rgba(184,134,11,.25)', stroke: '#b8860b', 'stroke-width': 1.6 });
-        const am = au + da / 2, e = el('text', { x: v.x + (r + 12) * Math.cos(am), y: v.y + (r + 12) * Math.sin(am) + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#102B49' });
+        const am = au + da / 2, e = el('text', { x: v.x + (r + 20) * Math.cos(am), y: v.y + (r + 20) * Math.sin(am) + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#102B49', direction: 'ltr', style: 'unicode-bidi:isolate' });
         e.textContent = txt || toAr(ang(a, v, b), 0) + '°';
       },
       grid() { for (let i = -8; i <= 8; i++) { el('line', { x1: 170 + 20 * i, y1: 10, x2: 170 + 20 * i, y2: 290, stroke: i ? '#d9dee6' : '#102B49', 'stroke-width': i ? 0.8 : 1.6 }); el('line', { x1: 10, y1: 150 + 20 * i, x2: 330, y2: 150 + 20 * i, stroke: i ? '#d9dee6' : '#102B49', 'stroke-width': i ? 0.8 : 1.6 }); } },
