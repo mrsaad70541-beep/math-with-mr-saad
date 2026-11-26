@@ -35,6 +35,7 @@ function grade(gid) {
   const g = DATA.grades.find((x) => x.id === gid);
   let h = `<a class="back" href="#/manhag">‹ المنهج</a><div class="section-title">${esc(g.title)} — الدروس</div>`;
   g.lessons.forEach((l, i) => { h += `<a class="card" href="#/g/${g.id}/l/${i}"><span class="chip">${i + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`; });
+  h += `<div class="note">باقي دروس الصف قريبًا</div>`;
   return h;
 }
 function lesson(gid, li) {
@@ -46,6 +47,7 @@ function lesson(gid, li) {
       ? `<div class="vrow"><span class="vn">${esc(v.n)}</span><a class="play" href="#/g/${g.id}/l/${li}/v/${vi}">▶ تشغيل</a></div>`
       : `<div class="vrow"><span class="vn">${esc(v.n)}</span><a class="play off" href="#/soon">قريبًا</a></div>`;
   });
+  h += `<div class="note">باقي مهارات الدرس قريبًا</div>`;
   return h;
 }
 function track(tid) {
@@ -64,7 +66,6 @@ function trackGroup(tid, ci) {
   gr.skills.forEach((s) => {
     h += `<div class="vrow"><span class="vn">${esc(s)}</span><a class="play off" href="#/soon">قريبًا</a></div>`;
   });
-  h += `<div class="note">باقي مهارات الدرس قريبًا</div>`;
   return h;
 }
 function watch(gid, li, vi) {
