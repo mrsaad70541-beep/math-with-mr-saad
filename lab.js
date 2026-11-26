@@ -407,14 +407,6 @@ window.LAB = (function () {
   function wireCms(e) {
     const f = document.getElementById('labFrame');
     if (!f) return;
-    /* حماية من توجيه الإطار لموقع خارجي: CSP لا يقيّد التنقل داخل الإطار، لذا تقيّد الصفحة الأم frame-src (يوتيوب فقط) عند أول فتح لتجربة. */
-    if (!window.__labCsp) {
-      const m = document.createElement('meta');
-      m.httpEquiv = 'Content-Security-Policy';
-      m.content = 'frame-src https://www.youtube-nocookie.com https://www.youtube.com https://*.youtube-nocookie.com https://*.youtube.com';
-      document.head.appendChild(m);
-      window.__labCsp = 1;
-    }
     const load = () => { f.srcdoc = cmsDoc(e.html); };
     load();
     document.getElementById('labReset').onclick = load;
