@@ -191,7 +191,7 @@ LEH_CATS.forEach((c) => SEARCH.push({ t: c + ' — ليه؟', u: '#/t/leh' }));
 SEARCH.push({ t: 'القدرات الكمي — المنهج السعودي', u: '#/t/qudurat' });
 SEARCH.push({ t: 'ليه؟ — رياضيات عامة', u: '#/t/leh' });
 SEARCH.push({ t: LEH_SAMPLE.n + ' — ليه؟ (نموذج)', u: '#/v/' + LEH_SAMPLE.yt });
-CHALLENGES.forEach((c) => SEARCH.push({ t: 'تحدي اليوم: ' + c.title, u: '#/challenge' }));
+chAvail().forEach((c) => SEARCH.push({ t: 'تحدي اليوم: ' + c.title, u: '#/challenge/' + c.id }));
 SEARCH.push({ t: 'اكتشف مستواك — اختبار تشخيصي', u: '#/diagnostic' });
 SEARCH.push({ t: 'إنجازاتي', u: '#/account' });
 SEARCH.push({ t: 'مكتبة الملفات', u: '#/files' });
@@ -300,7 +300,7 @@ function homeItems(html) {
 }
 function home() {
   const last = getLast();
-  const ch = CHALLENGES[0];
+  const ch = chAvail()[0] || CHALLENGES[0];
   let h = `
   <div class="searchwrap">
     <div class="searchbar">
@@ -946,14 +946,16 @@ window.diagAnswer = diagAnswer;
 const CH_TZ = 'Asia/Riyadh';
 function todayIso() { return new Intl.DateTimeFormat('en-CA', { timeZone: CH_TZ }).format(new Date()); }
 function chIsToday(c) { return c.iso === todayIso(); }
-function chLabel(c) { return c !== CHALLENGES[0] ? 'تحدٍ سابق' : (chIsToday(c) ? 'تحدي اليوم' : 'أحدث تحدٍ منشور'); }
+function chAvail() { const t = todayIso(); return CHALLENGES.filter((c) => c.iso <= t); }
+function chLabel(c) { return c !== chAvail()[0] ? 'تحدٍ سابق' : (chIsToday(c) ? 'تحدي اليوم' : 'أحدث تحدٍ منشور'); }
 let chState = null;
 let chCur = null;
 function challenge(id) {
   window._chDone = false;
-  const found = id ? CHALLENGES.find((c) => String(c.id) === String(id)) : CHALLENGES[0];
+  const avail = chAvail();
+  const found = id ? avail.find((c) => String(c.id) === String(id)) : avail[0];
   if (!found) {
-    chCur = CHALLENGES[0];
+    chCur = avail[0] || CHALLENGES[0];
     return '<div class="note" role="status"><b>هذا التحدي غير متاح</b><div>الرابط يشير إلى تحدٍ غير موجود أو غير منشور حاليًا.</div><button type="button" class="btn2 gold" onclick="location.hash=\'#/challenge\'">افتح أحدث تحدٍ</button> <button type="button" class="btn2 ghost" onclick="location.hash=\'#/\'">الرئيسية</button></div>';
   }
   chCur = found;
@@ -979,11 +981,11 @@ function challengeHtml(c, done, picked) {
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='${chHash(c)}'">محاولة تانية</button>
-      <button class="btn2 ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="تحدي — رياضيات مع مستر سعد" data-u="${esc(c.cid ? WSHARE + c.cid : chHash(c))}" data-x="حل تحدي في تطبيق رياضيات مع مستر سعد">شارك السؤال</button>
+      <button class="btn2 ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="تحدي — رياضيات مع مستر سعد" data-u="${esc(c.cid ? WSHARE + c.cid : '#/challenge/' + c.id)}" data-x="حل تحدي في تطبيق رياضيات مع مستر سعد">شارك السؤال</button>
       <button class="btn2 ghost" onclick="chShareImage()">شارك كصورة</button>
     </div>`;
   }
-  h += `</div></div>${c !== CHALLENGES[0] ? '<div class="note">هذا تحدٍ سابق من أرشيف التحديات المنشورة، بتاريخه الظاهر أعلاه.</div>' : chIsToday(c) ? '<div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>' : '<div class="note">هذا أحدث تحدٍ منشور بتاريخه الظاهر أعلاه — لا يوجد تحدٍ جديد اليوم بعد.</div>'}`;
+  h += `</div></div>${c !== chAvail()[0] ? '<div class="note">هذا تحدٍ سابق من أرشيف التحديات المنشورة، بتاريخه الظاهر أعلاه.</div>' : chIsToday(c) ? '<div class="note">تحدي جديد كل يوم — أرشيف التحديات السابقة هيظهر هنا مع أول تحدي سابق</div>' : '<div class="note">هذا أحدث تحدٍ منشور بتاريخه الظاهر أعلاه — لا يوجد تحدٍ جديد اليوم بعد.</div>'}`;
   return h + '<div class="quiz">' + chArchive() + '</div>';
 }
 function chHist() { return jget('saad.chhist.v1', []); }
@@ -995,9 +997,9 @@ function chSaveResult(c, ok) {
 function chArchive() {
   const h = chHist();
   const rows = h.length ? h.map((x) => '<div class="chrow"><span>' + esc(x.d || x.iso) + '</span><b class="' + (x.ok ? 'ok' : 'no') + '">' + (x.ok ? 'صحيحة ✓' : 'غير صحيحة ✗') + '</b></div>').join('') : '<div class="dim" style="font-size:13px">لسه ما حليتش أي تحدي — نتيجتك هتتسجل هنا على جهازك.</div>';
-  const older = CHALLENGES.length > 1 ? '' : '<div class="dim" style="font-size:12px;margin-top:8px">التحديات السابقة هتظهر هنا لما يتنشر تحدي جديد.</div>';
-  const others = CHALLENGES.filter((c) => c !== chCur);
-  const list = others.length ? '<div class="qcard chhist"><div class="qhead">التحديات المنشورة</div>' + others.map((c) => '<a class="chrow" style="text-decoration:none;color:inherit" href="' + chHash(c) + '"><span>' + esc(c.date || c.iso || '') + ' · ' + esc(c.title) + '</span><b>' + (c === CHALLENGES[0] ? 'الأحدث' : 'فتح') + '</b></a>').join('') + '</div>' : '';
+  const older = chAvail().length > 1 ? '' : '<div class="dim" style="font-size:12px;margin-top:8px">التحديات السابقة هتظهر هنا لما يتنشر تحدي جديد.</div>';
+  const others = chAvail().filter((c) => c !== chCur);
+  const list = others.length ? '<div class="qcard chhist"><div class="qhead">التحديات المنشورة</div>' + others.map((c) => '<a class="chrow" style="text-decoration:none;color:inherit" href="' + chHash(c) + '"><span>' + esc(c.date || c.iso || '') + ' · ' + esc(c.title) + '</span><b>' + (c === chAvail()[0] ? 'الأحدث' : 'فتح') + '</b></a>').join('') + '</div>' : '';
   return list + '<div class="qcard chhist"><div class="qhead">أرشيف تحدياتك ونتائجك</div>' + rows + older + '</div>';
 }
 function chAnswer(oi) {
@@ -1032,7 +1034,7 @@ function chImgBlob() {
 function chShareImage() {
   chImgBlob().then((b) => {
     const f = new File([b], 'saad-challenge.png', { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], title: 'تحدي اليوم — رياضيات مع مستر سعد', text: fullUrl('#/challenge') }).catch(() => {});
+    if (navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], title: 'تحدي اليوم — رياضيات مع مستر سعد', text: fullUrl((chCur && chCur.cid) ? WSHARE + chCur.cid : '#/challenge/' + (chCur || CHALLENGES[0]).id) }).catch(() => {});
     const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'saad-challenge.png'; document.body.appendChild(a); a.click(); a.remove(); toast('تم حفظ صورة التحدي');
   }).catch(() => { toast('تعذر إنشاء الصورة على هذا المتصفح — استخدم مشاركة الرابط'); });
 }
