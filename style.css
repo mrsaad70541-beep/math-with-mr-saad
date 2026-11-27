@@ -579,6 +579,16 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 .th-ctrl{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .th-chk{font-size:14px;display:flex;gap:8px;align-items:center}
 .th-rows{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+
+/* theorem platform: compact observation records + live-value chips on small screens */
+.th-obsd{margin-top:6px;border-top:1px solid var(--line,#e3e7ee)}
+.th-obsd>summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--ink2,#44515f);padding:7px 2px;list-style-position:inside;user-select:none}
+.th-obsd[open]>summary{border-bottom:1px solid var(--line,#e3e7ee)}
+@media (max-width:480px){
+  .th-rows{flex-direction:row;flex-wrap:wrap;gap:5px}
+  .th-r{flex:1 1 44%;font-size:12.5px;padding:6px 8px;gap:6px}
+}
+
 .th-r{display:flex;justify-content:space-between;gap:10px;font-size:14px;background:var(--bg);border-radius:var(--r-sm);padding:7px 12px}
 .th-r.key b{color:var(--gold-deep)}.th-r.prem{border:1px dashed var(--gold)}
 .th-rec{display:flex;align-items:center;gap:12px;margin:10px 0 6px;font-size:13px}
