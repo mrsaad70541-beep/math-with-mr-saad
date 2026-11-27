@@ -1241,7 +1241,7 @@ function bookHtml() {
   <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.min(curPages().length, Math.max(bkGetE("maxp", 0), bp + 1))} من ${curPages().length} صفحات</span></div>
   ${pg.pdf ? `<div class="bookpg bkpdf">
     <div class="ptag">صفحة ${bp + 1} من ${curPages().length} — ملف PDF أصلي</div>
-    <div class="bkpdflink"><div class="note">ملف PDF أصلي — صفحة ${pg.pno} من ${pg.pcnt || 1}. يُفتح في عارض المتصفح الآمن في تبويب جديد.</div><a class="btn2" href="${pg.pdf}#page=${pg.pno}" target="_blank" rel="noopener">افتح صفحة PDF ${pg.pno} في تبويب جديد</a></div>
+    <div class="bkpdflink"><div class="note">ملف PDF أصلي — صفحة ${pg.pno} من ${pg.pcnt || 1}. يُفتح الملف في تبويب جديد.</div><a class="btn2" href="${pg.pdf}#page=${pg.pno}" target="_blank" rel="noopener">افتح صفحة PDF ${pg.pno} في تبويب جديد</a></div>
   </div>` : `<div class="bookpg" style="zoom:${bkZ()}">
     <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${curPages().length}</div>
     <h3>${pg.t}</h3>
