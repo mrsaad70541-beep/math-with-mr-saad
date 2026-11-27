@@ -300,7 +300,7 @@ function homeItems(html) {
 }
 function home() {
   const last = getLast();
-  const ch = chAvail()[0] || CHALLENGES[0];
+  const ch = chAvail()[0];
   let h = `
   <div class="searchwrap">
     <div class="searchbar">
@@ -325,13 +325,13 @@ function home() {
     <a class="p3" href="#/t/qudurat"><span class="ic">${IC.sigma}</span><h3>القدرات الكمي</h3><span class="st">قريبًا</span></a>
   </div>
 `;
-  B.challenge = `
+  B.challenge = ch ? `
   <a class="chcard" href="#/challenge">
     <span class="ic">${IC.target}</span>
     <span class="txt"><span class="lbl">${chLabel(ch)} · ${esc(ch.date)}</span><span class="t">${esc(ch.title)}</span></span>
     <span class="go">ابدأ التحدي</span>
   </a>
-`;
+` : '';
   B.tools = `
   <div class="section-title">أدوات التعلم</div>
   <div class="tools"><div class="grid">
