@@ -418,7 +418,7 @@ function grade(gid) {
   lessonOrder(g).forEach((o, pos) => {
     const l = o.l, i = o.i;
     if (l._gone) { h += `<div class="card"><span class="chip">${pos + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`; return; }
-    h += `<a class="card" href="#/g/${g.id}/l/${i}"><span class="chip">${pos + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
+    h += `<a class="card" href="${lHash(g, i)}"><span class="chip">${pos + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
   });
   h += `<div class="note">باقي دروس الصف قريبًا</div>`;
   return h;
@@ -731,7 +731,7 @@ function quizHtml() {
       <div class="cap">${qState.score === set.questions.length ? 'ممتاز! جاهز للدرس اللي بعده' : 'راجع الدرس وحاول تاني — الأسئلة اللي غلطت فيها اتحفظت في «أخطائي»'}</div>
       <div class="cap sub">أخطاء هذه المحاولة: ${qState.wrong} · المحفوظ في «أخطائي» من كل المحاولات: ${totalM}</div>
       <button class="btn2" onclick="restartQuiz()">إعادة الاختبار</button>
-      <a class="btn2 ghost" href="#/g/g3/l/0">مراجعة الدرس</a>
+      <a class="btn2 ghost" href="#/g/g3/l/g3l1">مراجعة الدرس</a>
       ${set.cid ? `<button class="btn2 ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(set.title)} — رياضيات مع مستر سعد" data-u="${WSHARE}${esc(set.cid)}" data-x="اختبار في تطبيق رياضيات مع مستر سعد">مشاركة الاختبار</button>` : ''}
       ${totalM ? `<a class="btn2 ghost" href="#/mistakes">كل أخطائي المحفوظة (${totalM})</a>` : ''}
       ${others.length ? `<div class="qmore"><h3>اختبارات أخرى</h3>${others.map((k) => `<a class="btn2 sm ghost" href="#/test/${esc(k)}">${esc(QUIZSETS[k].title)}</a>`).join(' ')}</div>` : ''}
@@ -1146,7 +1146,7 @@ function bookHtml() {
   <div class="qcard bkidx"><div class="qhead">فهرس الكتاب والبحث فيه</div>
     <input id="bksearch" type="search" placeholder="ابحث في صفحات الكتاب…" oninput="bookSearch(this.value)" aria-label="بحث في الكتاب">
     <div id="bkres">${bookIndexHtml('')}</div></div>
-  ${pg.cid ? '' : '<div class="bktools"><a class="btn2 sm ghost" href="#/g/g3/l/0">فيديوهات الدرس</a><a class="btn2 sm ghost" href="#/test/g3l1">اختبار الدرس</a></div>'}
+  ${pg.cid ? '' : '<div class="bktools"><a class="btn2 sm ghost" href="#/g/g3/l/g3l1">فيديوهات الدرس</a><a class="btn2 sm ghost" href="#/test/g3l1">اختبار الدرس</a></div>'}
   <div class="qcard bknote"><div class="qhead">ملاحظتي على هذه الصفحة (محفوظة على جهازك فقط)</div>
     <textarea id="bknote" rows="3" placeholder="اكتب ملاحظتك…" oninput="bookNote(this.value)">${esc(note)}</textarea></div>
   ${bms.length ? '<div class="note">صفحاتك المُشار إليها: ' + bms.slice().sort((x, y) => x - y).map((x) => '<a href="' + bkUrl(x) + '">' + x + '</a>').join(' · ') + '</div>' : ''}
@@ -1550,7 +1550,7 @@ if (__saq) {
             : g.lessons.find(function (x) { return x.title === p.lesson; });
           if (!l || l.videos.some(function (v) { return v.yt === p.yt; })) return;
           var vm = metaOf(p); l.videos.push({ n: String(p.n).slice(0, 200), yt: p.yt, cmeta: vm });
-          SEARCH.push({ k: metaKeys(vm), t: String(p.n) + ' — ' + l.title + ' · ' + g.title, u: '#/g/' + g.id + '/l/' + g.lessons.indexOf(l) + '/v/' + (l.videos.length - 1) });
+          SEARCH.push({ k: metaKeys(vm), t: String(p.n) + ' — ' + l.title + ' · ' + g.title, u: vHash(g, g.lessons.indexOf(l), l.videos.length - 1) });
           applied++;
         } else if (it.type === 'lesson') {
           var g2 = gradeOf(p.g);
@@ -1561,7 +1561,7 @@ if (__saq) {
           var nl = { cid: String(it.id || ''), ord: ordOf(p), title: String(p.title).slice(0, 120), label: String(p.label || '').slice(0, 120), videos: vids, cmeta: metaOf(p), term: String(p.term || '').slice(0, 80), unit: String(p.unit || '').slice(0, 80), skills: (Array.isArray(p.skills) ? p.skills : []).filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }) };
           if (p.quiz && QUIZSETS[p.quiz]) nl.quiz = p.quiz;
           g2.lessons.push(nl);
-          SEARCH.push({ k: metaKeys(nl.cmeta) + ' ' + nl.term + ' ' + nl.unit + ' ' + nl.skills.join(' '), t: 'درس ' + nl.title + ' — ' + g2.title, u: '#/g/' + g2.id + '/l/' + (g2.lessons.length - 1) });
+          SEARCH.push({ k: metaKeys(nl.cmeta) + ' ' + nl.term + ' ' + nl.unit + ' ' + nl.skills.join(' '), t: 'درس ' + nl.title + ' — ' + g2.title, u: lHash(g2, g2.lessons.length - 1) });
           applied++;
         } else if (it.type === 'quiz') {
           if (!p.id || !Array.isArray(p.questions) || !p.questions.length) return;
