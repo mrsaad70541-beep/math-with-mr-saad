@@ -649,3 +649,19 @@ body.th-teach .th-eng{display:none}
 .mxc{white-space:nowrap}
 .labspeed.on{color:var(--gold-deep);border-color:var(--gold);font-weight:700}
 .labspdlabel{font-size:12px;color:var(--mut)}
+
+/* book engine: editions, PDF pages, question links, in-book exercises */
+.bkeds{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0;font-size:13.5px}
+.bkpdf{padding:6px}
+.bkpdfobj{display:block;width:100%;height:72vh;border:0;border-radius:8px;background:#fff}
+.bkq .bkqr{border-top:1px solid var(--line,#e5e5e5)}
+.bkq .bkqr:first-of-type{border-top:0}
+.bkqt{display:block;width:100%;text-align:start;background:none;border:0;padding:8px 4px;font:inherit;font-weight:700;cursor:pointer;color:inherit}
+.bkqb{display:none;padding:0 4px 10px}
+.bkqr.open .bkqb{display:block}
+.bkqs{margin:2px 0 8px;line-height:1.9}
+.bkqb .btn2{margin-inline-end:6px}
+.playerwrap.bkqv{margin-top:8px}
+.bkx .bkxq{border-top:1px solid var(--line,#e5e5e5);padding:8px 0}
+.bkx .bkxq:first-of-type{border-top:0}
+.bkxqt{font-weight:700;margin-bottom:6px;line-height:1.9}
