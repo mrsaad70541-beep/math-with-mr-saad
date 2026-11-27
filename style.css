@@ -124,7 +124,7 @@ main { padding: 16px; max-width: 640px; margin: 0 auto; }
 }
 .searchbar svg { width: 18px; height: 18px; flex: none; color: var(--mut); }
 .searchbar input {
-  flex: 1; border: 0; outline: 0; background: transparent;
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
   font-family: inherit; font-size: 14px; color: var(--ink);
 }
 .sres {
@@ -193,7 +193,8 @@ main { padding: 16px; max-width: 640px; margin: 0 auto; }
 }
 
 /* ===== tools grid (spec 4.و) ===== */
-.tools .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+.tools .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 9px; }
+@media (min-width: 481px) { .tools .grid { grid-template-columns: repeat(4, 1fr); } }
 .tile {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
   padding: 12px 4px 10px; text-align: center; text-decoration: none; color: var(--ink);
