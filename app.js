@@ -1179,6 +1179,9 @@ let CURBK = '';
 let CURED = null; // pinned edition for the current book view (null = follow latest)
 const BOOKS = {};
 function bkp() { return CURBK ? CURBK + '.' : ''; }
+function bkpE() { return CURBK ? bkp() + bkEd() + '.' : ''; }
+function bkGetE(k, d) { return jget('saad.book.' + bkpE() + k, d); }
+function bkSetE(k, v) { localStorage.setItem('saad.book.' + bkpE() + k, JSON.stringify(v)); }
 function bkEds() {
   if (!CURBK || !BOOKS[CURBK]) return [''];
   const seen = {}, out = [];
@@ -1203,7 +1206,7 @@ function curPages() {
   const ed = bkEd(), out = [];
   src.forEach((p) => {
     if ((p.ed || '') !== ed) return;
-    if (p.pdf && p.pc > 0) { for (let i = 1; i <= p.pc; i++) out.push({ pdf: p.pdf, pno: i, t: p.t + ' — صفحة ' + i, cid: p.cid }); return; }
+    if (p.pdf && p.pc > 0) { for (let i = 1; i <= p.pc; i++) out.push({ pdf: p.pdf, pno: i, pcnt: p.pc, t: p.t + ' — صفحة ' + i, cid: p.cid }); return; }
     out.push(p);
   });
   return out;
@@ -1223,22 +1226,22 @@ function book() {
   CURBK = '';
   CURED = null;
   const m = /^#\/book\/(\d+)/.exec(location.hash);
-  const n = m ? +m[1] : (+bkGet('last', 1) || 1);
+  const n = m ? +m[1] : (+bkGetE('last', 1) || 1);
   bp = Math.min(curPages().length - 1, Math.max(0, n - 1));
-  bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
+  bkSetE('last', bp + 1); bkSetE('maxp', Math.max(+bkGetE('maxp', 0) || 0, bp + 1));
   return bookHtml();
 }
 function bookHtml() {
   const pg = curPages()[bp];
-  const bms = bkGet('bm', []), isbm = bms.indexOf(bp + 1) >= 0;
-  const note = (bkGet('notes', {}))[bp + 1] || '';
+  const bms = bkGetE('bm', []), isbm = bms.indexOf(bp + 1) >= 0;
+  const note = (bkGetE('notes', {}))[bp + 1] || '';
   const eds = bkEds();
   return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${CURBK ? esc(BOOKS[CURBK].name) : 'الكتاب التفاعلي — نموذج'}</div>
   ${CURBK && eds.length > 1 ? `<div class="bkeds"><span>إصدار الكتاب:</span>${eds.map((e) => `<a class="btn2 sm ${e === bkEd() ? '' : 'ghost'}" href="${bkUrl(bp + 1, e)}">${esc(e || 'الأساسي')}</a>`).join('')}</div>` : ''}
-  <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.min(curPages().length, Math.max(bkGet("maxp", 0), bp + 1))} من ${curPages().length} صفحات</span></div>
+  <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.min(curPages().length, Math.max(bkGetE("maxp", 0), bp + 1))} من ${curPages().length} صفحات</span></div>
   ${pg.pdf ? `<div class="bookpg bkpdf">
     <div class="ptag">صفحة ${bp + 1} من ${curPages().length} — ملف PDF أصلي</div>
-    <object class="bkpdfobj" data="${pg.pdf}#page=${pg.pno}&zoom=${Math.round(bkZ() * 100)}" type="application/pdf"><div class="note">تعذّر عرض الملف هنا — <a href="${pg.pdf}" target="_blank" rel="noopener">افتح نسخة PDF في تبويب جديد</a></div></object>
+    <div class="bkpdflink"><div class="note">ملف PDF أصلي — صفحة ${pg.pno} من ${pg.pcnt || 1}. يُفتح في عارض المتصفح الآمن في تبويب جديد.</div><a class="btn2" href="${pg.pdf}#page=${pg.pno}" target="_blank" rel="noopener">افتح صفحة PDF ${pg.pno} في تبويب جديد</a></div>
   </div>` : `<div class="bookpg" style="zoom:${bkZ()}">
     <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${curPages().length}</div>
     <h3>${pg.t}</h3>
@@ -1278,7 +1281,7 @@ function bookSearch(v) { const e = document.getElementById('bkres'); if (e) e.in
 window.bookSearch = bookSearch;
 function bookTo(n) {
   bp = Math.min(curPages().length - 1, Math.max(0, n - 1));
-  bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
+  bkSetE('last', bp + 1); bkSetE('maxp', Math.max(+bkGetE('maxp', 0) || 0, bp + 1));
   history.replaceState(null, '', bkUrl(bp + 1));
   app.innerHTML = bookHtml();
   window.scrollTo(0, 0);
@@ -1286,14 +1289,14 @@ function bookTo(n) {
 window.bookTo = bookTo;
 function bookGo(d) { bookTo(bp + 1 + d); }
 function bookBm() {
-  const b = bkGet('bm', []), i = b.indexOf(bp + 1);
+  const b = bkGetE('bm', []), i = b.indexOf(bp + 1);
   if (i >= 0) b.splice(i, 1); else b.push(bp + 1);
-  bkSet('bm', b);
+  bkSetE('bm', b);
   const y = window.scrollY; app.innerHTML = bookHtml(); window.scrollTo(0, y);
   toast(i >= 0 ? 'أُزيلت الإشارة المرجعية' : 'تمت الإشارة المرجعية للصفحة');
 }
 window.bookBm = bookBm;
-function bookNote(v) { const n = bkGet('notes', {}); if (v.trim()) n[bp + 1] = v; else delete n[bp + 1]; bkSet('notes', n); }
+function bookNote(v) { const n = bkGetE('notes', {}); if (v.trim()) n[bp + 1] = v; else delete n[bp + 1]; bkSetE('notes', n); }
 window.bookNote = bookNote;
 window.bookGo = bookGo;
 function bkQv(b) {
@@ -1307,22 +1310,24 @@ function bkQv(b) {
 window.bkQv = bkQv;
 function bkXrQ(x, xi) {
   const idp = 'bkx' + xi;
+  const done = ((bkGetE('xr', {}))[String(bp + 1)] || {})[xi];
   let inp = '';
-  if (x.t === 'mcq') inp = `<div class="opts">${x.o.map((o, oi) => `<button type="button" onclick="bkXrMc(${xi},${oi},this)">${o}</button>`).join('')}</div>`;
-  else if (x.t === 'tf') inp = `<div class="opts"><button type="button" onclick="bkXrMc(${xi},0,this)">صح</button><button type="button" onclick="bkXrMc(${xi},1,this)">خطأ</button></div>`;
-  else inp = `<div class="qin"><input id="${idp}in" type="text" dir="ltr" inputmode="${x.t === 'fill' ? 'text' : 'decimal'}" autocomplete="off" placeholder="${x.t === 'frac' ? 'مثال: ٣/٤' : x.t === 'num' ? 'اكتب الرقم' : 'اكتب الإجابة'}" onkeydown="if(event.key==='Enter')bkXrTx(${xi})"><button class="btn2" onclick="bkXrTx(${xi})">تحقق</button></div>`;
-  return `<div class="bkxq" id="${idp}"><div class="bkxqt">${x.q}</div>${inp}<div class="bkxfb" id="${idp}fb"></div></div>`;
+  if (x.t === 'mcq') inp = `<div class="opts">${x.o.map((o, oi) => `<button type="button" ${done !== undefined ? 'disabled ' : ''}${done !== undefined && oi === x.a ? 'class="ok" ' : ''} onclick="bkXrMc(${xi},${oi},this)">${o}</button>`).join('')}</div>`;
+  else if (x.t === 'tf') inp = `<div class="opts">${[0, 1].map((oi) => `<button type="button" ${done !== undefined ? 'disabled ' : ''}${done !== undefined && oi === x.a ? 'class="ok" ' : ''} onclick="bkXrMc(${xi},${oi},this)">${oi === 0 ? 'صح' : 'خطأ'}</button>`).join('')}</div>`;
+  else inp = `<div class="qin"><input id="${idp}in" ${done !== undefined ? 'disabled ' : ''}type="text" dir="ltr" inputmode="${x.t === 'fill' ? 'text' : 'decimal'}" autocomplete="off" placeholder="${x.t === 'frac' ? 'مثال: ٣/٤' : x.t === 'num' ? 'اكتب الرقم' : 'اكتب الإجابة'}" onkeydown="if(event.key==='Enter')bkXrTx(${xi})"><button class="btn2" ${done !== undefined ? 'disabled ' : ''}onclick="bkXrTx(${xi})">تحقق</button></div>`;
+  const fb0 = done === undefined ? '' : '<div class="qfb ' + (done ? 'ok' : 'no') + '">' + (done ? '<b>إجابة صحيحة</b>' : '<b>إجابة غير صحيحة</b> <button class="btn2 sm ghost" onclick="bkXrRe(' + xi + ')">حاول مجددًا</button>') + '</div>';
+  return `<div class="bkxq" id="${idp}"><div class="bkxqt">${x.q}</div>${inp}<div class="bkxfb" id="${idp}fb">${fb0}</div></div>`;
 }
 function bkXrDone(xi, ok) {
   const fb = document.getElementById('bkx' + xi + 'fb');
   if (fb) fb.innerHTML = '<div class="qfb ' + (ok ? 'ok' : 'no') + '">' + (ok ? '<b>إجابة صحيحة</b>' : '<b>إجابة غير صحيحة</b> <button class="btn2 sm ghost" onclick="bkXrRe(' + xi + ')">حاول مجددًا</button>') + '</div>';
-  const st = bkGet('xr', {}), pk = String(bp + 1), m = st[pk] || (st[pk] = {});
-  m[xi] = ok ? 1 : 0; bkSet('xr', st);
+  const st = bkGetE('xr', {}), pk = String(bp + 1), m = st[pk] || (st[pk] = {});
+  m[xi] = ok ? 1 : 0; bkSetE('xr', st);
 }
 function bkXrRe(xi) {
-  const st = bkGet('xr', {}), pk = String(bp + 1);
+  const st = bkGetE('xr', {}), pk = String(bp + 1);
   if (st[pk]) delete st[pk][xi];
-  bkSet('xr', st);
+  bkSetE('xr', st);
   const y = window.scrollY; app.innerHTML = bookHtml(); window.scrollTo(0, y);
 }
 window.bkXrRe = bkXrRe;
@@ -1344,7 +1349,7 @@ window.bkXrTx = bkXrTx;
 function otherBooksHtml() {
   const ids = Object.keys(BOOKS);
   if (!ids.length) return '';
-  return '<div class="qcard"><div class="qhead">كتب أخرى</div>' + ids.map((id) => '<a class="bkrow" href="#/bk/' + id + '/1">' + esc(BOOKS[id].name) + ' <span class="dim">(' + toArNum(BOOKS[id].pages.length) + ' صفحة)</span></a>').join('') + '</div>';
+  return '<div class="qcard"><div class="qhead">كتب أخرى</div>' + ids.map((id) => '<a class="bkrow" href="#/bk/' + id + '">' + esc(BOOKS[id].name) + ' <span class="dim">(' + toArNum(BOOKS[id].pages.length) + ' صفحة)</span></a>').join('') + '</div>';
 }
 function bookExtra(id, ed, n) {
   if (!BOOKS[id]) return soon();
@@ -1352,8 +1357,8 @@ function bookExtra(id, ed, n) {
   CURED = (typeof ed === 'string' && /^[0-9A-Za-z-]{1,24}$/.test(ed)) ? ed : null;
   bkEdInit();
   if (CURED !== null) bkSet('ed', CURED);
-  bp = Math.min(curPages().length - 1, Math.max(0, (n || +bkGet('last', 1) || 1) - 1));
-  bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
+  bp = Math.min(curPages().length - 1, Math.max(0, (n || +bkGetE('last', 1) || 1) - 1));
+  bkSetE('last', bp + 1); bkSetE('maxp', Math.max(+bkGetE('maxp', 0) || 0, bp + 1));
   return bookHtml();
 }
 /* ===== sample video (approved ليه؟ sample) ===== */
