@@ -534,7 +534,7 @@ function watch(gid, li, vi) {
   setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
   return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a>
   <div class="section-title">${esc(v.n)}</div>
-  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${v.yt}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
+  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
@@ -1157,7 +1157,7 @@ function watchSample(yt) {
   setLast(u, v.n);
   return `<a class="back" href="#/t/leh">‹ ليه؟</a>
   <div class="section-title">${esc(v.n)}</div>
-  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${v.yt}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
+  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
