@@ -429,6 +429,7 @@ a.card:active { transform: scale(.99); }
 .rng input[type=range]{flex:1;accent-color:var(--navy-ink)}
 .rng span{min-width:26px;text-align:center;color:var(--gold-deep)}
 .labq{margin:6px 0 0;padding:0 18px 0 0;font-size:14px;line-height:2}
+.labcard.stage{overflow:auto}
 .labcard.stage:fullscreen{background:var(--bg);padding:16px;overflow:auto}
 
 /* ===== lesson metadata (spec 5) ===== */
