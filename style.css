@@ -646,3 +646,5 @@ body.th-teach .th-eng{display:none}
 .mxvb{align-self:center;font-size:1.35em;line-height:1;padding:0 1px}
 .mxg{display:inline-grid;gap:3px 12px;align-items:center;justify-items:center;padding:4px 1px}
 .mxc{white-space:nowrap}
+.labspeed.on{color:var(--gold-deep);border-color:var(--gold);font-weight:700}
+.labspdlabel{font-size:12px;color:var(--mut)}
