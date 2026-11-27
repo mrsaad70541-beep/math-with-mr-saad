@@ -998,5 +998,105 @@ window.THEO = (function () {
       window.__thPred = i; fb.textContent = 'سُجّل توقّعك. جرّب الآن، وسنقارنه بالنتيجة بعد الاستنتاج.';
     };
   }
-  return { models: M, register, home, page, after, GR, util: { ang, dist, polyArea, isConvex } };
+  /* 145 Phase 1: managed metadata/curriculum overrides on built-in model cores.
+     Pure data only — whitelisted fields, strict validation, unknown keys or any invalid value reject the whole override.
+     Geometry, points, sliders, draw/calc/ok/sample and steps are NEVER overridable. */
+  let BASE = null;
+  function snapBase() {
+    BASE = { _curr: JSON.parse(JSON.stringify(CURR)) };
+    M.forEach((m) => {
+      BASE[m.id] = {
+        title: m.title, claim: m.claim, cond: m.cond, q: m.q, opts: m.opts && m.opts.slice(), a: m.a,
+        concl: m.concl, proof: m.proof, lesson: m.lesson, g: m.g,
+        media: m.media && JSON.parse(JSON.stringify(m.media)),
+        app: m.app && JSON.parse(JSON.stringify(m.app)),
+      };
+    });
+  }
+  function restoreBase() {
+    M.forEach((m) => {
+      const b0 = BASE[m.id]; if (!b0) return;
+      Object.keys(b0).forEach((k) => {
+        if (b0[k] === undefined) delete m[k];
+        else m[k] = (b0[k] && typeof b0[k] === 'object') ? JSON.parse(JSON.stringify(b0[k])) : b0[k];
+      });
+    });
+    Object.keys(CURR).forEach((k) => { if (!BASE._curr[k]) delete CURR[k]; });
+    Object.keys(BASE._curr).forEach((k) => { CURR[k] = JSON.parse(JSON.stringify(BASE._curr[k])); });
+  }
+  function applyMeta(om) {
+    const res = { applied: 0, rejected: 0 };
+    if (!BASE) snapBase();
+    restoreBase();
+    if (!om || typeof om !== 'object') return res;
+    const KEYS = ['id', 'title', 'claim', 'cond', 'q', 'opts', 'a', 'concl', 'proof', 'lesson', 'g', 'media', 'app', 'curr', 'meta'];
+    const STR = (v, n) => typeof v === 'string' && v.trim().length > 0 && v.length <= n;
+    const URL = (v) => typeof v === 'string' && /^https:\/\/[^ "'<>]{1,300}$/.test(v);
+    const OPTS = (v) => Array.isArray(v) && v.length >= 2 && v.length <= 5 && v.every((x) => STR(x, 120));
+    const INT = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
+    Object.keys(om).forEach((id) => {
+      const m = M.find((x) => x.id === id), o = om[id];
+      if (!m || !o || typeof o !== 'object' || Array.isArray(o)) { res.rejected++; return; }
+      if (Object.keys(o).some((k) => KEYS.indexOf(k) < 0)) { res.rejected++; return; }
+      if (o.title !== undefined && !STR(o.title, 120)) { res.rejected++; return; }
+      if (o.claim !== undefined && !STR(o.claim, 300)) { res.rejected++; return; }
+      if (o.cond !== undefined && !STR(o.cond, 300)) { res.rejected++; return; }
+      if (o.q !== undefined && !STR(o.q, 300)) { res.rejected++; return; }
+      if (o.concl !== undefined && !STR(o.concl, 600)) { res.rejected++; return; }
+      if (o.proof !== undefined && !STR(o.proof, 1200)) { res.rejected++; return; }
+      if (o.lesson !== undefined && !STR(o.lesson, 120)) { res.rejected++; return; }
+      if (o.g !== undefined && ['g1', 'g2', 'g3'].indexOf(o.g) < 0) { res.rejected++; return; } // own-name whitelist, parity with server (inherited names like constructor must fail)
+      if (o.meta !== undefined) {
+        const md = o.meta;
+        const bad = !md || typeof md !== 'object' || Array.isArray(md)
+          || Object.keys(md).some((k) => ['desc', 'tags', 'level', 'thumb'].indexOf(k) < 0)
+          || (md.desc !== undefined && !STR(md.desc, 500))
+          || (md.tags !== undefined && !(Array.isArray(md.tags) && md.tags.length >= 1 && md.tags.length <= 10 && md.tags.every((x) => typeof x === 'string' && x.trim().length > 0 && x.length <= 30)))
+          || (md.level !== undefined && ['سهل', 'متوسط', 'صعب'].indexOf(md.level) < 0)
+          || (md.thumb !== undefined && !URL(md.thumb));
+        if (bad) { res.rejected++; return; }
+        // schema parity only: item metadata is consumed at item level elsewhere, never applied to the model
+      }
+      if (o.opts !== undefined && !OPTS(o.opts)) { res.rejected++; return; }
+      if (o.opts !== undefined && o.a === undefined) { res.rejected++; return; } // parity with server: new options require an explicit answer index
+      const optLen = o.opts ? o.opts.length : (m.opts ? m.opts.length : 0);
+      if (o.a !== undefined && (!Number.isInteger(o.a) || o.a < 0 || o.a >= optLen)) { res.rejected++; return; }
+      if (o.media !== undefined) {
+        const md = o.media;
+        if (!md || typeof md !== 'object' || Array.isArray(md) || Object.keys(md).some((k) => k !== 'video' && k !== 'voice')) { res.rejected++; return; }
+        if (md.video !== undefined && !URL(md.video)) { res.rejected++; return; }
+        if (md.voice !== undefined && !URL(md.voice)) { res.rejected++; return; }
+      }
+      if (o.app !== undefined) {
+        const ap = o.app;
+        if (!ap || typeof ap !== 'object' || Array.isArray(ap) || Object.keys(ap).some((k) => ['q', 'opts', 'a'].indexOf(k) < 0)) { res.rejected++; return; }
+        if (!STR(ap.q, 300) || !OPTS(ap.opts) || !Number.isInteger(ap.a) || ap.a < 0 || ap.a >= ap.opts.length) { res.rejected++; return; }
+      }
+      if (o.curr !== undefined) {
+        const c = o.curr;
+        if (!c || typeof c !== 'object' || Array.isArray(c) || Object.keys(c).some((k) => ['u', 'l', 's', 'sk', 'cf', 's2', 'sk2'].indexOf(k) < 0)) { res.rejected++; return; }
+        if (c.u !== undefined && !INT(c.u, 1, 12)) { res.rejected++; return; }
+        if (c.l !== undefined && !INT(c.l, 1, 20)) { res.rejected++; return; }
+        if (c.s !== undefined && !INT(c.s, 0, 40)) { res.rejected++; return; }
+        if (c.s2 !== undefined && !INT(c.s2, 0, 40)) { res.rejected++; return; }
+        if (c.sk !== undefined && !(typeof c.sk === 'string' && c.sk.length <= 120)) { res.rejected++; return; }
+        if (c.sk2 !== undefined && !(typeof c.sk2 === 'string' && c.sk2.length <= 120)) { res.rejected++; return; }
+        if (c.cf !== undefined && !INT(c.cf, 0, 3)) { res.rejected++; return; }
+      }
+      ['title', 'claim', 'cond', 'q', 'concl', 'proof', 'lesson'].forEach((k) => { if (o[k] !== undefined) m[k] = o[k].trim(); });
+      if (o.g !== undefined) m.g = o.g;
+      if (o.opts !== undefined) m.opts = o.opts.map((x) => x.trim());
+      if (o.a !== undefined) m.a = o.a;
+      if (o.media !== undefined) {
+        m.media = m.media || {};
+        if (o.media.video !== undefined) m.media.video = o.media.video;
+        if (o.media.voice !== undefined) m.media.voice = o.media.voice;
+      }
+      if (o.app !== undefined) m.app = { q: o.app.q.trim(), opts: o.app.opts.map((x) => x.trim()), a: o.app.a };
+      if (o.curr !== undefined) CURR[id] = Object.assign({}, CURR[id] || {}, o.curr);
+      res.applied++;
+    });
+    return res;
+  }
+  return { models: M, applyMeta, register, home, page, after, GR, util: { ang, dist, polyArea, isConvex } };
 })();
