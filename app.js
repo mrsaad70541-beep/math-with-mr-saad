@@ -111,6 +111,45 @@ function addMistake(m) {
 /* ===== share (real links) ===== */
 const WSHARE = 'https://secureadmin.mrsaad70541.workers.dev/s/c/';
 const CH_TZ = 'Asia/Riyadh';
+
+/* Stable item ids: lessons/videos resolve by permanent id. Numeric URL segments are
+   legacy positional links frozen at the 2026-11-27 migration: index -> id aliases below.
+   New links always use ids; old numeric URLs keep resolving to their ORIGINAL entities. */
+const LEGACY_L = { g1: ['g1l1'], g2: ['g2l1'], g3: ['g3l1'] };
+const LEGACY_V = { g1l1: ['v1'], g2l1: ['v1', 'v2'], g3l1: ['v1', 'v2', 'v3'] };
+function findLesson(g, seg) {
+  if (!g) return -1;
+  let i = g.lessons.findIndex((l) => l.lid === seg);
+  if (i >= 0) return i;
+  if (/^\d+$/.test(seg)) {
+    const lid = (LEGACY_L[g.id] || [])[+seg];
+    if (lid) { i = g.lessons.findIndex((l) => l.lid === lid); if (i >= 0) return i; }
+    i = +seg; return (i >= 0 && i < g.lessons.length) ? i : -1;
+  }
+  return -1;
+}
+function findVideo(l, seg) {
+  if (!l) return -1;
+  let i = l.videos.findIndex((v) => v.vid === seg);
+  if (i >= 0) return i;
+  if (/^\d+$/.test(seg)) {
+    const vid = (LEGACY_V[l.lid] || [])[+seg];
+    if (vid) { i = l.videos.findIndex((v) => v.vid === vid); if (i >= 0) return i; }
+    i = +seg; return (i >= 0 && i < l.videos.length) ? i : -1;
+  }
+  return -1;
+}
+function lHash(g, li) { const l = g.lessons[li]; return '#/g/' + g.id + '/l/' + (l.lid || li); }
+function vHash(g, li, vi) { const l = g.lessons[li], v = l.videos[vi]; return '#/g/' + g.id + '/l/' + (l.lid || li) + '/v/' + (v.vid || vi); }
+function migrateIdUrl(u) {
+  return typeof u === 'string' ? u.replace(/#\/g\/(g\d)\/l\/(\d+)(\/v\/(\d+))?/g, (m, gid, li, _v, vi) => {
+    const lid = (LEGACY_L[gid] || [])[+li];
+    if (!lid) return m;
+    let out = '#/g/' + gid + '/l/' + lid;
+    if (vi != null) out += '/v/' + ((LEGACY_V[lid] || [])[+vi] || vi);
+    return out;
+  }) : u;
+}
 function seoUrl(u) {
   const ml = /^#\/g\/(g[123])\/l\/0$/.exec(u);
   if (ml && typeof DATA === 'undefined') return null;
@@ -183,8 +222,8 @@ DATA.grades.forEach((g) => g.lessons.forEach((l, li) => {
   if (l._gone) return;
   const lm0 = (typeof LESSON_META !== 'undefined' && LESSON_META) ? LESSON_META[g.id + '/' + li] : null;
   const lk = ((l.skills && l.skills.length ? l.skills : (lm0 && lm0.skills) || [])).join(' ');
-  l.videos.forEach((v, vi) => { if (v.yt && !v._gone) SEARCH.push({ t: `${v.n} — ${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}`, k: lk }); });
-  SEARCH.push({ t: `درس ${l.title} — ${g.title}`, u: `#/g/${g.id}/l/${li}`, k: lk });
+  l.videos.forEach((v, vi) => { if (v.yt && !v._gone) SEARCH.push({ t: `${v.n} — ${l.title} · ${g.title}`, u: vHash(g, li, vi), k: lk }); });
+  SEARCH.push({ t: `درس ${l.title} — ${g.title}`, u: lHash(g, li), k: lk });
   if (l.quiz) SEARCH.push({ t: `اختبار درس ${l.title}`, u: '#/test/' + l.quiz, k: lk });
 }));
 DATA.grades.forEach((g) => SEARCH.push({ t: g.title + ' — المنهج المصري', u: `#/g/${g.id}` }));
@@ -352,7 +391,7 @@ function home() {
   const latest = [];
   DATA.grades.forEach((g) => g.lessons.forEach((l, li) => l.videos.forEach((v, vi) => {
     if (v._gone) return;
-    if (v.yt) latest.push({ t: v.n, s: `${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}` });
+    if (v.yt) latest.push({ t: v.n, s: `${l.title} · ${g.title}`, u: vHash(g, li, vi) });
   })));
   latest.slice(-3).reverse().forEach((x) => {
     lh += `<div class="vrow">${saveBtn(x.u, x.t)}<span class="vn">${esc(x.t)}<span class="vsub">${esc(x.s)}</span></span><a class="play" href="${x.u}">${IC.play} تشغيل</a></div>`;
@@ -390,7 +429,7 @@ function lesson(gid, li) {
   if (!l || l._gone) return `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="note">هذا الدرس غير متاح حاليًا</div>`;
   const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
-  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(l.title)} — رياضيات مع مستر سعد" data-u="${esc(l.cid ? WSHARE + l.cid : '#/g/' + gid + '/l/' + li)}" data-x="درس ${esc(l.title)} (${esc(g.title)})">مشاركة الدرس</button>${qrBtn('#/g/' + gid + '/l/' + li, l.title)}</div>`;
+  h += `<div class="lactions">${saveBtn(lHash(g, li), l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(l.title)} — رياضيات مع مستر سعد" data-u="${esc(l.cid ? WSHARE + l.cid : lHash(g, li))}" data-x="درس ${esc(l.title)} (${esc(g.title)})">مشاركة الدرس</button>${qrBtn(lHash(g, li), l.title)}</div>`;
   if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
   if (l.term || l.unit) h += `<div class="lmeta"><p>${esc([l.term, l.unit].filter(Boolean).join(' · '))}</p></div>`;
   if (l.skills && l.skills.length) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${l.skills.map((x) => `<a class="skillchip" href="?saq=${encodeURIComponent(x)}#/">${esc(x)}</a>`).join('')}</div></div>`;
@@ -404,7 +443,7 @@ function lesson(gid, li) {
   h += `<h3 class="subhead">شرح الدرس بالفيديو</h3>`;
   vidOrder(l).forEach(({ v, vi }) => {
     if (v._gone) return;
-    const u = `#/g/${g.id}/l/${li}/v/${vi}`;
+    const u = vHash(g, li, vi);
     h += v.yt
       ? `<div class="vrow">${saveBtn(u, v.n)}<span class="vn">${esc(v.n)}</span><a class="play" href="${u}">${IC.play} تشغيل</a></div>`
       : `<div class="vrow"><span class="vn">${esc(v.n)}</span><a class="play off" href="#/soon">قريبًا</a></div>`;
@@ -418,8 +457,8 @@ function lesson(gid, li) {
   const prev = pe && pe.l, next = ne && ne.l;
   if (prev || next) {
     h += '<div class="lessonnav">';
-    h += prev ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${pe.i}">‹ السابق: ${esc(prev.title)}</a>` : '<span></span>';
-    h += next ? `<a class="btn2 sm ghost" href="#/g/${gid}/l/${ne.i}">التالي: ${esc(next.title)} ›</a>` : '<span></span>';
+    h += prev ? `<a class="btn2 sm ghost" href="${lHash(g, pe.i)}">‹ السابق: ${esc(prev.title)}</a>` : '<span></span>';
+    h += next ? `<a class="btn2 sm ghost" href="${lHash(g, ne.i)}">التالي: ${esc(next.title)} ›</a>` : '<span></span>';
     h += '</div>';
   }
   if (!meta) h += `<div class="note">باقي تفاصيل الدرس قريبًا</div>`;
@@ -530,14 +569,14 @@ function watch(gid, li, vi) {
   const g = DATA.grades.find((x) => x.id === gid);
   const l = g.lessons[li];
   const v = l.videos[vi];
-  if (!v || v._gone || !v.yt) return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a><div class="note">هذا المحتوى غير متاح حاليًا</div>`;
-  const u = `#/g/${g.id}/l/${li}/v/${vi}`;
+  if (!v || v._gone || !v.yt) return `<a class="back" href="${lHash(g, li)}">‹ ${esc(l.title)}</a><div class="note">هذا المحتوى غير متاح حاليًا</div>`;
+  const u = vHash(g, li, vi);
   setLast(u, v.n);
   const vo = vidOrder(l).filter((x) => !x.v._gone), vpos = vo.findIndex((x) => x.vi === vi), nx = vpos >= 0 ? vo[vpos + 1] : null;
   const next = nx && nx.v;
-  const nu = next && next.yt ? `#/g/${g.id}/l/${li}/v/${nx.vi}` : null;
+  const nu = next && next.yt ? vHash(g, li, nx.vi) : null;
   setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
-  return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a>
+  return `<a class="back" href="${lHash(g, li)}">‹ ${esc(l.title)}</a>
   <div class="section-title">${esc(v.n)}</div>
   <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
   <div class="actionrow">
@@ -1276,11 +1315,20 @@ function route() {
   if (p[0] === 'c' && p[1]) {
     let fg = null, fi = -1;
     DATA.grades.forEach((g) => g.lessons.forEach((l, i) => { if (!fg && l.cid && l.cid === p[1] && !l._gone) { fg = g; fi = i; } }));
-    if (fg) { history.replaceState(null, '', '#/g/' + fg.id + '/l/' + fi); html = lesson(fg.id, fi); }
+    if (fg) { history.replaceState(null, '', lHash(fg, fi)); html = lesson(fg.id, fi); }
     else html = '<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="note">هذا الدرس غير متاح حاليًا.</div>';
   } else if (p[0] === 'manhag') html = manhag();
-  else if (p[0] === 'g' && p[2] === 'l' && p[4] === 'v') html = watch(p[1], +p[3], +p[5]);
-  else if (p[0] === 'g' && p[2] === 'l') html = lesson(p[1], +p[3]);
+  else if (p[0] === 'g' && p[2] === 'l' && p[4] === 'v') {
+    const g = DATA.grades.find((x) => x.id === p[1]);
+    const li = findLesson(g, p[3]), vi = li >= 0 ? findVideo(g.lessons[li], p[5]) : -1;
+    if (g && li >= 0 && vi >= 0 && !g.lessons[li]._gone && !g.lessons[li].videos[vi]._gone) { history.replaceState(null, '', vHash(g, li, vi)); html = watch(g.id, li, vi); }
+    else html = '<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="note">هذا الفيديو غير متاح حاليًا.</div>';
+  } else if (p[0] === 'g' && p[2] === 'l') {
+    const g = DATA.grades.find((x) => x.id === p[1]);
+    const li = findLesson(g, p[3]);
+    if (g && li >= 0 && !g.lessons[li]._gone) { history.replaceState(null, '', lHash(g, li)); html = lesson(g.id, li); }
+    else html = '<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="note">هذا الدرس غير متاح حاليًا.</div>';
+  }
   else if (p[0] === 'g') html = grade(p[1]);
   else if (p[0] === 't' && p[2] === 'c') html = trackGroup(p[1], +p[3]);
   else if (p[0] === 't') html = track(p[1]);
@@ -1320,6 +1368,27 @@ function route() {
   LAB.afterRender(p);
   THEO.after(p);
 }
+/* One-time migration: rewrite stored positional lesson/video URLs to stable ids
+   (saved items, continue-last, mistake origins) so existing references survive
+   future content reordering/insertion. */
+(function migrateStoredIds() {
+  try {
+    const last = jget('saad.last.v1', null);
+    if (last && last.u) { const nu = migrateIdUrl(last.u); if (nu !== last.u) { last.u = nu; localStorage.setItem('saad.last.v1', JSON.stringify(last)); } }
+  } catch (e) {}
+  try {
+    const sv = jget('saad.saved.v1', []);
+    let changed = false;
+    sv.forEach((x) => { if (x && x.u) { const nu = migrateIdUrl(x.u); if (nu !== x.u) { x.u = nu; changed = true; } } });
+    if (changed) localStorage.setItem('saad.saved.v1', JSON.stringify(sv));
+  } catch (e) {}
+  try {
+    const ms = jget('saad.mistakes.v1', []);
+    let changed = false;
+    ms.forEach((x) => { if (x && x.from) { const nu = migrateIdUrl(x.from); if (nu !== x.from) { x.from = nu; changed = true; } } });
+    if (changed) localStorage.setItem('saad.mistakes.v1', JSON.stringify(ms));
+  } catch (e) {}
+})();
 window.addEventListener('hashchange', route);
 /* First-paint playback gate: a direct deep link to a bundled video must not
    mount its player before the CMS loader's first fetch resolves - a withdrawn
