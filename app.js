@@ -1331,7 +1331,12 @@ if (/^#\/g\/[^/]+\/l\/\d+\/v\/\d+/.test(location.hash || '')) {
   app.innerHTML = '<div class="note">جارٍ التحميل…</div>';
   setTimeout(__initialRoute, 4000);
 } else __initialRoute();
-if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.search.slice(5)));
+if (location.search.indexOf('saq=') === 1) {
+  const __saq = decodeURIComponent(location.search.slice(5));
+  const __qi = document.getElementById('q');
+  if (__qi) __qi.value = __saq;
+  saSearch(__saq);
+}
 
 /* QA hooks (only active with ?qa= in URL) */
 (function(){
