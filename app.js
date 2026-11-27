@@ -1176,10 +1176,44 @@ function mistakes() {
 /* ===== interactive book sample ===== */
 let bp = 0;
 let CURBK = '';
+let CURED = null; // pinned edition for the current book view (null = follow latest)
 const BOOKS = {};
 function bkp() { return CURBK ? CURBK + '.' : ''; }
-function curPages() { return CURBK && BOOKS[CURBK] ? BOOKS[CURBK].pages : BOOK; }
-function bkUrl(n) { return CURBK ? '#/bk/' + CURBK + '/' + n : '#/book/' + n; }
+function bkEds() {
+  if (!CURBK || !BOOKS[CURBK]) return [''];
+  const seen = {}, out = [];
+  BOOKS[CURBK].pages.forEach((p) => { const e = p.ed || ''; if (!seen[e]) { seen[e] = 1; out.push(e); } });
+  out.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+  return out.length ? out : [''];
+}
+function bkEd() {
+  const eds = bkEds();
+  if (CURED !== null && eds.indexOf(CURED) >= 0) return CURED;
+  return eds[eds.length - 1];
+}
+function bkEdInit() {
+  const eds = bkEds();
+  if (CURED !== null && eds.indexOf(CURED) >= 0) return;
+  const r = CURBK ? bkGet('ed', null) : null;
+  CURED = (typeof r === 'string' && eds.indexOf(r) >= 0) ? r : null;
+}
+function curPages() {
+  const src = CURBK && BOOKS[CURBK] ? BOOKS[CURBK].pages : BOOK;
+  if (!CURBK) return src;
+  const ed = bkEd(), out = [];
+  src.forEach((p) => {
+    if ((p.ed || '') !== ed) return;
+    if (p.pdf && p.pc > 0) { for (let i = 1; i <= p.pc; i++) out.push({ pdf: p.pdf, pno: i, t: p.t + ' — صفحة ' + i, cid: p.cid }); return; }
+    out.push(p);
+  });
+  return out;
+}
+function bkUrl(n, ed) {
+  if (!CURBK) return '#/book/' + n;
+  const eds = bkEds();
+  const e = ed !== undefined ? ed : bkEd();
+  return '#/bk/' + CURBK + '/' + (e !== eds[eds.length - 1] ? e + '/' : '') + n;
+}
 function bkGet(k, d) { return jget('saad.book.' + bkp() + k, d); }
 function bkZ() { return Math.min(1.6, Math.max(0.8, +bkGet('zoom', 1) || 1)); }
 function bookZ(d) { bkSet('zoom', Math.round((bkZ() + d) * 10) / 10); const y = window.scrollY; app.innerHTML = bookHtml(); window.scrollTo(0, y); }
@@ -1187,6 +1221,7 @@ window.bookZ = bookZ;
 function bkSet(k, v) { localStorage.setItem('saad.book.' + bkp() + k, JSON.stringify(v)); }
 function book() {
   CURBK = '';
+  CURED = null;
   const m = /^#\/book\/(\d+)/.exec(location.hash);
   const n = m ? +m[1] : (+bkGet('last', 1) || 1);
   bp = Math.min(curPages().length - 1, Math.max(0, n - 1));
@@ -1197,15 +1232,22 @@ function bookHtml() {
   const pg = curPages()[bp];
   const bms = bkGet('bm', []), isbm = bms.indexOf(bp + 1) >= 0;
   const note = (bkGet('notes', {}))[bp + 1] || '';
+  const eds = bkEds();
   return `<a class="back" href="#/">‹ الرئيسية</a><div class="section-title">${CURBK ? esc(BOOKS[CURBK].name) : 'الكتاب التفاعلي — نموذج'}</div>
+  ${CURBK && eds.length > 1 ? `<div class="bkeds"><span>إصدار الكتاب:</span>${eds.map((e) => `<a class="btn2 sm ${e === bkEd() ? '' : 'ghost'}" href="${bkUrl(bp + 1, e)}">${esc(e || 'الأساسي')}</a>`).join('')}</div>` : ''}
   <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.min(curPages().length, Math.max(bkGet("maxp", 0), bp + 1))} من ${curPages().length} صفحات</span></div>
-  <div class="bookpg" style="zoom:${bkZ()}">
+  ${pg.pdf ? `<div class="bookpg bkpdf">
+    <div class="ptag">صفحة ${bp + 1} من ${curPages().length} — ملف PDF أصلي</div>
+    <object class="bkpdfobj" data="${pg.pdf}#page=${pg.pno}&zoom=${Math.round(bkZ() * 100)}" type="application/pdf"><div class="note">تعذّر عرض الملف هنا — <a href="${pg.pdf}" target="_blank" rel="noopener">افتح نسخة PDF في تبويب جديد</a></div></object>
+  </div>` : `<div class="bookpg" style="zoom:${bkZ()}">
     <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${curPages().length}</div>
     <h3>${pg.t}</h3>
     <p>${pg.p}</p>
     ${pg.cid && !pg.ft ? '' : `<div class="f eqwrap">${pg.f}</div>`}
     ${pg.cid && !pg.ex ? '' : `<div class="ex"><span class="exlabel">مثال</span><span class="eqline">${pg.ex}</span></div>`}
-  </div>
+  </div>`}
+  ${pg.qs && pg.qs.length ? `<div class="qcard bkq"><div class="qhead">أسئلة الصفحة وحلولها</div>${pg.qs.map((q) => `<div class="bkqr"><button type="button" class="bkqt" onclick="this.parentNode.classList.toggle('open')">سؤال ${q.n}</button><div class="bkqb">${q.s ? `<div class="bkqs">${q.s}</div>` : ''}${q.sp ? `<a class="btn2 sm ghost" href="${bkUrl(q.sp)}">الحل في صفحة ${q.sp}</a>` : ''}${q.v ? `<button type="button" class="btn2 sm ghost" onclick="bkQv(this)">فيديو الشرح</button><div class="playerwrap bkqv" data-v="${q.v}" hidden></div>` : ''}</div></div>`).join('')}</div>` : ''}
+  ${pg.xr && pg.xr.length ? `<div class="qcard bkx"><div class="qhead">تدريب تفاعلي</div>${pg.xr.map((x, xi) => bkXrQ(x, xi)).join('')}</div>` : ''}
   <div class="booknav">
     <button onclick="bookGo(-1)" ${bp === 0 ? 'disabled' : ''}>‹ السابق</button>
     <button onclick="bookGo(1)" ${bp === curPages().length - 1 ? 'disabled' : ''}>التالي ›</button>
@@ -1254,15 +1296,62 @@ window.bookBm = bookBm;
 function bookNote(v) { const n = bkGet('notes', {}); if (v.trim()) n[bp + 1] = v; else delete n[bp + 1]; bkSet('notes', n); }
 window.bookNote = bookNote;
 window.bookGo = bookGo;
+function bkQv(b) {
+  const w = b.parentNode.querySelector('.bkqv');
+  if (!w) return;
+  if (w.hidden) {
+    if (!w.dataset.on && navigator.onLine !== false) { w.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${w.dataset.v}?cc_load_policy=1" title="فيديو الشرح" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`; w.dataset.on = '1'; }
+    w.hidden = false;
+  } else w.hidden = true;
+}
+window.bkQv = bkQv;
+function bkXrQ(x, xi) {
+  const idp = 'bkx' + xi;
+  let inp = '';
+  if (x.t === 'mcq') inp = `<div class="opts">${x.o.map((o, oi) => `<button type="button" onclick="bkXrMc(${xi},${oi},this)">${o}</button>`).join('')}</div>`;
+  else if (x.t === 'tf') inp = `<div class="opts"><button type="button" onclick="bkXrMc(${xi},0,this)">صح</button><button type="button" onclick="bkXrMc(${xi},1,this)">خطأ</button></div>`;
+  else inp = `<div class="qin"><input id="${idp}in" type="text" dir="ltr" inputmode="${x.t === 'fill' ? 'text' : 'decimal'}" autocomplete="off" placeholder="${x.t === 'frac' ? 'مثال: ٣/٤' : x.t === 'num' ? 'اكتب الرقم' : 'اكتب الإجابة'}" onkeydown="if(event.key==='Enter')bkXrTx(${xi})"><button class="btn2" onclick="bkXrTx(${xi})">تحقق</button></div>`;
+  return `<div class="bkxq" id="${idp}"><div class="bkxqt">${x.q}</div>${inp}<div class="bkxfb" id="${idp}fb"></div></div>`;
+}
+function bkXrDone(xi, ok) {
+  const fb = document.getElementById('bkx' + xi + 'fb');
+  if (fb) fb.innerHTML = '<div class="qfb ' + (ok ? 'ok' : 'no') + '">' + (ok ? '<b>إجابة صحيحة</b>' : '<b>إجابة غير صحيحة</b> <button class="btn2 sm ghost" onclick="bkXrRe(' + xi + ')">حاول مجددًا</button>') + '</div>';
+  const st = bkGet('xr', {}), pk = String(bp + 1), m = st[pk] || (st[pk] = {});
+  m[xi] = ok ? 1 : 0; bkSet('xr', st);
+}
+function bkXrRe(xi) {
+  const st = bkGet('xr', {}), pk = String(bp + 1);
+  if (st[pk]) delete st[pk][xi];
+  bkSet('xr', st);
+  const y = window.scrollY; app.innerHTML = bookHtml(); window.scrollTo(0, y);
+}
+window.bkXrRe = bkXrRe;
+function bkXrMc(xi, oi, btn) {
+  const pg = curPages()[bp], x = pg && pg.xr && pg.xr[xi]; if (!x) return;
+  const box = btn.parentNode.querySelectorAll('button');
+  box.forEach((b, bi) => { b.disabled = true; if (bi === x.a) b.classList.add('ok'); else if (bi === oi) b.classList.add('no'); });
+  bkXrDone(xi, oi === x.a);
+}
+window.bkXrMc = bkXrMc;
+function bkXrTx(xi) {
+  const pg = curPages()[bp], x = pg && pg.xr && pg.xr[xi]; if (!x) return;
+  const el = document.getElementById('bkx' + xi + 'in'); if (!el || !String(el.value).trim()) return;
+  el.disabled = true;
+  bkXrDone(xi, qCheckText({ t: x.t, ans: x.ans, tol: x.tol, reduced: x.reduced }, el.value));
+}
+window.bkXrTx = bkXrTx;
 
 function otherBooksHtml() {
   const ids = Object.keys(BOOKS);
   if (!ids.length) return '';
   return '<div class="qcard"><div class="qhead">كتب أخرى</div>' + ids.map((id) => '<a class="bkrow" href="#/bk/' + id + '/1">' + esc(BOOKS[id].name) + ' <span class="dim">(' + toArNum(BOOKS[id].pages.length) + ' صفحة)</span></a>').join('') + '</div>';
 }
-function bookExtra(id, n) {
+function bookExtra(id, ed, n) {
   if (!BOOKS[id]) return soon();
   CURBK = id;
+  CURED = (typeof ed === 'string' && /^[0-9A-Za-z-]{1,24}$/.test(ed)) ? ed : null;
+  bkEdInit();
+  if (CURED !== null) bkSet('ed', CURED);
   bp = Math.min(curPages().length - 1, Math.max(0, (n || +bkGet('last', 1) || 1) - 1));
   bkSet('last', bp + 1); bkSet('maxp', Math.max(+bkGet('maxp', 0) || 0, bp + 1));
   return bookHtml();
@@ -1406,7 +1495,7 @@ function route() {
   else if (p[0] === 't' && p[2] === 'c') html = trackGroup(p[1], +p[3]);
   else if (p[0] === 't') html = track(p[1]);
   else if (p[0] === 'test') html = test(p[1]);
-  else if (p[0] === 'bk') html = bookExtra(p[1], +p[2]);
+  else if (p[0] === 'bk') html = (p.length > 3 && p[3] !== '') ? bookExtra(p[1], p[2], +p[3]) : bookExtra(p[1], null, +p[2]);
   else if (p[0] === 'book') html = book();
   else if (p[0] === 'saved') html = saved();
   else if (p[0] === 'challenge') html = challenge(p[1]);
@@ -1691,9 +1780,49 @@ if (__saq) {
           if (ni >= 0) NOTICES[ni] = nn; else NOTICES.push(nn);
           applied++;
         } else if (it.type === 'book') {
-          if (typeof p.t !== 'string' || !p.t.trim() || typeof p.p !== 'string' || !p.p.trim() || !it.id) return;
-          var bpg = { cid: String(it.id), ft: String(p.ft || '').trim(), t: esc(p.t.slice(0, 120)), p: esc(p.p.slice(0, 1500)),
+          if (typeof p.t !== 'string' || !p.t.trim() || !it.id) return;
+          var isPdf = typeof p.pdf === 'string' && /^https:\/\/[^ "'<>]{1,300}$/.test(p.pdf);
+          if (!isPdf && (typeof p.p !== 'string' || !p.p.trim())) return;
+          var bpg = { cid: String(it.id), ed: (typeof p.ed === 'string' && /^[0-9A-Za-z-]{1,24}$/.test(p.ed)) ? p.ed : '',
+            ft: String(p.ft || '').trim(), t: esc(p.t.slice(0, 120)), p: esc(String(p.p || '').slice(0, 1500)),
             f: '<span dir="rtl">' + esc(String(p.ft || '').slice(0, 200)) + '</span>', ex: esc(String(p.ex || '').slice(0, 300)) };
+          if (isPdf) {
+            bpg.pc = Math.max(1, Math.min(2000, parseInt(p.pc, 10) || 0));
+            if (!(parseInt(p.pc, 10) >= 1)) return;
+            bpg.pdf = p.pdf;
+          }
+          if (Array.isArray(p.qs)) {
+            var qsq = [];
+            p.qs.slice(0, 20).forEach(function (q) {
+              if (!q || typeof q.n !== 'string' || !q.n.trim()) return;
+              var qo = { n: esc(q.n.trim().slice(0, 20)), s: typeof q.s === 'string' ? esc(q.s.slice(0, 600)) : '', sp: 0, v: '' };
+              var spn = parseInt(q.sp, 10); if (isFinite(spn) && spn >= 1 && spn <= 5000) qo.sp = spn;
+              if (typeof q.v === 'string' && /^[A-Za-z0-9_-]{6,15}$/.test(q.v)) qo.v = q.v;
+              if (qo.s || qo.sp || qo.v) qsq.push(qo);
+            });
+            if (qsq.length) bpg.qs = qsq;
+          }
+          if (Array.isArray(p.xr)) {
+            var xrq = [];
+            p.xr.slice(0, 10).forEach(function (x) {
+              if (!x || typeof x.q !== 'string' || !x.q.trim()) return;
+              if (['mcq', 'tf', 'num', 'frac', 'fill'].indexOf(x.t) < 0) return;
+              var xe = { t: x.t, q: esc(x.q.slice(0, 300)) };
+              if (x.t === 'mcq') {
+                if (!Array.isArray(x.o) || x.o.length < 2) return;
+                xe.o = x.o.slice(0, 6).map(function (o) { return esc(String(o).slice(0, 120)); });
+                xe.a = (typeof x.a === 'number' && x.a >= 0 && x.a < xe.o.length) ? x.a : 0;
+              } else if (x.t === 'tf') { xe.a = x.a === 1 ? 1 : 0; }
+              else {
+                if (typeof x.ans !== 'string' || !x.ans.trim()) return;
+                xe.ans = x.ans.slice(0, 60);
+                if (x.t === 'num') xe.tol = Math.max(0, Math.min(100, parseFloat(x.tol) || 0));
+                if (x.t === 'frac') xe.reduced = x.reduced === true;
+              }
+              xrq.push(xe);
+            });
+            if (xrq.length) bpg.xr = xrq;
+          }
           if (typeof p.bk === 'string' && p.bk.trim()) {
             var bname = p.bk.trim().slice(0, 80), hh = 0;
             for (var hi = 0; hi < bname.length; hi++) hh = (hh * 31 + bname.charCodeAt(hi)) | 0;
