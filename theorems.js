@@ -187,18 +187,22 @@ window.THEO = (function () {
   M.push({
     id: 'parallelogram', g: 'g1', lesson: 'الأشكال الرباعية', title: 'خواص متوازي الأضلاع',
     claim: 'في متوازي الأضلاع: كل ضلعين متقابلين متساويان، وكل زاويتين متقابلتين متساويتان، والقطران ينصف كل منهما الآخر.',
-    cond: 'الشكل رباعي فيه كل ضلعين متقابلين متوازيين (النموذج يبنيه هكذا دائمًا).',
+    cond: 'الشكل رباعي فيه كل ضلعين متقابلين متوازيين (النموذج يبنيه هكذا دائمًا). فعّل «حرّر الرأس ج» واسحبه ليتوقف التوازي وراقب الخواص.',
     q: 'عندما تغيّر شكل متوازي الأضلاع، أي من هذه الأشياء يبقى صحيحًا؟',
     opts: ['الأضلاع المتقابلة متساوية دائمًا', 'كل أضلاعه متساوية', 'كل زواياه قوائم'], a: 0,
-    pts: { A: [60, 230], B: [200, 230], D: [110, 90] },
-    ok: (P) => { const a = ang(P.B, P.A, P.D); return a > 20 && a < 160 && dist(P.A, P.B) > 40 && dist(P.A, P.D) > 40; },
-    sample() { for (;;) { const P = { A: { x: rnd(20, 150), y: rnd(150, 280) }, B: { x: rnd(120, 230), y: rnd(150, 280) }, D: { x: rnd(20, 230), y: rnd(20, 150) } }; if (this.ok(P)) return P; } },
+    pts: { A: [60, 230], B: [200, 230], D: [110, 90], C: [250, 90] },
+    chk: [{ k: 'free', label: 'حرّر الرأس ج (يكسر التوازي)' }],
+    ok: (P) => { const a = ang(P.B, P.A, P.D); if (!(a > 20 && a < 160 && dist(P.A, P.B) > 40 && dist(P.A, P.D) > 40)) return false; if (P.free) return isConvex([P.A, P.B, P.C, P.D]) && polyArea([P.A, P.B, P.C, P.D]) > 1500; return true; },
+    fix(P) { if (!P.free) { P.C.x = P.B.x + P.D.x - P.A.x; P.C.y = P.B.y + P.D.y - P.A.y; } },
+    sample() { for (;;) { const P = { A: { x: rnd(20, 150), y: rnd(150, 280) }, B: { x: rnd(120, 230), y: rnd(150, 280) }, D: { x: rnd(20, 230), y: rnd(20, 150) } }; P.C = { x: P.B.x + P.D.x - P.A.x, y: P.B.y + P.D.y - P.A.y }; if (this.ok(P)) return P; } },
     calc(P) {
-      const C = { x: P.B.x + P.D.x - P.A.x, y: P.B.y + P.D.y - P.A.y }, m1 = mid(P.A, C), m2 = mid(P.B, P.D);
+      const C = P.free ? P.C : { x: P.B.x + P.D.x - P.A.x, y: P.B.y + P.D.y - P.A.y }; if (!P.free) { P.C.x = C.x; P.C.y = C.y; } const m1 = mid(P.A, C), m2 = mid(P.B, P.D);
+      const prl = (u, v) => Math.abs(cross(u, v)) < 0.03 * Math.hypot(u.x, u.y) * Math.hypot(v.x, v.y);
+      const par = prl(sub(P.B, P.A), sub(C, P.D)) && prl(sub(P.D, P.A), sub(C, P.B));
       return { rows: [['أب', dist(P.A, P.B)], ['جد', dist(C, P.D)], ['أد', dist(P.A, P.D)], ['بج', dist(P.B, C)], ['∠أ', ang(P.B, P.A, P.D)], ['∠ج', ang(P.B, C, P.D)], ['البعد بين منتصفي القطرين', dist(m1, m2), 1]],
-        eq: [[dist(P.A, P.B), dist(C, P.D)], [dist(P.A, P.D), dist(P.B, C)], [ang(P.B, P.A, P.D), ang(P.B, C, P.D)], [dist(m1, m2), 0]], C, m1 };
+        eq: par ? [[dist(P.A, P.B), dist(C, P.D)], [dist(P.A, P.D), dist(P.B, C)], [ang(P.B, P.A, P.D), ang(P.B, C, P.D)], [dist(m1, m2), 0]] : [], C, m1, par };
     },
-    draw(P, d, r) { d.poly([P.A, P.B, r.C, P.D]); d.seg(P.A, r.C, 2); d.seg(P.B, P.D, 2); d.dot(r.m1); d.label(r.C, 'ج'); },
+    draw(P, d, r) { d.poly([P.A, P.B, r.C, P.D]); d.seg(P.A, r.C, 2); d.seg(P.B, P.D, 2); d.dot(r.m1); d.label(r.C, 'ج'); d.tag(r.par ? 'الشكل متوازي أضلاع: الخواص متحققة' : 'الشكل ليس متوازي أضلاع: لا تُضمن الخواص', r.par); },
     concl: 'الأضلاع المتقابلة والزوايا المتقابلة تساوت دائمًا، وتقاطع القطران عند منتصف كل منهما.',
     proof: 'البرهان يعتمد على تطابق المثلثين اللذين يكوّنهما القطر (زوايا متبادلة + ضلع مشترك).'
   });
@@ -207,21 +211,25 @@ window.THEO = (function () {
   M.push({
     id: 'rhombus', g: 'g1', lesson: 'تابع الأشكال الرباعية الخاصة', title: 'المعين: قطراه',
     claim: 'في المعين (متوازي أضلاع أضلاعه الأربعة متساوية) القطران متعامدان، وكل قطر ينصف زاويتي الرأسين اللتين يصل بينهما.',
-    cond: 'الأضلاع الأربعة متساوية. النموذج يحافظ على ذلك: الضلع أد = أب دائمًا.',
+    cond: 'الأضلاع الأربعة متساوية. النموذج يحافظ على ذلك: الضلع أد = أب دائمًا. فعّل «حرّر الضلع أد» واسحب د ليتغير طول أد وحده.',
     q: 'القطران في المعين: كيف يتقاطعان؟',
     opts: ['متعامدان دائمًا', 'متساويان في الطول دائمًا', 'متوازيان'], a: 0,
     pts: { B: [230, 220], D: [110, 80] },
     A: { x: 90, y: 230 },
-    ok: (P) => { const a = ang(P.B, { x: 90, y: 230 }, P.D); return a > 20 && a < 160 && dist(P.B, { x: 90, y: 230 }) > 50; },
+    chk: [{ k: 'free', label: 'حرّر الضلع أد (يكسر تساوي الأضلاع)' }],
+    ok: (P) => { const A = { x: 90, y: 230 }, a = ang(P.B, A, P.D); if (!(a > 20 && a < 160 && dist(P.B, A) > 50)) return false; if (P.free && dist(P.D, A) < 40) return false; return true; },
+    fix(P) { if (!P.free) { const A = { x: 90, y: 230 }, r = dist(P.B, A), t = Math.atan2(P.D.y - A.y, P.D.x - A.x); P.D = { x: A.x + r * Math.cos(t), y: A.y + r * Math.sin(t) }; } },
     sample() { const A = { x: 90, y: 230 }; const r = rnd(60, 160), t1 = -rnd(0.1, 0.6), t2 = t1 - rnd(0.5, 2.2); return { B: { x: A.x + r * Math.cos(t1), y: A.y + r * Math.sin(t1) }, D: { x: A.x + r * Math.cos(t2), y: A.y + r * Math.sin(t2) } }; },
-    fix(P) { const A = { x: 90, y: 230 }, r = dist(P.B, A), t = Math.atan2(P.D.y - A.y, P.D.x - A.x); P.D = { x: A.x + r * Math.cos(t), y: A.y + r * Math.sin(t) }; },
     calc(P) {
-      const A = { x: 90, y: 230 }, r = dist(P.B, A), t = Math.atan2(P.D.y - A.y, P.D.x - A.x), D = { x: A.x + r * Math.cos(t), y: A.y + r * Math.sin(t) };
+      const A = { x: 90, y: 230 }, r = dist(P.B, A), t = Math.atan2(P.D.y - A.y, P.D.x - A.x);
+      const D = P.free ? P.D : { x: A.x + r * Math.cos(t), y: A.y + r * Math.sin(t) };
+      if (!P.free) { P.D.x = D.x; P.D.y = D.y; }
+      const par = Math.abs(dist(A, D) - r) < 0.5;
       const C = { x: P.B.x + D.x - A.x, y: P.B.y + D.y - A.y }, O = mid(A, C);
       const dg = ang(A, O, D), h1 = ang(P.B, A, C), h2 = ang(C, A, D);
-      return { rows: [['أب = ب ج = ج د = د أ', r, 0, 1], ['الزاوية بين القطرين', dg, 1], ['∠ب أ ج', h1], ['∠ج أ د', h2]], eq: [[dg, 90], [h1, h2], [dist(P.B, C), dist(C, D)]], C, D, O };
+      return { rows: [['أب', r, 0, 1], ['أد', dist(A, D), 0, 1], ['الزاوية بين القطرين', dg, 1], ['∠ب أ ج', h1], ['∠ج أ د', h2]], eq: par ? [[dg, 90], [h1, h2], [dist(P.B, C), dist(C, D)]] : [], C, D, O, par };
     },
-    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ', -14, 18); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); },
+    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); if (r.par) d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ', -14, 18); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; if (r.par) { d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); } d.tag(r.par ? 'الأضلاع متساوية (معين): القطران متعامدان ومنصّفان للزوايا' : 'أد ≠ أب: ليس معينًا، فلا تُضمن خواص الأقطار', r.par); },
     concl: 'الزاوية بين القطرين كانت ٩٠° دائمًا، وقطر المعين نصّف الزاوية عند الرأس.',
     proof: 'البرهان: المثلثان أبج وأدج متطابقان (ثلاثة أضلاع)، فالقطر ينصف الزاوية؛ ومن مثلث متساوي الساقين يكون المنصّف عموديًا على القاعدة.'
   });
@@ -230,14 +238,16 @@ window.THEO = (function () {
   M.push({
     id: 'rectangle', g: 'g1', lesson: 'تابع الأشكال الرباعية الخاصة', title: 'المستطيل: قطراه متساويان',
     claim: 'في المستطيل (متوازي أضلاع إحدى زواياه قائمة) القطران متساويان في الطول.',
-    cond: 'زواياه الأربع قوائم. النموذج يحافظ عليها.',
+    cond: 'زواياه الأربع قوائم. النموذج يحافظ عليها. فعّل «حرّر الرأس ب» واسحبه لتكسر القائمة وراقب القطرين.',
     q: 'ما العلاقة بين طولي قطري المستطيل؟',
     opts: ['القطر الأطول عند الرأس الأكبر', 'متساويان دائمًا', 'يتغيران حسب النسبة بين الطول والعرض'], a: 1,
-    pts: { C: [270, 90] },
-    ok: (P) => P.C.x > 110 && P.C.y < 200,
-    sample() { return { C: { x: rnd(120, 320), y: rnd(20, 200) } }; },
-    calc(P) { const A = { x: 70, y: 240 }, B = { x: P.C.x, y: 240 }, D = { x: 70, y: P.C.y }; return { rows: [['الطول', dist(A, B)], ['العرض', dist(A, D)], ['القطر أج', dist(A, P.C), 1], ['القطر بد', dist(B, D), 1]], eq: [[dist(A, P.C), dist(B, D)]], A, B, D }; },
-    draw(P, d, r) { d.poly([r.A, r.B, P.C, r.D]); d.seg(r.A, P.C, 2); d.seg(r.B, r.D, 2); d.rightMark(r.A, r.B, r.D); d.label(r.A, 'أ'); },
+    pts: { C: [270, 90], B: [270, 240] },
+    chk: [{ k: 'free', label: 'حرّر الرأس ب (يكسر الزاوية القائمة)' }],
+    ok: (P) => P.C.x > 110 && P.C.y < 200 && P.B.x > 110 && (!P.free || isConvex([{ x: 70, y: 240 }, P.B, P.C, { x: 70, y: P.C.y }])),
+    fix(P) { if (!P.free) { P.B.x = P.C.x; P.B.y = 240; } },
+    sample() { const C = { x: rnd(120, 320), y: rnd(20, 200) }; return { C, B: { x: C.x, y: 240 } }; },
+    calc(P) { const A = { x: 70, y: 240 }, B = P.free ? P.B : { x: P.C.x, y: 240 }, D = { x: 70, y: P.C.y }; if (!P.free) { P.B.x = B.x; P.B.y = B.y; } const par = Math.abs(ang(B, A, D) - 90) < 0.5 && Math.abs(ang(A, B, P.C) - 90) < 0.5; return { rows: [['الطول', dist(A, B)], ['العرض', dist(A, D)], ['القطر أج', dist(A, P.C), 1], ['القطر بد', dist(B, D), 1]], eq: par ? [[dist(A, P.C), dist(B, D)]] : [], A, B, D, par }; },
+    draw(P, d, r) { d.poly([r.A, r.B, P.C, r.D]); d.seg(r.A, P.C, 2); d.seg(r.B, r.D, 2); if (r.par) d.rightMark(r.A, r.B, r.D); d.label(r.A, 'أ'); d.label(r.B, 'ب'); d.tag(r.par ? 'الزوايا قوائم: القطران متساويان' : 'الزاوية لم تعد قائمة: لا يُضمن تساوي القطرين', r.par); },
     concl: 'القطران تساويا في كل المستطيلات، رغم اختلاف الطول والعرض.',
     proof: 'البرهان: المثلثان القائمان أبد وبأج متطابقان (ضلعان قائمان متساويان)، فالوتران (القطران) متساويان.'
   });
@@ -246,15 +256,16 @@ window.THEO = (function () {
   M.push({
     id: 'isosceles', g: 'g2', lesson: 'المثلث المتساوي الساقين', title: 'زاويتا القاعدة في المثلث المتساوي الساقين',
     claim: 'إذا تساوى ضلعان في مثلث فإن الزاويتين المقابلتين لهما (زاويتي القاعدة) متساويتان.',
-    cond: 'أب = أج دائمًا. النموذج يُبقي الساقين متساويتين مهما حرّكت الرأس أو طرفي القاعدة.',
+    cond: 'أب = أج دائمًا. النموذج يُبقي الساقين متساويتين مهما حرّكت الرأس أو طرفي القاعدة. فعّل «حرّر الرأس أ» واسحبه جانبًا ليتغير أحد الساقين.',
     q: 'الساقان أب وأج متساويتان. ماذا تتوقع عن زاويتي القاعدة ب وج؟',
     opts: ['متساويتان دائمًا', 'ب أكبر من ج', 'تتساويان فقط إذا كان المثلث متساوي الأضلاع'], a: 0,
     pts: { B: [70, 240], C: [270, 240], A: [170, 60] },
-    ok: (P) => P.C.x - P.B.x > 60 && P.B.y - P.A.y > 40,
+    chk: [{ k: 'free', label: 'حرّر الرأس أ (يكسر تساوي الساقين)' }],
+    ok: (P) => P.C.x - P.B.x > 60 && P.B.y - P.A.y > 40 && (!P.free || Math.abs(ang(P.B, P.A, P.C)) > 15),
     sample() { const bx = rnd(40, 120), cx = bx + rnd(80, 200); return { B: { x: bx, y: 240 }, C: { x: cx, y: 240 }, A: { x: 0, y: rnd(40, 190) } }; },
-    fix(P, moved) { P.C.y = P.B.y; P.A.x = (P.B.x + P.C.x) / 2; if (P.A.y > P.B.y - 40) P.A.y = P.B.y - 40; },
-    calc(P) { P.A.x = (P.B.x + P.C.x) / 2; return { rows: [['أب (الشرط)', dist(P.A, P.B), 0, 1], ['أج (الشرط)', dist(P.A, P.C), 0, 1], ['∠ب', ang(P.A, P.B, P.C), 1], ['∠ج', ang(P.A, P.C, P.B), 1], ['∠أ (الرأس)', ang(P.B, P.A, P.C)]], eq: [[dist(P.A, P.B), dist(P.A, P.C)], [ang(P.A, P.B, P.C), ang(P.A, P.C, P.B)]] }; },
-    draw(P, d) { d.poly([P.A, P.B, P.C]); d.angle(P.A, P.B, P.C); d.angle(P.A, P.C, P.B); d.tick(P.A, P.B, 1); d.tick(P.A, P.C, 1); d.angle(P.B, P.A, P.C, 'أ'); },
+    fix(P, moved) { P.C.y = P.B.y; if (!P.free) P.A.x = (P.B.x + P.C.x) / 2; if (P.A.y > P.B.y - 40) P.A.y = P.B.y - 40; },
+    calc(P) { if (!P.free) P.A.x = (P.B.x + P.C.x) / 2; const par = Math.abs(dist(P.A, P.B) - dist(P.A, P.C)) < 0.5; return { rows: [['أب', dist(P.A, P.B), 0, 1], ['أج', dist(P.A, P.C), 0, 1], ['∠ب', ang(P.A, P.B, P.C), 1], ['∠ج', ang(P.A, P.C, P.B), 1], ['∠أ (الرأس)', ang(P.B, P.A, P.C)]], eq: par ? [[ang(P.A, P.B, P.C), ang(P.A, P.C, P.B)]] : [], par }; },
+    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.angle(P.A, P.B, P.C); d.angle(P.A, P.C, P.B); if (r.par) { d.tick(P.A, P.B, 1); d.tick(P.A, P.C, 1); } d.angle(P.B, P.A, P.C, 'أ'); d.tag(r.par ? 'أب = أج: زاويتا القاعدة متساويتان' : 'الساقان غير متساويتين: الزاويتان غير متساويتين', r.par); },
     concl: 'زاويتا القاعدة تساويتا في كل شكل جرّبته، سواء كان الرأس عاليًا أو منخفضًا والقاعدة طويلة أو قصيرة.',
     proof: 'البرهان: ننصّف زاوية الرأس فيتكوّن مثلثان متطابقان (ضلعان وزاوية محصورة)، فتتساوى زاويتا القاعدة المتناظرتان.'
   });
@@ -291,15 +302,16 @@ window.THEO = (function () {
   M.push({
     id: 'equilateral', g: 'g2', lesson: 'المثلث المتساوي الأضلاع', title: 'المثلث المتساوي الأضلاع: زواياه ٦٠°',
     claim: 'كل زاوية في المثلث المتساوي الأضلاع قياسها ٦٠°.',
-    cond: 'الأضلاع الثلاثة متساوية. النموذج يبني الرأس أ بحيث يتحقق ذلك، وأنت تغيّر طول الضلع.',
+    cond: 'الأضلاع الثلاثة متساوية. النموذج يبني الرأس أ بحيث يتحقق ذلك. فعّل «حرّر الرأس أ» واسحبه لتكسر التساوي (جرّب ساقين فقط متساويتين).',
     q: 'مثلث أضلاعه الثلاثة متساوية. كم قياس كل زاوية؟',
     opts: ['٤٥°', '٦٠°', 'تتغير بتغير طول الضلع'], a: 1,
-    pts: { B: [70, 240], C: [250, 240] },
-    ok: (P) => P.C.x - P.B.x > 50,
+    pts: { B: [70, 240], C: [250, 240], A: [160, 84] },
+    chk: [{ k: 'free', label: 'حرّر الرأس أ (يكسر تساوي الأضلاع)' }],
+    ok: (P) => P.C.x - P.B.x > 50 && (!P.free || (Math.abs(ang(P.B, P.A, P.C)) > 10 && P.A.y < P.B.y - 20)),
     sample() { const bx = rnd(20, 100); return { B: { x: bx, y: 240 }, C: { x: bx + rnd(60, 200), y: 240 } }; },
-    fix(P) { P.C.y = P.B.y; },
-    calc(P) { P.C.y = P.B.y; const s = dist(P.B, P.C), A = { x: (P.B.x + P.C.x) / 2, y: P.B.y - s * Math.sqrt(3) / 2 }; return { rows: [['طول الضلع', s, 0, 1], ['∠أ', ang(P.B, A, P.C)], ['∠ب', ang(A, P.B, P.C)], ['∠ج', ang(A, P.C, P.B)]], eq: [[ang(P.B, A, P.C), 60], [ang(A, P.B, P.C), 60], [ang(A, P.C, P.B), 60], [dist(A, P.B), dist(A, P.C)]], A }; },
-    draw(P, d, r) { d.poly([r.A, P.B, P.C]); d.angle(r.A, P.B, P.C); d.angle(P.B, r.A, P.C); d.angle(r.A, P.C, P.B); d.tick(r.A, P.B, 1); d.tick(r.A, P.C, 1); d.tick(P.B, P.C, 1); d.label(r.A, 'أ'); },
+    fix(P) { P.C.y = P.B.y; if (!P.free) { const s = dist(P.B, P.C); P.A.x = (P.B.x + P.C.x) / 2; P.A.y = P.B.y - s * Math.sqrt(3) / 2; } },
+    calc(P) { P.C.y = P.B.y; const s = dist(P.B, P.C); let A; if (P.free) { A = P.A; } else { A = { x: (P.B.x + P.C.x) / 2, y: P.B.y - s * Math.sqrt(3) / 2 }; P.A.x = A.x; P.A.y = A.y; } const par = Math.abs(dist(A, P.B) - s) < 0.5 && Math.abs(dist(A, P.C) - s) < 0.5; return { rows: [['طول الضلع ب ج', s, 0, 1], ['أب', dist(A, P.B), 0, 1], ['أج', dist(A, P.C), 0, 1], ['∠أ', ang(P.B, A, P.C)], ['∠ب', ang(A, P.B, P.C)], ['∠ج', ang(A, P.C, P.B)]], eq: par ? [[ang(P.B, A, P.C), 60], [ang(A, P.B, P.C), 60], [ang(A, P.C, P.B), 60]] : [], A, par }; },
+    draw(P, d, r) { d.poly([r.A, P.B, P.C]); d.angle(r.A, P.B, P.C); d.angle(P.B, r.A, P.C); d.angle(r.A, P.C, P.B); if (r.par) { d.tick(r.A, P.B, 1); d.tick(r.A, P.C, 1); d.tick(P.B, P.C, 1); } d.label(r.A, 'أ'); d.tag(r.par ? 'الأضلاع الثلاثة متساوية: كل زاوية ٦٠°' : 'الأضلاع غير متساوية: الزوايا ليست ٦٠°', r.par); },
     concl: 'كل زاوية كانت ٦٠° بغض النظر عن حجم المثلث.',
     proof: 'البرهان: المثلث متساوي الساقين بأكثر من طريقة فكل زواياه متساوية، ومجموعها ١٨٠° فكل زاوية ٦٠°.'
   });
@@ -355,22 +367,30 @@ window.THEO = (function () {
   M.push({
     id: 'sim-tri-aa', g: 'g3', lesson: 'تشابه المثلثات', title: 'تشابه المثلثات: زاويتان متساويتان تكفي',
     claim: 'إذا تساوت زاويتان في مثلث مع زاويتين في مثلث آخر فالمثلثان متشابهان: الزاوية الثالثة متساوية وأطوال الأضلاع المتناظرة متناسبة.',
-    cond: 'نبني المثلث الثاني من زاويتين فقط (ب، ج) وطول قاعدة نختاره. الباقي ينتج من الحساب.',
+    cond: 'نبني المثلث الثاني من زاويتين فقط (ب، ج) وطول قاعدة نختاره. فعّل «حرّر الزاوية الثانية» لتبني المثلث الثاني بزاوية واحدة فقط مطابقة.',
     q: 'مثلثان فيهما زاويتان متناظرتان متساويتان. ماذا نتوقع عن أضلاعهما؟',
     opts: ['متناسبة', 'متساوية', 'لا علاقة'], a: 0,
     pts: { A: [60, 60], B: [30, 200], C: [150, 200] }, bnd: [15, 165, 30, 230],
-    ctrl: [{ k: 'k', label: 'طول قاعدة المثلث الثاني', min: 40, max: 150, step: 5, v: 110 }],
+    ctrl: [{ k: 'k', label: 'طول قاعدة المثلث الثاني', min: 40, max: 150, step: 5, v: 110 }, { k: 'dc', label: 'زاوية ج في المثلث الثاني (عند التحرير)', min: 15, max: 100, step: 1, v: 55 }], chk: [{ k: 'free', label: 'حرّر الزاوية الثانية (زاوية واحدة فقط مطابقة)' }],
     ok: (P) => triOK(P.A, P.B, P.C),
-    sample() { for (;;) { const P = { A: { x: rnd(15, 165), y: rnd(30, 230) }, B: { x: rnd(15, 165), y: rnd(30, 230) }, C: { x: rnd(15, 165), y: rnd(30, 230) }, k: rnd(40, 150) }; if (this.ok(P)) return P; } },
+    sample() { for (;;) { const P = { A: { x: rnd(15, 165), y: rnd(30, 230) }, B: { x: rnd(15, 165), y: rnd(30, 230) }, C: { x: rnd(15, 165), y: rnd(30, 230) }, k: rnd(40, 150) }; if (this.ok(P)) { P.dc = Math.round(ang(P.A, P.C, P.B)); return P; } } },
     calc(P) {
       const b = ang(P.A, P.B, P.C), c = ang(P.A, P.C, P.B), a = 180 - b - c, s = P.k;
-      const E = { x: 190, y: 230 }, F = { x: 190 + s, y: 230 };
-      const ED = s * Math.sin(c * D2R) / Math.sin((b + c) * D2R), D = { x: E.x + ED * Math.cos(b * D2R), y: E.y - ED * Math.sin(b * D2R) };
+      const c2raw = P.free ? P.dc : c; if (!P.free) P.dc = Math.round(c);
+      const c2 = Math.max(15, Math.min(c2raw, 170 - b));
+      const E = { x: 190, y: 230 };
+      const ED = s * Math.sin(c2 * D2R) / Math.sin((b + c2) * D2R);
+      let Dx = E.x + ED * Math.cos(b * D2R), Dy = E.y - ED * Math.sin(b * D2R), Fx = 190 + s, Fy = 230;
+      let f = 1;
+      [[Dx, Dy], [Fx, Fy]].forEach((p) => { const dx = p[0] - E.x, dy = p[1] - E.y; if (dx > 0) f = Math.min(f, 145 / dx); if (dx < 0) f = Math.min(f, -8 / dx); if (dy > 0) f = Math.min(f, 58 / dy); if (dy < 0) f = Math.min(f, -218 / dy); });
+      f = Math.min(1, f); Dx = E.x + (Dx - E.x) * f; Dy = E.y + (Dy - E.y) * f; Fx = E.x + (Fx - E.x) * f; Fy = E.y + (Fy - E.y) * f;
+      const D = { x: Dx, y: Dy }, F = { x: Fx, y: Fy };
       const a2 = ang(E, D, F);
       const r1 = dist(E, F) / dist(P.B, P.C), r2 = dist(D, E) / dist(P.A, P.B), r3 = dist(D, F) / dist(P.A, P.C);
-      return { rows: [['∠أ', a, 0], ['∠د (لم نحدده نحن)', a2, 1], ['هـ و / ب ج', r1], ['د هـ / أ ب', r2], ['د و / أ ج', r3]], eq: [[a, a2], [r1, r2], [r2, r3]], D, E, F };
+      const par = Math.abs(c2 - c) < 0.5 && c2raw <= 170 - b;
+      return { rows: [['∠أ', a, 0], ['∠د (لم نحدده نحن)', a2, 1], ['هـ و / ب ج', r1], ['د هـ / أ ب', r2], ['د و / أ ج', r3]], eq: par ? [[a, a2], [r1, r2], [r2, r3]] : [], D, E, F, par };
     },
-    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.poly([r.D, r.E, r.F], 1); d.angle(P.A, P.B, P.C); d.angle(P.A, P.C, P.B); d.angle(r.D, r.E, r.F); d.angle(r.D, r.F, r.E); },
+    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.poly([r.D, r.E, r.F], 1); d.angle(P.A, P.B, P.C); d.angle(P.A, P.C, P.B); d.angle(r.D, r.E, r.F); d.angle(r.D, r.F, r.E); d.tag(r.par ? 'زاويتان متساويتان: المثلثان متشابهان' : 'زاوية واحدة فقط متساوية: لا يتحقق التشابه', r.par); },
     concl: 'الزاوية الثالثة تساوت وحدها، ونسب الأضلاع الثلاث تساوت، لكل شكل جرّبته.',
     proof: 'البرهان: الزاوية الثالثة تساوي ١٨٠° ناقص الزاويتين، ثم قانون الجيب (أو رسم مواز) يثبت تناسب الأضلاع.'
   });
@@ -379,14 +399,14 @@ window.THEO = (function () {
   M.push({
     id: 'thales', g: 'g3', lesson: 'تشابه المثلثات', title: 'مستقيم يوازي ضلعًا في مثلث',
     claim: 'إذا رُسم مستقيم يوازي أحد أضلاع مثلث ويقطع الضلعين الآخرين، فإنه يقسمهما إلى أجزاء متناسبة، ويكوّن مثلثًا مشابهًا للمثلث الأصلي.',
-    cond: 'هـ و ∥ ب ج. النموذج يرسم المستقيم موازيًا دائمًا.',
+    cond: 'هـ و ∥ ب ج. النموذج يرسم المستقيم موازيًا دائمًا. فعّل «حرّر موضع هـ» وحرّك منزلقه ليكسر التوازي.',
     q: 'د هـ توازي ب ج. كيف تتقارن النسبتان أد : دب وأهـ : هـج؟',
     opts: ['متساويتان', 'الأولى أكبر', 'لا علاقة'], a: 0,
-    pts: { A: [170, 40], B: [50, 250], C: [300, 240] }, ctrl: [{ k: 't', label: 'موضع د على أب (نسبة أد : أب)', min: 0.2, max: 0.9, step: 0.05, v: 0.5 }],
+    pts: { A: [170, 40], B: [50, 250], C: [300, 240] }, ctrl: [{ k: 't', label: 'موضع د على أب (نسبة أد : أب)', min: 0.2, max: 0.9, step: 0.05, v: 0.5 }, { k: 't2', label: 'موضع هـ على أج (يُفعَّل عند التحرير)', min: 0.2, max: 0.9, step: 0.05, v: 0.5 }], chk: [{ k: 'free', label: 'حرّر موضع هـ (يكسر التوازي)' }],
     ok: (P) => triOK(P.A, P.B, P.C),
-    sample() { const P = M[0].sample(); return { A: P.A, B: P.B, C: P.C, t: Math.round(rnd(2, 9)) / 10 }; },
-    calc(P) { const D = add(P.A, mul(sub(P.B, P.A), P.t)), E = add(P.A, mul(sub(P.C, P.A), P.t)); const r1 = dist(P.A, D) / dist(D, P.B), r2 = dist(P.A, E) / dist(E, P.C); return { rows: [['أد : دب', r1], ['أهـ : هـج', r2], ['د هـ : ب ج', dist(D, E) / dist(P.B, P.C)], ['الزاوية ∠أدهـ − ∠أبج', Math.abs(ang(P.A, D, E) - ang(P.A, P.B, P.C))]], eq: [[r1, r2], [dist(D, E) / dist(P.B, P.C), P.t], [ang(P.A, D, E), ang(P.A, P.B, P.C)]], D, E }; },
-    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.seg(r.D, r.E, 1); d.label(r.D, 'د', -18, 4); d.label(r.E, 'هـ', 14, 8); },
+    sample() { const P = M[0].sample(); const t = Math.round(rnd(2, 9)) / 10; return { A: P.A, B: P.B, C: P.C, t, t2: t }; },
+    calc(P) { const t2 = P.free ? (P.t2 == null ? P.t : P.t2) : P.t; if (!P.free) P.t2 = P.t; const D = add(P.A, mul(sub(P.B, P.A), P.t)), E = add(P.A, mul(sub(P.C, P.A), t2)); const r1 = dist(P.A, D) / dist(D, P.B), r2 = dist(P.A, E) / dist(E, P.C); const par = Math.abs(P.t - t2) < 1e-9; return { rows: [['أد : دب', r1], ['أهـ : هـج', r2], ['د هـ : ب ج', dist(D, E) / dist(P.B, P.C)], ['الفرق ∠أدهـ − ∠أبج', Math.abs(ang(P.A, D, E) - ang(P.A, P.B, P.C)), 1]], eq: par ? [[r1, r2], [ang(P.A, D, E), ang(P.A, P.B, P.C)]] : [], D, E, par }; },
+    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.seg(r.D, r.E, 1); d.label(r.D, 'د', -18, 4); d.label(r.E, 'هـ', 14, 8); d.tag(r.par ? 'د هـ ∥ ب ج: النسبتان متساويتان' : 'د هـ غير موازٍ لـ ب ج: لا تتساوى النسب', r.par); },
     concl: 'النسبتان تساوتا دائمًا، والمثلث الصغير كان مشابهًا للكبير بنسبة أد : أب.',
     proof: 'البرهان: الزاويتان المتناظرتان متساويتان للتوازي، فالمثلثان متشابهان (زاويتان)، ومنه تناسب الأضلاع.'
   });
@@ -459,18 +479,19 @@ window.THEO = (function () {
   M.push({
     id: 'slopes', g: 'g3', lesson: 'العلاقة بين ميلي المستقيمين المتوازيين والمتعامدين', title: 'ميل المستقيمين المتوازيين والمتعامدين',
     claim: 'المستقيمان المتوازيان لهما الميل نفسه. والمستقيمان المتعامدان حاصل ضرب ميليهما = −١.',
-    cond: 'اختر الوضع «متوازيان» أو «متعامدان»، وحرّك النقطتين لتغيير المستقيم الأول (النموذج يمنع الوضع الرأسي لأن ميله غير معرّف).',
+    cond: 'اختر الوضع «متوازيان» أو «متعامدان»، وحرّك النقطتين لتغيير المستقيم الأول (النموذج يمنع الوضع الرأسي لأن ميله غير معرّف). فعّل «حرّر المستقيم الثاني» وحرّك منزلق زاويته لتكسر العلاقة — جرّب قيمًا قريبة من التعامد.',
     q: 'مستقيم ميله ٢، ومستقيم آخر عمودي عليه. كم ميل الثاني؟',
     opts: ['−٢', '−½', '½'], a: 1,
     pts: { P: [90, 220], Q: [190, 120] }, bnd: [15, 325, 15, 285],
-    ctrl: [{ k: 'mode', label: 'الوضع', min: 0, max: 1, step: 1, v: 1, names: ['متوازيان', 'متعامدان'] }],
+    ctrl: [{ k: 'mode', label: 'الوضع', min: 0, max: 1, step: 1, v: 1, names: ['متوازيان', 'متعامدان'] }, { k: 'a2', label: 'زاوية المستقيم الثاني (عند التحرير)', min: -80, max: 80, step: 1, v: 30 }], chk: [{ k: 'free', label: 'حرّر المستقيم الثاني (يكسر العلاقة)' }],
     ok: (P) => Math.abs(P.P.x - P.Q.x) > 12 && Math.abs(P.P.y - P.Q.y) > 12,
     sample() { for (;;) { const P = { P: { x: rnd(40, 300), y: rnd(40, 260) }, Q: { x: rnd(40, 300), y: rnd(40, 260) }, mode: Math.round(Math.random()) }; if (this.ok(P)) return P; } },
     calc(P) {
       const dx = P.Q.x - P.P.x, dy = -(P.Q.y - P.P.y), m1 = dy / dx;
-      const v2 = P.mode ? { x: -dy, y: dx } : { x: dx, y: dy };
+      const v2 = P.free ? { x: Math.cos(P.a2 * D2R), y: Math.sin(P.a2 * D2R) } : (P.mode ? { x: -dy, y: dx } : { x: dx, y: dy });
       const m2 = v2.y / v2.x;
-      return { rows: [['ميل المستقيم الأول', m1, 0], ['ميل الثاني', m2, 0], ['حاصل الضرب', m1 * m2, 1]], eq: [P.mode ? [m1 * m2, -1] : [m1, m2]], v2, mode: P.mode };
+      const par = P.mode ? Math.abs(m1 * m2 + 1) < 0.03 : Math.abs(m1 - m2) < 0.01;
+      return { rows: [['ميل المستقيم الأول', m1, 0], ['ميل الثاني', m2, 0], ['حاصل الضرب', m1 * m2, 1]], eq: par ? [P.mode ? [m1 * m2, -1] : [m1, m2]] : [], v2, mode: P.mode, par };
     },
     draw(P, d, r) {
       const ext = (p, v) => [add(p, mul({ x: v.x, y: -v.y }, -400 / Math.hypot(v.x, v.y))), add(p, mul({ x: v.x, y: -v.y }, 400 / Math.hypot(v.x, v.y)))];
@@ -480,7 +501,7 @@ window.THEO = (function () {
       d.txt({ x: mp.x + pp1.x, y: mp.y + pp1.y }, 'الأول');
       const n2 = Math.hypot(r.v2.x, r.v2.y), pp2 = { x: -r.v2.y / n2 * 15, y: r.v2.x / n2 * 15 };
       d.txt({ x: O2.x + pp2.x, y: O2.y + pp2.y }, 'الثاني', '#b8860b');
-      d.tag(r.mode ? 'الوضع الحالي: متعامدان (المستقيم الذهبي عمودي على مستقيم المقبضين)' : 'الوضع الحالي: متوازيان (المستقيم الذهبي يوازي مستقيم المقبضين)', true);
+      d.tag(r.par ? (r.mode ? 'متعامدان: حاصل ضرب الميلين = −١' : 'متوازيان: الميلان متساويان') : 'العلاقة غير محفوظة: لا تساوي مضمونًا ولا تعامد مضمونًا', r.par);
     },
     concl: 'في وضع التوازي تساوى الميلان، وفي وضع التعامد كان حاصل الضرب −١ دائمًا.',
     proof: 'البرهان: متجه الاتجاه (س، ص) يدور ٩٠° إلى (−ص، س)، فيصير الميل −س/ص، وحاصل ضربه في ص/س = −١.'
@@ -677,6 +698,7 @@ window.THEO = (function () {
     function drawProof(R) { gPr.innerHTML = ''; const st = m.steps && m.steps[stepIdx]; if (st && typeof st.draw === 'function') { tgt = gPr; try { st.draw(P, d, R); } catch (e) {} tgt = gDyn; } }
     function compute() {
       const R = m.calc(P);
+      ctrlRefs.forEach((r) => { if (typeof P[r.k] === 'number' && +r.inp.value !== P[r.k]) { r.inp.value = P[r.k]; r.val.textContent = r.c.names ? r.c.names[P[r.k]] : toAr(P[r.k], r.c.step < 1 ? 1 : 0); } });
       gDyn.innerHTML = '';
       if (m.grid) d.grid();
       m.draw(P, d, R); gDyn.querySelectorAll('.thtag').forEach((t) => { try { let fs = +t.getAttribute('font-size') || 13, w = t.getBBox().width; if (w > 322) { const tx = t.textContent, sp = []; for (let i = 0; i < tx.length; i++) if (tx[i] === ' ') sp.push(i); if (sp.length) { const mid = sp.reduce((a, b) => (Math.abs(b - tx.length / 2) < Math.abs(a - tx.length / 2) ? b : a)); t.textContent = ''; [tx.slice(0, mid), tx.slice(mid + 1)].forEach((ln, k) => { const ts = document.createElementNS(NS, 'tspan'); ts.setAttribute('x', 170); ts.setAttribute('dy', k ? 14 : 0); ts.textContent = ln; t.appendChild(ts); }); t.setAttribute('y', 14); fs = Math.min(fs, 11.5); t.setAttribute('font-size', fs); w = t.getBBox().width; } if (w > 322) { fs = Math.max(8, fs * 322 / w); t.setAttribute('font-size', fs.toFixed(2)); } } } catch (e) {} });
@@ -734,12 +756,12 @@ window.THEO = (function () {
     }
     function sync() { gHan.querySelectorAll('circle').forEach((c) => { const k = c.getAttribute('data-h'); if (!k) return; c.setAttribute('cx', P[k].x); c.setAttribute('cy', P[k].y); c.nextSibling.setAttribute('x', P[k].x); c.nextSibling.setAttribute('y', P[k].y + 4); }); }
     // أدوات التحكم
-    let tie = { checked: false };
+    let tie = { checked: false }; const ctrlRefs = [];
     const ctrl = document.getElementById('thCtrl'); ctrl.innerHTML = '';
     (m.ctrl || []).forEach((c) => {
       const lab = document.createElement('label'); lab.className = 'rng';
       const val = document.createElement('span'); const inp = document.createElement('input'); inp.type = 'range'; inp.min = c.min; inp.max = c.max; inp.step = c.step; inp.value = c.v; inp.id = 'th_' + c.k;
-      lab.appendChild(document.createTextNode(c.label + ' = ')); lab.appendChild(val); lab.appendChild(inp); ctrl.appendChild(lab);
+      lab.appendChild(document.createTextNode(c.label + ' = ')); lab.appendChild(val); lab.appendChild(inp); ctrl.appendChild(lab); ctrlRefs.push({ k: c.k, inp, val, c });
       const upd = () => {
         P[c.k] = +inp.value; if (m.ring && c.k === 'n') { P.th = regular(P.n); if (typeof placeRing === 'function') placeRing(); } val.textContent = c.names ? c.names[P[c.k]] : toAr(P[c.k], c.step < 1 ? 1 : 0);
         if (m.tie && c.k === 'b' && tie.checked) { P.c = P.b; document.getElementById('th_c').value = P.b; }
@@ -750,7 +772,7 @@ window.THEO = (function () {
       inp.oninput = upd; inp.addEventListener('change', upd); upd.call();
     });
     if (m.tie) { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox" id="thTie" checked> ساوِ الزاويتين ب وج'; ctrl.appendChild(lb); tie = lb.querySelector('input'); tie.onchange = () => { if (tie.checked) { P.c = P.b; document.getElementById('th_c').value = P.b; document.querySelectorAll('#thCtrl label span').forEach((s, i) => { s.textContent = toAr([P.b, P.c][i], 0); }); compute(); } }; }
-    (m.chk || []).forEach((c) => { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox"> ' + esc(c.label); ctrl.appendChild(lb); lb.querySelector('input').onchange = (e) => { P[c.k] = e.target.checked ? 1 : 0; compute(); }; });
+    (m.chk || []).forEach((c) => { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox" id="th_chk_' + c.k + '"> ' + esc(c.label); ctrl.appendChild(lb); lb.querySelector('input').onchange = (e) => { P[c.k] = e.target.checked ? 1 : 0; compute(); }; });
     if (m.tie) { P.c = P.b; }
     if (stShared0 && !stShared) { toastMsg('بعض إحداثيات الرابط غير صالحة لهذا النموذج'); }
     if (stShared) {
@@ -758,7 +780,7 @@ window.THEO = (function () {
       Object.keys(stShared.snap.n).forEach((k) => {
         if (typeof P[k] !== 'number') return;
         const inp = document.getElementById('th_' + k);
-        if (inp) { inp.value = stShared.snap.n[k]; inp.dispatchEvent(new Event('input')); applied = true; } else { P[k] = stShared.snap.n[k]; applied = true; }
+        if (inp) { inp.value = stShared.snap.n[k]; inp.dispatchEvent(new Event('input')); applied = true; } else { P[k] = stShared.snap.n[k]; applied = true; const cb = document.getElementById('th_chk_' + k); if (cb) cb.checked = !!stShared.snap.n[k]; }
       });
       if (m.ring && typeof P.n === 'number') { const t = []; for (let i = 0; i < 10; i++) t.push(-Math.PI / 2 + i * 2 * Math.PI / P.n); P.th = t; if (typeof placeRing === 'function') placeRing(); }
       if (Object.keys(stShared.snap.q).length) { if (applyPts(m, P, stShared.snap.q)) applied = true; else toastMsg('بعض إحداثيات الرابط غير صالحة لهذا النموذج'); }
@@ -842,7 +864,7 @@ window.THEO = (function () {
        trig: الدرس الرابع النسب المثلثية للزاوية الحادة، افتتاحية ص 163 (ظا = جا/جتا)
        special: الدرس الخامس النسب المثلثية لبعض الزوايا الخاصة، افتتاحية ص 176 + محتوى ص 177
        slopes: الدرس السادس، التوازي م١=م٢ ص 197 + التعامد م١×م٢=−١ ص 198
-       line-eq: الدرس السابع معادلة الخط المستقيم، ص=م س ص 210 + صيغة الميل ونقطة ص 211 */
+       line-eq: الدرس السابع معادلة الخط المستقيم، ص=م س ص 210 + ص=م س+ب ص 211 + صيغة الميل ونقطة ص−ص١=م(س−س١) ص 212 */
     'sim-poly': { u: 3, l: 1, s: 3, sk: 'التأكد من التشابه', cf: 3 },
     'sim-tri-aa': { u: 3, l: 2, s: 2, sk: 'تشابه المثلثات بحالة زاويتين', cf: 3 },
     'thales': { u: 3, l: 2, s: 0, sk: '', cf: 1 },
