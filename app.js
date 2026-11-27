@@ -567,7 +567,7 @@ function mruns(html) {
       return part;
     }
     if (inMath) return part;
-    return part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="rtl">' + m.trim().replace(/([0-9٠-٩]+)\/([0-9٠-٩]+)/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/\^([−\-]?[0-9٠-٩]+)/g, '<sup>$1</sup>') + '</span>');
+    return part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="rtl">' + m.trim().replace(/([0-9٠-٩]+)\/([0-9٠-٩]+)/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/\^([−\-]?[0-9٠-٩]+)/g, '<sup>$1</sup>').replace(/([²³]+)/g, '<sup>$1</sup>') + '</span>');
   }).join('');
 }
 function qVisual(cur) {
@@ -1528,7 +1528,7 @@ if (location.search.indexOf('saq=') === 1) saSearch(decodeURIComponent(location.
         } else if (it.type === 'book') {
           if (typeof p.t !== 'string' || !p.t.trim() || typeof p.p !== 'string' || !p.p.trim() || !it.id) return;
           var bpg = { cid: String(it.id), ft: String(p.ft || '').trim(), t: esc(p.t.slice(0, 120)), p: esc(p.p.slice(0, 1500)),
-            f: '<span dir="ltr">' + esc(String(p.ft || '').slice(0, 200)) + '</span>', ex: esc(String(p.ex || '').slice(0, 300)) };
+            f: '<span dir="rtl">' + esc(String(p.ft || '').slice(0, 200)) + '</span>', ex: esc(String(p.ex || '').slice(0, 300)) };
           if (typeof p.bk === 'string' && p.bk.trim()) {
             var bname = p.bk.trim().slice(0, 80), hh = 0;
             for (var hi = 0; hi < bname.length; hi++) hh = (hh * 31 + bname.charCodeAt(hi)) | 0;
