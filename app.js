@@ -409,7 +409,19 @@ function home() {
 function manhag() {
   let h = '<a class="back" href="#/">‹ رجوع</a><div class="section-title">المنهج المصري — اختر صفّك</div>';
   const nums = { g1: '١', g2: '٢', g3: '٣' };
-  for (const g of DATA.grades) h += `<a class="card" href="#/g/${g.id}"><span class="chip">${nums[g.id] || '•'}</span><span class="txt"><h2>${esc(g.title)}</h2><div class="sub">المرحلة الإعدادية</div></span><span class="arrow">‹</span></a>`;
+  const card = (g) => `<a class="card" href="#/g/${g.id}"><span class="chip">${nums[g.id] || '•'}</span><span class="txt"><h2>${esc(g.title)}</h2><div class="sub">المرحلة الإعدادية</div></span><span class="arrow">‹</span></a>`;
+  const stages = DATA._stages && Object.keys(DATA._stages).length ? Object.keys(DATA._stages).map((k) => ({ sid: k, t: DATA._stages[k].title, ord: DATA._stages[k].ord == null ? 99 : DATA._stages[k].ord, grades: Array.isArray(DATA._stages[k].grades) ? DATA._stages[k].grades : [] })).sort((a, b) => a.ord - b.ord) : null;
+  if (!stages) { for (const g of DATA.grades) h += card(g); return h; }
+  const inStage = {};
+  stages.forEach((st) => st.grades.forEach((gid) => { inStage[gid] = st.sid; }));
+  stages.forEach((st) => {
+    const gs = st.grades.map((gid) => DATA.grades.find((g) => g.id === gid)).filter(Boolean);
+    if (!gs.length) return;
+    h += `<div class="section-title" style="margin-top:14px">${esc(st.t)}</div>`;
+    gs.forEach((g) => { h += card(g); });
+  });
+  const rest = DATA.grades.filter((g) => !inStage[g.id]);
+  rest.forEach((g) => { h += card(g); });
   return h;
 }
 function vidOrder(l) { return l.videos.map((v, vi) => ({ v, vi })).sort((x, y) => ((x.v.ord || x.vi + 1) - (y.v.ord || y.vi + 1)) || (x.vi - y.vi)); }
@@ -1718,6 +1730,22 @@ if (__saq) {
           uu.title = p.title.trim().slice(0, 120);
           var uo = parseInt(p.ord, 10); if (uo >= 1 && uo <= 999) uu.ord = uo;
           applied++;
+        } else if (it.type === 'grade') {
+          if (typeof p.id !== 'string' || !/^[a-z0-9_-]{1,24}$/.test(p.id) || typeof p.title !== 'string' || !p.title.trim()) return 0;
+          var ge = gradeOf(p.id);
+          if (!ge) { DATA.grades.push({ id: p.id, title: p.title.trim().slice(0, 120), lessons: [] }); }
+          else { ge.title = p.title.trim().slice(0, 120); }
+          applied++;
+          return 1;
+        } else if (it.type === 'stage') {
+          if (typeof p.sid !== 'string' || !/^[a-z0-9_-]{1,24}$/.test(p.sid) || typeof p.title !== 'string' || !p.title.trim()) return 0;
+          DATA._stages = DATA._stages || {};
+          var sg = DATA._stages[p.sid] || (DATA._stages[p.sid] = {});
+          sg.title = p.title.trim().slice(0, 120);
+          sg.ord = (typeof p.ord === 'number' && p.ord >= 0 && p.ord <= 99) ? p.ord : 99;
+          if (Array.isArray(p.grades)) sg.grades = p.grades.filter(function (x) { return typeof x === 'string' && !!gradeOf(x); }).slice(0, 20);
+          applied++;
+          return 1;
         } else if (it.type === 'skill') {
           var gs = gradeOf(p.g);
           if (!gs || typeof p.skill !== 'string' || !p.skill.trim()) return;
