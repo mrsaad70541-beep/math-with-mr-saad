@@ -430,7 +430,7 @@ window.LAB = (function () {
     return `<a class="back" href="#/lab">‹ مختبر الرياضيات</a><div class="section-title">${esc(e.title)}</div>
       ${e.desc ? `<div class="labcard problem"><p>${esc(e.desc)}</p></div>` : ''}
       <div class="labcard stage" id="labStage">
-        <div class="labtools"><button class="btn2 ghost sm" id="labReset">إعادة التجربة</button><button class="btn2 ghost sm" id="labFull">ملء الشاشة</button></div>
+        <div class="labtools"><button class="btn2 ghost sm" id="labReset">إعادة التجربة</button><span class="labzoom" id="labSpeedWrap" role="group" aria-label="سرعة الحركة" hidden></span><button class="btn2 ghost sm" id="labFull">ملء الشاشة</button></div>
         <iframe id="labFrame" class="labframe" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(e.title)}" loading="lazy"></iframe>
       </div>
       <div class="lactions">${saveBtn('#/lab/' + e.id, 'تجربة: ' + e.title + ' — مختبر الرياضيات')}<button class="btn2 sm ghost" onclick="shareLink(this.dataset.t, '${WSHARE}${esc(e.id.slice(2))}', 'تجربة تفاعلية في تطبيق رياضيات مع مستر سعد')" data-t="${esc(e.title)} — رياضيات مع مستر سعد">مشاركة التجربة</button></div>`;
@@ -442,10 +442,36 @@ window.LAB = (function () {
     if (!e) return labHome();
     return expShell(e);
   }
+  /* عقد سرعة الحركة للتجارب المستوردة: التجربة تعلن الدعم برسالة
+     {saadExp:'ready', caps:['speed'], speeds:[0.5,1,2]} (speeds اختيارية)، فيظهر التحكم.
+     عند الاختيار يرسل التطبيق {saadExp:'speed', value:v}. بلا إعلان دعم لا يظهر أي تحكم سرعة. */
   function wireCms(e) {
     const f = document.getElementById('labFrame');
     if (!f) return;
-    const load = () => { f.srcdoc = cmsDoc(e.html); };
+    const wrap = document.getElementById('labSpeedWrap');
+    const onMsg = (ev) => {
+      if (!wrap || ev.source !== f.contentWindow) return;
+      const d = ev.data || {};
+      if (d.saadExp === 'ready' && Array.isArray(d.caps) && d.caps.indexOf('speed') !== -1) {
+        const vs = (Array.isArray(d.speeds) ? d.speeds : [0.5, 1, 2]).filter((v) => typeof v === 'number' && v > 0 && v <= 8).slice(0, 6);
+        if (!vs.length) return;
+        const fmtV = (v) => String(v).replace(/[0-9]/g, (c) => '٠١٢٣٤٥٦٧٨٩'[c]).replace('.', '٫');
+        wrap.innerHTML = '<b class="labspdlabel">السرعة</b>' + vs.map((v) => `<button class="btn2 ghost sm labspeed" data-v="${v}" aria-pressed="${v === 1}">${fmtV(v)}×</button>`).join('');
+        wrap.hidden = false;
+        wrap.querySelectorAll('.labspeed').forEach((btn) => {
+          btn.onclick = () => {
+            wrap.querySelectorAll('.labspeed').forEach((x) => { x.classList.remove('on'); x.setAttribute('aria-pressed', 'false'); });
+            btn.classList.add('on'); btn.setAttribute('aria-pressed', 'true');
+            f.contentWindow.postMessage({ saadExp: 'speed', value: +btn.dataset.v }, '*');
+          };
+          if (+btn.dataset.v === 1) btn.classList.add('on');
+        });
+      }
+    };
+    if (window.__labMsgH) window.removeEventListener('message', window.__labMsgH);
+    window.__labMsgH = onMsg;
+    window.addEventListener('message', onMsg);
+    const load = () => { if (wrap) { wrap.hidden = true; wrap.innerHTML = ''; } f.srcdoc = cmsDoc(e.html); };
     load();
     document.getElementById('labReset').onclick = load;
     document.getElementById('labFull').onclick = () => {
