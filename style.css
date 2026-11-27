@@ -415,7 +415,7 @@ a.card:active { transform: scale(.99); }
 .live-row{font-size:15px;background:var(--bg);border-radius:var(--r-sm);padding:8px 12px;text-align:center}
 .live-row .gold,.gold{color:var(--gold-deep)}
 .live-row.dim,.dim{color:var(--mut)}
-.labtools{display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px}
+.labtools{display:flex;flex-wrap:wrap;gap:6px 8px;justify-content:flex-end;margin-bottom:8px}
 .btn2.sm{padding:6px 12px;font-size:12px}
 .labsvg{background:var(--bg);border-radius:var(--r-sm);padding:6px;overflow:auto}
 .labzoom{display:inline-flex;align-items:center;gap:6px}
