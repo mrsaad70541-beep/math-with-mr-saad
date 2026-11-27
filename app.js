@@ -1699,8 +1699,10 @@ if (__saq) {
     }
     return false;
   }
+  var THEO_META_LIVE = false;
   function mergeItems(rawItems) {
     var applied = 0;
+          var THEO_META = {}; var THEO_META_U = {};
     var items = rawItems.slice().sort(function (a, b) {
       return (a.type === 'quiz' ? -1 : 0) - (b.type === 'quiz' ? -1 : 0);
     });
@@ -1777,6 +1779,14 @@ if (__saq) {
         } else if (it.type === 'experiment') {
           if (!LAB.addCms(it, p)) return;
           SEARCH.push({ t: 'تجربة: ' + String(it.title || '').slice(0, 120) + ' — مختبر الرياضيات', u: '#/lab/x-' + it.id });
+          applied++;
+        } else if (it.type === 'thm') {
+          if (typeof p.id !== 'string' || !/^[a-z0-9-]{1,40}$/.test(p.id)) return;
+          if (!window.THEO || !THEO.models.some(function (x) { return x.id === p.id; })) return;
+          // Duplicate precedence (explicit): the most recently UPDATED override wins;
+          // ties break by created_at then item id — deterministic regardless of list order.
+          var ukey = String(it.updated_at || '') + '|' + String(it.created_at || '') + '|' + String(it.id || '');
+          if (!(p.id in THEO_META) || ukey >= (THEO_META_U[p.id] || '')) { THEO_META[p.id] = p; THEO_META_U[p.id] = ukey; }
           applied++;
         } else if (it.type === 'notice') {
           if (typeof p.text !== 'string' || !p.text.trim() || !it.id || !/^[A-Za-z0-9_-]{1,64}$/.test(String(it.id))) return;
@@ -1895,6 +1905,7 @@ if (__saq) {
         }
       } catch (e) { /* one bad item never breaks the app */ }
     });
+    if (window.THEO && THEO.applyMeta && (Object.keys(THEO_META).length || THEO_META_LIVE)) { THEO.applyMeta(THEO_META); THEO_META_LIVE = true; }
     return applied;
   }
   function metaOf(p) {
