@@ -91,7 +91,13 @@ window.LAB = (function () {
     if (on && live.parentNode !== st) { labDockHome = live.parentNode; st.appendChild(live); }
     else if (!on && labDockHome && live.parentNode === st) { labDockHome.appendChild(live); labDockHome = null; }
   }
-  document.addEventListener('fullscreenchange', function () { labDock(!!document.fullscreenElement && document.fullscreenElement.id === 'labStage'); });
+  document.addEventListener('fullscreenchange', function () {
+    const inFs = !!document.fullscreenElement && document.fullscreenElement.id === 'labStage';
+    labDock(inFs);
+    const b = document.getElementById('labFull');
+    if (b && (inFs || !document.fullscreenElement)) b.textContent = inFs ? 'إغلاق ملء الشاشة' : 'ملء الشاشة';
+    if (!document.fullscreenElement) { const st = document.getElementById('labStage'); if (st) st.classList.remove('labfs'); }
+  });
   function labToggleFs(st) {
     if (document.fullscreenElement) { document.exitFullscreen(); return; }
     if (st.classList.contains('labfs')) { st.classList.remove('labfs'); labDock(false); document.getElementById('labFull').textContent = 'ملء الشاشة'; return; }
