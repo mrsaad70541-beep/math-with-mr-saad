@@ -129,6 +129,47 @@ function shareLink(title, u, text) {
   else toast('انسخ الرابط من شريط العنوان');
 }
 window.shareLink = shareLink;
+function showQR(title, u) {
+  const url = fullUrl(u);
+  if (document.getElementById('qrwrap')) return;
+  if (!document.getElementById('qrstyle')) {
+    const st = document.createElement('style'); st.id = 'qrstyle';
+    st.textContent = '#qrwrap button:focus-visible{outline:3px solid #E8A33D;outline-offset:2px}';
+    document.head.appendChild(st);
+  }
+  const prevFocus = document.activeElement;
+  const w = document.createElement('div');
+  w.id = 'qrwrap'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true'); w.setAttribute('aria-label', 'رمز QR للمشاركة');
+  w.style.cssText = 'position:fixed;inset:0;z-index:70;background:rgba(7,12,20,.6);display:flex;align-items:center;justify-content:center;padding:16px';
+  const c = document.createElement('div');
+  c.style.cssText = 'background:#fff;color:#102B49;border-radius:16px;padding:18px;max-width:320px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4)';
+  c.innerHTML = '<div style="font-weight:800;margin-bottom:10px">' + esc(title || 'مشاركة الرابط') + '</div><canvas id="qrcnv" width="264" height="264" style="width:264px;height:auto;max-width:100%" role="img" aria-label="رمز QR يفتح الرابط"></canvas><div style="font-size:12px;direction:ltr;word-break:break-all;color:#456;margin:8px 0">' + esc(url) + '</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button type="button" id="qrcopy" style="background:#102B49;color:#fff;border:0;border-radius:10px;padding:8px 14px;font:inherit">نسخ الرابط</button><button type="button" id="qrclose" style="background:#eee;color:#102B49;border:0;border-radius:10px;padding:8px 14px;font:inherit">إغلاق</button></div>';
+  w.appendChild(c); document.body.appendChild(w);
+  try {
+    const q = qrcode(0, 'M'); q.addData(url); q.make();
+    const n = q.getModuleCount(), ctx = document.getElementById('qrcnv').getContext('2d'), sc = 264 / (n + 8);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 264, 264); ctx.fillStyle = '#102B49';
+    for (let r = 0; r < n; r++) for (let col = 0; col < n; col++) if (q.isDark(r, col)) ctx.fillRect((col + 4) * sc, (r + 4) * sc, Math.ceil(sc), Math.ceil(sc));
+  } catch (e) { const d = document.createElement('div'); d.textContent = 'تعذر إنشاء الرمز'; document.getElementById('qrcnv').replaceWith(d); }
+  const focusables = [document.getElementById('qrcopy'), document.getElementById('qrclose')];
+  const close = () => { w.remove(); document.removeEventListener('keydown', onk, true); if (prevFocus && prevFocus.focus) prevFocus.focus(); };
+  const onk = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const i = focusables.indexOf(document.activeElement);
+      const next = e.shiftKey ? (i <= 0 ? focusables.length - 1 : i - 1) : (i < 0 || i === focusables.length - 1 ? 0 : i + 1);
+      focusables[next].focus();
+    }
+  };
+  document.addEventListener('keydown', onk, true);
+  w.addEventListener('click', (e) => { if (e.target === w) close(); });
+  document.getElementById('qrclose').onclick = close;
+  document.getElementById('qrcopy').onclick = () => { if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('اتنسخ الرابط'), () => toast('انسخ الرابط يدويًا')); else toast('انسخ الرابط يدويًا'); };
+  document.getElementById('qrclose').focus();
+}
+window.showQR = showQR;
+function qrBtn(u, title) { return `<button class="savebtn" onclick="showQR('${esc(title || '')}', '${u}')" aria-label="رمز QR للرابط" title="رمز QR">${IC.qr}</button>`; }
 
 /* ===== Arabic-normalizing search ===== */
 function norm(s) {
@@ -212,6 +253,7 @@ const IC = {
   folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
   mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21Z"/></svg>',
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5Z"/></svg>',
+  qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 21h1M17 17h4v4h-4z" fill="currentColor" stroke="none"/></svg>',
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></svg>',
   award: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5.5"/><path d="m8.6 13.5-1.8 7 5.2-3 5.2 3-1.8-7"/></svg>',
   target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
@@ -343,7 +385,7 @@ function lesson(gid, li) {
   if (!l || l._gone) return `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="note">هذا الدرس غير متاح حاليًا</div>`;
   const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
-  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '${l.cid ? WSHARE + esc(l.cid) : '#/g/' + gid + '/l/' + li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button></div>`;
+  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '${l.cid ? WSHARE + esc(l.cid) : '#/g/' + gid + '/l/' + li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button>${qrBtn('#/g/' + gid + '/l/' + li, l.title)}</div>`;
   if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
   if (l.term || l.unit) h += `<div class="lmeta"><p>${esc([l.term, l.unit].filter(Boolean).join(' · '))}</p></div>`;
   if (l.skills && l.skills.length) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${l.skills.map((x) => `<span class="skillchip">${esc(x)}</span>`).join('')}</div></div>`;
@@ -490,6 +532,7 @@ function watch(gid, li, vi) {
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
+    ${qrBtn(u, v.n)}
     ${nu ? `<a class="nextbtn" href="${nu}">المهارة التالية ‹</a>` : ''}
   </div>
   <div id="vtools" class="vtools" hidden></div><div id="vnext" class="vnextcard" hidden></div>`;
@@ -1111,6 +1154,7 @@ function watchSample(yt) {
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
+    ${qrBtn(u, v.n)}
   </div>`;
 }
 
