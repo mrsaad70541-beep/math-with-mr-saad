@@ -543,6 +543,27 @@ window.THEO = (function () {
     return { n, q };
   };
   /* تطبيق إحداثيات على P مع قيود النموذج (حدود الرسم، قيد الدائرة، fix، ok) — يعيد false إن كانت الحالة غير صالحة */
+  /* تحقّق نطاق النموذج: اللقطة المخزّنة يجب أن تطابق قيود النموذج فعليًا، وأي قيمة خارج النطاق تُرفض ولا تُطابَق بالتثبيت */
+  const inModelRange = (m, sn) => {
+    const EPS = 0.5;
+    for (const k of Object.keys(sn.n || {})) {
+      const c = (m.ctrl || []).find((x) => x.k === k);
+      if (c) {
+        if (sn.n[k] < c.min - EPS || sn.n[k] > c.max + EPS) return false;
+        if (c.step) { const t = (sn.n[k] - c.min) / c.step; if (Math.abs(t - Math.round(t)) > 0.02) return false; }
+      }
+      else if ((m.chk || []).some((x) => x.k === k)) { if (sn.n[k] !== 0 && sn.n[k] !== 1) return false; }
+    }
+    const bnd = m.bnd || [15, 325, 15, 285];
+    for (const k of Object.keys(sn.q || {})) {
+      if (!m.pts || !m.pts[k]) return false;
+      const a = sn.q[k];
+      if (a[0] < bnd[0] - EPS || a[0] > bnd[1] + EPS || a[1] < (bnd[2] != null ? bnd[2] : 15) - EPS || a[1] > (bnd[3] != null ? bnd[3] : 285) + EPS) return false;
+      /* إسقاط النقاط المقيدة بالدائرة شعاعي من المركز: يحافظ على الاتجاه والزوايا، فلا يغيّر الهندسة المشتقة؛ يُرفض فقط مركز الدائرة نفسه (اتجاه غير معرّف) */
+      if (m.circ && (k === 'P' || k === 'Q')) { const dx = a[0] - m.circ.c[0], dy = a[1] - m.circ.c[1]; if (Math.hypot(dx, dy) < 2) return false; }
+    }
+    return true;
+  };
   const applyPts = (m, P, q) => {
     const bnd = m.bnd || [15, 325, 15, 285], old = {};
     const keys = Object.keys(q || {});
@@ -576,6 +597,7 @@ window.THEO = (function () {
   /* اشتقاق الحالة من حساب النموذج: يعيد null إن كانت اللقطة غير صالحة أو الشرط غير متحقق */
   const deriveCase = (m, sn) => {
     try {
+      if (!inModelRange(m, sn)) return null;
       const P = freshP(m); applyNums(m, P, sn.n);
       if (!applyPts(m, P, sn.q)) return null;
       if (m.tie) P.c = P.b;
@@ -616,7 +638,7 @@ window.THEO = (function () {
     (m.chk || []).forEach((c) => { P[c.k] = 0; });
     const regular = (n) => { const t = []; for (let i = 0; i < 10; i++) t.push(-Math.PI / 2 + i * 2 * Math.PI / n); return t; };
     if (m.ring) P.th = regular(P.n);
-    const obs = []; const stShared = hashState(); (stShared ? stShared.o : loadSnaps(m.id)).forEach((sn) => { const dc = deriveCase(m, sn); if (dc && !obs.some((o) => o.key === dc.key)) obs.push(dc); });
+    const obs = []; const stShared0 = hashState(); const stShared = stShared0 && inModelRange(m, stShared0.snap) ? stShared0 : null; (stShared ? stShared.o : loadSnaps(m.id)).forEach((sn) => { const dc = deriveCase(m, sn); if (dc && !obs.some((o) => o.key === dc.key)) obs.push(dc); });
     let last = null; let editIdx = -1; let stepIdx = -1; let tgt = gDyn;
     const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || tgt).appendChild(e); return e; };
     const pts = (ps) => ps.map((p) => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
@@ -730,6 +752,7 @@ window.THEO = (function () {
     if (m.tie) { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox" id="thTie" checked> ساوِ الزاويتين ب وج'; ctrl.appendChild(lb); tie = lb.querySelector('input'); tie.onchange = () => { if (tie.checked) { P.c = P.b; document.getElementById('th_c').value = P.b; document.querySelectorAll('#thCtrl label span').forEach((s, i) => { s.textContent = toAr([P.b, P.c][i], 0); }); compute(); } }; }
     (m.chk || []).forEach((c) => { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox"> ' + esc(c.label); ctrl.appendChild(lb); lb.querySelector('input').onchange = (e) => { P[c.k] = e.target.checked ? 1 : 0; compute(); }; });
     if (m.tie) { P.c = P.b; }
+    if (stShared0 && !stShared) { toastMsg('بعض إحداثيات الرابط غير صالحة لهذا النموذج'); }
     if (stShared) {
       let applied = false;
       Object.keys(stShared.snap.n).forEach((k) => {
