@@ -450,6 +450,11 @@ function trackGroup(tid, ci) {
   return h;
 }
 /* ===== video player extras: resume, speed, next (YouTube IFrame API, plain iframe stays as fallback) ===== */
+function voffHtml() {
+  return '<div class="voff" role="status"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l22 22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg><b>الفيديو يحتاج اتصالًا بالإنترنت</b><span>تحقق من اتصالك بالشبكة ثم اضغط إعادة المحاولة.</span><button type="button" class="btn2 gold" onclick="location.reload()">إعادة المحاولة</button></div>';
+}
+window.addEventListener('online', function () { if (document.querySelector('.voff')) route(); });
+window.addEventListener('offline', function () { const pw = document.querySelector('.playerwrap[data-yt]'); if (pw && !pw.querySelector('.voff')) pw.innerHTML = voffHtml(); });
 const VPOS = 'saad.vpos.v1';
 const VP = { pl: null, iv: 0, key: '' };
 function vpGet() { try { return JSON.parse(localStorage.getItem(VPOS) || '{}'); } catch (e) { return {}; } }
@@ -460,6 +465,7 @@ function vpStop() { if (VP.iv) clearInterval(VP.iv); VP.iv = 0; VP.pl = null; }
 function vpInit(yt, nu, nname, tries) {
   vpStop();
   const fr = document.getElementById('ytframe'), tools = document.getElementById('vtools');
+  if (!fr) return; // offline placeholder shown instead of the player
   if (!fr || !tools) { if ((tries || 0) < 25) setTimeout(() => vpInit(yt, nu, nname, (tries || 0) + 1), 120); return; }
   if (fr.src.indexOf(yt) < 0) return; // stale retry from a previous route
   let saved = vpGet()[yt];
@@ -528,7 +534,7 @@ function watch(gid, li, vi) {
   setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
   return `<a class="back" href="#/g/${g.id}/l/${li}">‹ ${esc(l.title)}</a>
   <div class="section-title">${esc(v.n)}</div>
-  <div class="playerwrap"><iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${v.yt}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${v.yt}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
@@ -1150,7 +1156,7 @@ function watchSample(yt) {
   setLast(u, v.n);
   return `<a class="back" href="#/t/leh">‹ ليه؟</a>
   <div class="section-title">${esc(v.n)}</div>
-  <div class="playerwrap"><iframe src="https://www.youtube-nocookie.com/embed/${v.yt}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${v.yt}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
