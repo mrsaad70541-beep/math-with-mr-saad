@@ -67,7 +67,7 @@ window.THEO = (function () {
     steps: [
       { say: 'نرسم من الرأس أ مستقيمًا يوازي الضلع ب ج.', proofIdx: 0, draw(P, d) { const u = sub(P.C, P.B), n = Math.hypot(u.x, u.y), ux = u.x / n, uy = u.y / n; d.seg({ x: P.A.x - ux * 130, y: P.A.y - uy * 130 }, { x: P.A.x + ux * 130, y: P.A.y + uy * 130 }, 2); } },
       { say: 'الزاويتان المتبادلتان داخلياً عند أ تساويان زاويتي ب وج.', proofIdx: 1, draw(P, d) { const u = sub(P.C, P.B), n = Math.hypot(u.x, u.y), ux = u.x / n, uy = u.y / n; const a1 = { x: P.A.x - ux * 130, y: P.A.y - uy * 130 }, a2 = { x: P.A.x + ux * 130, y: P.A.y + uy * 130 }; d.seg(a1, a2, 2); d.angle(a1, P.A, P.B); d.angle(a2, P.A, P.C); } },
-      { say: 'فتكوّن الزوايا الثلاث عند أ زاوية مستقيمة قياسها ١٨٠ درجة.', proofIdx: 1, draw(P, d) { const u = sub(P.C, P.B), n = Math.hypot(u.x, u.y), ux = u.x / n, uy = u.y / n; const a1 = { x: P.A.x - ux * 130, y: P.A.y - uy * 130 }, a2 = { x: P.A.x + ux * 130, y: P.A.y + uy * 130 }; d.seg(a1, a2, 2); d.angle(a1, P.A, P.B); d.angle(a2, P.A, P.C); d.angle(a1, P.A, a2); } },
+      { say: 'فتكوّن الزوايا الثلاث عند أ زاوية مستقيمة قياسها ١٨٠ درجة.', proofIdx: 1, draw(P, d) { const u = sub(P.C, P.B), n = Math.hypot(u.x, u.y), ux = u.x / n, uy = u.y / n; const a1 = { x: P.A.x - ux * 130, y: P.A.y - uy * 130 }, a2 = { x: P.A.x + ux * 130, y: P.A.y + uy * 130 }; d.seg(a1, a2, 2); d.angle(a1, P.A, P.B); d.angle(a2, P.A, P.C); d.angle(a1, P.A, a2, ' ', 30); d.txt({ x: P.A.x, y: Math.max(16, P.A.y - 36) }, '١٨٠°'); } },
     ],
     proof: 'البرهان: نرسم من أحد الرءوس مستقيمًا يوازي الضلع المقابل. الزاويتان المتبادلتان تساويان زاويتين من المثلث، فيكوّن مع الزاوية الثالثة زاوية مستقيمة ١٨٠°.'
   });
@@ -696,8 +696,8 @@ window.THEO = (function () {
       },
       tick(a, b) { const c = mid(a, b), u = sub(b, a), n = Math.hypot(u.x, u.y), p = { x: -u.y / n * 6, y: u.x / n * 6 }; el('line', { x1: c.x - p.x, y1: c.y - p.y, x2: c.x + p.x, y2: c.y + p.y, stroke: '#b8860b', 'stroke-width': 2.4 }); },
       rightMark(v, a, b) { const u = sub(a, v), w = sub(b, v), nu = Math.hypot(u.x, u.y), nw = Math.hypot(w.x, w.y), s = 12; const p1 = { x: v.x + u.x / nu * s, y: v.y + u.y / nu * s }, p3 = { x: v.x + w.x / nw * s, y: v.y + w.y / nw * s }, p2 = { x: p1.x + p3.x - v.x, y: p1.y + p3.y - v.y }; el('polyline', { points: pts([p1, p2, p3]), fill: 'none', stroke: 'currentColor', 'stroke-width': 1.4 }); },
-      angle(a, v, b, txt) {
-        const r = 22, u = sub(a, v), w = sub(b, v), au = Math.atan2(u.y, u.x), aw = Math.atan2(w.y, w.x);
+      angle(a, v, b, txt, rr) {
+        const r = rr || 22, u = sub(a, v), w = sub(b, v), au = Math.atan2(u.y, u.x), aw = Math.atan2(w.y, w.x);
         let da = aw - au; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         const p1 = { x: v.x + r * Math.cos(au), y: v.y + r * Math.sin(au) }, p2 = { x: v.x + r * Math.cos(aw), y: v.y + r * Math.sin(aw) };
         el('path', { d: 'M' + p1.x + ',' + p1.y + ' A' + r + ',' + r + ' 0 0 ' + (da > 0 ? 1 : 0) + ' ' + p2.x + ',' + p2.y, fill: 'rgba(184,134,11,.25)', stroke: '#b8860b', 'stroke-width': 1.6 });
@@ -709,7 +709,22 @@ window.THEO = (function () {
       const cap = el('text', { x: 170, y: 20 + nn * 62 + 14, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: 'currentColor' }); cap.textContent = 'كل نقطة = عامل من الأساس أ؛ عدد العوامل الكلي = م × ن'; }
     };
     const out = document.getElementById('thRows'), status = document.getElementById('thStatus');
-    function drawProof(R) { gPr.innerHTML = ''; const st = m.steps && m.steps[stepIdx]; if (st && typeof st.draw === 'function') { tgt = gPr; try { st.draw(P, d, R); } catch (e) {} tgt = gDyn; } }
+    function animateStep(layer) {
+      Array.from(layer.children).forEach((el2, i) => {
+        const delay = i * 0.22;
+        el2.style.opacity = '0';
+        const dash = el2.getAttribute && el2.getAttribute('stroke-dasharray');
+        let len = 0;
+        if (!dash && el2.getTotalLength) { try { len = el2.getTotalLength(); } catch (e) { len = 0; } }
+        if (len > 0) { el2.style.strokeDasharray = String(len); el2.style.strokeDashoffset = String(len); }
+        if (el2.getBoundingClientRect) el2.getBoundingClientRect();
+        el2.style.transition = 'opacity .45s ease ' + delay + 's' + (len > 0 ? ', stroke-dashoffset .6s ease ' + delay + 's' : '');
+        el2.style.opacity = '1';
+        if (len > 0) el2.style.strokeDashoffset = '0';
+        setTimeout(() => { el2.style.transition = ''; if (len > 0) { el2.style.strokeDasharray = ''; el2.style.strokeDashoffset = ''; } }, (delay + 0.9) * 1000);
+      });
+    }
+    function drawProof(R) { gPr.innerHTML = ''; const st = m.steps && m.steps[stepIdx]; if (st && typeof st.draw === 'function') { tgt = gPr; try { st.draw(P, d, R); animateStep(gPr); } catch (e) {} tgt = gDyn; } }
     function compute() {
       const R = m.calc(P);
       ctrlRefs.forEach((r) => { if (typeof P[r.k] === 'number' && +r.inp.value !== P[r.k]) { r.inp.value = P[r.k]; r.val.textContent = r.c.names ? r.c.names[P[r.k]] : toAr(P[r.k], r.c.step < 1 ? 1 : 0); } });
