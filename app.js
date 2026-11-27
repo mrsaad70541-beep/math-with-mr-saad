@@ -181,9 +181,11 @@ function norm(s) {
 const SEARCH = [];
 DATA.grades.forEach((g) => g.lessons.forEach((l, li) => {
   if (l._gone) return;
-  l.videos.forEach((v, vi) => { if (v.yt && !v._gone) SEARCH.push({ t: `${v.n} — ${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}` }); });
-  SEARCH.push({ t: `درس ${l.title} — ${g.title}`, u: `#/g/${g.id}/l/${li}` });
-  if (l.quiz) SEARCH.push({ t: `اختبار درس ${l.title}`, u: '#/test/' + l.quiz });
+  const lm0 = (typeof LESSON_META !== 'undefined' && LESSON_META) ? LESSON_META[g.id + '/' + li] : null;
+  const lk = ((l.skills && l.skills.length ? l.skills : (lm0 && lm0.skills) || [])).join(' ');
+  l.videos.forEach((v, vi) => { if (v.yt && !v._gone) SEARCH.push({ t: `${v.n} — ${l.title} · ${g.title}`, u: `#/g/${g.id}/l/${li}/v/${vi}`, k: lk }); });
+  SEARCH.push({ t: `درس ${l.title} — ${g.title}`, u: `#/g/${g.id}/l/${li}`, k: lk });
+  if (l.quiz) SEARCH.push({ t: `اختبار درس ${l.title}`, u: '#/test/' + l.quiz, k: lk });
 }));
 DATA.grades.forEach((g) => SEARCH.push({ t: g.title + ' — المنهج المصري', u: `#/g/${g.id}` }));
 SEARCH.push({ t: 'المنهج المصري — الصفوف الإعدادية', u: '#/manhag' });
