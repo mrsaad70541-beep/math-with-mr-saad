@@ -1,6 +1,6 @@
-const C = 'saad-public-v135';
+const C = 'saad-public-v136';
 self.addEventListener('install', (e) => e.waitUntil(
-  caches.open(C).then((c) => c.addAll(['./','./index.html','./style.css?v=53','./data.js?v=10','./lab.js?v=14','./theorems.js?v=39','./app.js?v=73','./qr.js?v=1','./manifest.webmanifest','./icon.svg','./favicon.svg','./s/g1-l0-v0.html','./s/g2-l0-v0.html','./s/g2-l0-v1.html','./s/g3-l0-v0.html','./s/g3-l0-v1.html','./s/g3-l0-v2.html','./s/lesson-g1-l0.html','./s/lesson-g2-l0.html','./s/lesson-g3-l0.html'])).then(() => self.skipWaiting())
+  caches.open(C).then((c) => c.addAll(['./','./index.html','./style.css?v=54','./data.js?v=10','./lab.js?v=14','./theorems.js?v=42','./app.js?v=73','./qr.js?v=1','./manifest.webmanifest','./icon.svg','./favicon.svg','./s/g1-l0-v0.html','./s/g2-l0-v0.html','./s/g2-l0-v1.html','./s/g3-l0-v0.html','./s/g3-l0-v1.html','./s/g3-l0-v2.html','./s/lesson-g1-l0.html','./s/lesson-g2-l0.html','./s/lesson-g3-l0.html'])).then(() => self.skipWaiting())
 ));
 self.addEventListener('activate', (e) => e.waitUntil(
   caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== C).map((k) => caches.delete(k)))).then(() => self.clients.claim())
