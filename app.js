@@ -217,6 +217,7 @@ let SFILTER = 'all';
 function saFilter(k) { SFILTER = k; const el = document.getElementById('q'); saSearch(el ? el.value : ''); }
 function saSearch(q) {
   const box = document.getElementById('sres');
+  if (!box) return;
   const nq = norm(q).trim();
   if (!nq) { box.classList.remove('open'); box.innerHTML = ''; return; }
   const scored = [];
@@ -390,7 +391,7 @@ function lesson(gid, li) {
   h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(l.title)} — رياضيات مع مستر سعد" data-u="${esc(l.cid ? WSHARE + l.cid : '#/g/' + gid + '/l/' + li)}" data-x="درس ${esc(l.title)} (${esc(g.title)})">مشاركة الدرس</button>${qrBtn('#/g/' + gid + '/l/' + li, l.title)}</div>`;
   if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
   if (l.term || l.unit) h += `<div class="lmeta"><p>${esc([l.term, l.unit].filter(Boolean).join(' · '))}</p></div>`;
-  if (l.skills && l.skills.length) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${l.skills.map((x) => `<span class="skillchip">${esc(x)}</span>`).join('')}</div></div>`;
+  if (l.skills && l.skills.length) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${l.skills.map((x) => `<a class="skillchip" href="?saq=${encodeURIComponent(x)}#/">${esc(x)}</a>`).join('')}</div></div>`;
   if (l.cmeta) {
     h += '<div class="lmeta">';
     if (l.cmeta.d) h += `<p>${esc(l.cmeta.d)}</p>`;
@@ -407,7 +408,7 @@ function lesson(gid, li) {
       : `<div class="vrow"><span class="vn">${esc(v.n)}</span><a class="play off" href="#/soon">قريبًا</a></div>`;
   });
   if (meta && meta.summary) h += `<div class="lmeta"><h3>ملخص الدرس</h3><p>${meta.summary}</p></div>`;
-  if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<span class="skillchip">${esc(s)}</span>`).join('')}</div></div>`;
+  if (meta && meta.skills) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${meta.skills.map((s) => `<a class="skillchip" href="?saq=${encodeURIComponent(s)}#/">${esc(s)}</a>`).join('')}</div></div>`;
   if (meta && meta.examples) h += `<div class="lmeta"><h3>أمثلة محلولة</h3>${meta.examples.map((e, i) => `<div class="excard"><div class="exq"><span class="exlabel">مثال ${'٠١٢٣٤٥٦٧٨٩'[i + 1]}</span><span class="eqline">${e.q} = ؟</span></div><button class="btn2 sm ghost" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'إخفاء الحل':'عرض الحل'">عرض الحل</button><div class="exsol"><span class="ot">${esc(e.solT)}</span><span class="eqline">${e.solE}</span></div></div>`).join('')}</div>`;
   if (l.quiz) h += `<a class="card quizlink" href="#/test/${l.quiz}"><span class="chip">${IC.quiz}</span><span class="txt"><h2>اختبار الدرس</h2><div class="sub">${QUIZSETS[l.quiz].questions.length} أسئلة مع تصحيح فوري وتفسير</div></span><span class="arrow">‹</span></a>`;
   const ordl = lessonOrder(g), dpos = ordl.findIndex((o) => o.i === li);
