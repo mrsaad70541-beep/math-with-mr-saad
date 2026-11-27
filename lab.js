@@ -56,6 +56,11 @@ window.LAB = (function () {
       <div class="labcard stage" id="labStage">
         <div class="labtools">
           <button class="btn2 ghost sm" id="labReset">إعادة التجربة</button>
+          <span class="labzoom" role="group" aria-label="تكبير الرسم">
+            <button class="btn2 ghost sm" id="labZoomOut" aria-label="تصغير الرسم">−</button>
+            <b id="labZoomPct">١٠٠٪</b>
+            <button class="btn2 ghost sm" id="labZoomIn" aria-label="تكبير الرسم">+</button>
+          </span>
           <button class="btn2 ghost sm" id="labFull">ملء الشاشة</button>
         </div>
         <div class="labsvg" id="labSvgHost"></div>
@@ -67,6 +72,18 @@ window.LAB = (function () {
       ${exp.questions && exp.questions.length ? `<div class="labcard"><span class="labtag">أسئلة استكشافية</span><ul class="labq">${exp.questions.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
     `;
   }
+  var labZ = 1;
+  function toArPct(x) { return String(Math.round(x * 100)).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]) + '٪'; }
+  function labZoomSet(z) {
+    labZ = Math.min(2.5, Math.max(1, Math.round(z * 100) / 100));
+    const svg = document.querySelector('#labSvgHost svg'), pct = document.getElementById('labZoomPct');
+    if (svg) svg.style.width = (labZ * 100) + '%';
+    if (pct) pct.textContent = toArPct(labZ);
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'labZoomIn') labZoomSet(labZ + 0.25);
+    if (e.target && e.target.id === 'labZoomOut') labZoomSet(labZ - 0.25);
+  });
   var labDockHome = null;
   function labDock(on) {
     var live = document.getElementById('labLive'), st = document.getElementById('labStage');
@@ -85,6 +102,7 @@ window.LAB = (function () {
   function wireShell(exp, mountFn) {
     const host = document.getElementById('labStage');
     const run = () => {
+      labZ = 1; const pct0 = document.getElementById('labZoomPct'); if (pct0) pct0.textContent = toArPct(1);
       document.getElementById('labSvgHost').innerHTML = '';
       document.getElementById('labCtrl').innerHTML = '';
       document.getElementById('labLive').innerHTML = '';
