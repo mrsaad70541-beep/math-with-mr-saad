@@ -1093,19 +1093,30 @@ function chShareImage() {
 }
 window.chShareImage = chShareImage; window.chImgBlob = chImgBlob;
 /* ===== mistakes bank ===== */
+/* Skill of a stored mistake, derived from its saved explanation title (existing question
+   metadata), falling back to the set's lesson skill. Keeps the mistakes-bank analysis
+   per actual rule (قوة القوة / حاصل ضرب القوى / حاصل قسمة القوى / إشارة القوة). */
+function mistakeSkill(m) {
+  const t = (m && m.exT) || '';
+  if (/قوة القوة|رفع قوة إلى قوة|نضرب الأسس/.test(t)) return 'قوة القوة';
+  if (/حاصل الضرب|نجمع الأسس/.test(t)) return 'حاصل ضرب القوى';
+  if (/حاصل القسمة|نطرح الأسس/.test(t)) return 'حاصل قسمة القوى';
+  if (/الإشارة|الأس الفردي|الأس الزوجي/.test(t)) return 'إشارة القوة';
+  return (m && m.skill) || 'بدون مهارة';
+}
 function mistakes() {
   const ms = getMistakes();
   let h = `<a class="back" href="#/account">‹ حسابي</a><div class="section-title">أخطائي</div>`;
   if (!ms.length) return h + `<div class="note">مفيش أخطاء محفوظة — أي إجابة غلط في اختبار أو تحدي هتتسجل هنا تلقائيًا للمراجعة.</div>`;
   if (ms.some((m) => m.setId && QUIZSETS[m.setId] && QUIZSETS[m.setId].questions[m.qi])) h += `<a class="btn2" href="#/test/_mistakes">تدرّب على أخطائي</a>`;
   const bySkill = {};
-  ms.forEach((m) => { if (typeof m === 'string') return; const k = m.skill || 'بدون مهارة'; bySkill[k] = (bySkill[k] || 0) + 1; });
+  ms.forEach((m) => { if (typeof m === 'string') return; const k = mistakeSkill(m); bySkill[k] = (bySkill[k] || 0) + 1; });
   const skl = Object.keys(bySkill).sort((a, b) => bySkill[b] - bySkill[a]);
   if (skl.length) h += `<div class="note">تحليل الأخطاء حسب المهارة: ${skl.map((k) => `${esc(k)} (${toArNum(bySkill[k])})`).join(' · ')}</div>`;
   ms.forEach((m, i) => {
     if (typeof m === 'string') { h += `<div class="qcard mcard"><div class="qtext" style="font-size:15px">سؤال محفوظ من نسخة أقدم</div><a class="btn2 ghost" href="${m}">إعادة المحاولة</a></div>`; return; }
     h += `<div class="qcard mcard">
-      <div class="qhead">${esc(m.skill || 'مراجعة')}</div>
+      <div class="qhead">${esc(mistakeSkill(m))}</div>
       <div class="qtext" style="font-size:15px">${mruns(m.q || '')}</div>
       <div class="mline bad">إجابتك: ${mruns(m.your || '')}</div>
       <div class="mline good">الصح: ${mruns(m.right || '')}</div>
