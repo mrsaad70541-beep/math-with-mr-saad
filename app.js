@@ -942,7 +942,7 @@ function diag() {
 function planGet() { try { return JSON.parse(localStorage.getItem('saad.plan.v1') || '{}'); } catch (e) { return {}; } }
 function planToggle(skill) {
   const p = planGet();
-  p[skill] = !p[skill];
+  p[skill] = p[skill] === false;
   localStorage.setItem('saad.plan.v1', JSON.stringify(p));
   route();
 }
