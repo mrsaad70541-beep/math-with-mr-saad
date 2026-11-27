@@ -1,4 +1,4 @@
-const C = 'saad-public-v155';
+const C = 'saad-public-v156';
 self.addEventListener('install', (e) => e.waitUntil(
   caches.open(C).then((c) => c.addAll(['./','./index.html','./style.css?v=56','./data.js?v=10','./lab.js?v=14','./theorems.js?v=50','./mathx.js?v=1','./app.js?v=75','./qr.js?v=1','./manifest.webmanifest','./icon.svg','./favicon.svg','./s/g1-l0-v0.html','./s/g2-l0-v0.html','./s/g2-l0-v1.html','./s/g3-l0-v0.html','./s/g3-l0-v1.html','./s/g3-l0-v2.html','./s/lesson-g1-l0.html','./s/lesson-g2-l0.html','./s/lesson-g3-l0.html'])).then(() => self.skipWaiting())
 ));
