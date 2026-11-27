@@ -441,7 +441,7 @@ a.card:active { transform: scale(.99); }
 .objlist{margin:0;padding:0 18px 0 0;font-size:14px;line-height:2}
 .subhead{font-size:14px;font-weight:800;color:var(--navy-ink);margin:14px 0 8px}
 .skillchips{display:flex;flex-wrap:wrap;gap:8px}
-.skillchip{font-size:12px;font-weight:700;color:var(--navy-ink);background:var(--gold-wash);padding:5px 12px;border-radius:var(--pill)}
+.skillchip{font-size:12px;font-weight:700;color:var(--navy-ink);background:var(--gold-wash);padding:5px 12px;border-radius:var(--pill);text-decoration:none;display:inline-block}
 .excard{background:var(--bg);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .exq{flex:1;font-size:14px;font-weight:700;min-width:180px}
 .exsol{display:none;flex-basis:100%;font-size:14px;color:var(--ink);background:var(--info-wash2);border-radius:var(--r-xs);padding:8px 12px;margin-top:4px}
