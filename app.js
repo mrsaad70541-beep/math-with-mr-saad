@@ -417,11 +417,37 @@ function lessonOrder(g) { return g.lessons.map((l, i) => ({ l, i })).sort((x, y)
 function grade(gid) {
   const g = DATA.grades.find((x) => x.id === gid);
   let h = `<a class="back" href="#/manhag">‹ المنهج المصري</a><div class="section-title">${esc(g.title)} — الدروس</div>`;
-  lessonOrder(g).forEach((o, pos) => {
+  const ordered = lessonOrder(g);
+  const hasUnits = (g._units && Object.keys(g._units).length) || ordered.some((o) => o.l.unit && String(o.l.unit).trim());
+  const renderLesson = (o, pos) => {
     const l = o.l, i = o.i;
-    if (l._gone) { h += `<div class="card"><span class="chip">${pos + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`; return; }
-    h += `<a class="card" href="${lHash(g, i)}"><span class="chip">${pos + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
-  });
+    if (l._gone) return `<div class="card"><span class="chip">${pos + 1}</span><span class="txt"><h2>درس غير متاح حاليًا</h2></span></div>`;
+    return `<a class="card" href="${lHash(g, i)}"><span class="chip">${pos + 1}</span><span class="txt"><h2>${esc(l.title)}</h2><div class="sub">${esc(l.label)}</div></span><span class="arrow">‹</span></a>`;
+  };
+  if (!hasUnits) {
+    ordered.forEach((o, pos) => { h += renderLesson(o, pos); });
+  } else {
+    const unitName = (l) => {
+      if (l.unitId && g._units && g._units[l.unitId]) return { n: g._units[l.unitId].title, o: g._units[l.unitId].ord || 0 };
+      const t = String(l.unit || '').trim();
+      if (t && g._units) { for (const uid in g._units) if (g._units[uid].title === t) return { n: g._units[uid].title, o: g._units[uid].ord || 0 }; }
+      return t ? { n: t, o: 0 } : null;
+    };
+    const groups = [];
+    ordered.forEach((o) => {
+      const u = unitName(o.l);
+      const key = u ? u.n : '';
+      let gr = groups.find((x) => x.key === key);
+      if (!gr) { gr = { key, ord: u ? u.ord : 1e9, items: [] }; groups.push(gr); }
+      gr.items.push(o);
+    });
+    groups.sort((a, b) => (a.ord - b.ord) || (a.key ? (b.key ? a.key.localeCompare(b.key, 'ar') : 1) : (b.key ? -1 : 0)));
+    let pos = 0;
+    groups.forEach((gr) => {
+      if (gr.key) h += `<div class="section-title" style="font-size:15px;margin-top:14px">${esc(gr.key)}</div>`;
+      gr.items.forEach((o) => { h += renderLesson(o, ++pos); });
+    });
+  }
   h += `<div class="note">باقي دروس الصف قريبًا</div>`;
   return h;
 }
@@ -1684,6 +1710,24 @@ if (__saq) {
             DATA.grades.push({ id: p.id, title: String(p.title).slice(0, 120), lessons: [] });
             applied++;
           }
+        } else if (it.type === 'unit') {
+          var gu = gradeOf(p.g);
+          if (!gu || typeof p.uid !== 'string' || !/^[a-z0-9_-]{1,24}$/.test(p.uid) || typeof p.title !== 'string' || !p.title.trim()) return;
+          gu._units = gu._units || {};
+          var uu = gu._units[p.uid] || (gu._units[p.uid] = { ord: 0 });
+          uu.title = p.title.trim().slice(0, 120);
+          var uo = parseInt(p.ord, 10); if (uo >= 1 && uo <= 999) uu.ord = uo;
+          applied++;
+        } else if (it.type === 'skill') {
+          var gs = gradeOf(p.g);
+          if (!gs || typeof p.skill !== 'string' || !p.skill.trim()) return;
+          var ls = (typeof p.li === 'number') ? gs.lessons[p.li] : gs.lessons.find(function (x) { return x.title === p.lesson; });
+          if (!ls || ls._gone) return;
+          ls.skills = Array.isArray(ls.skills) ? ls.skills : [];
+          var sv = p.skill.trim().slice(0, 80);
+          var six = ls.skills.indexOf(sv);
+          if (p.remove === true) { if (six >= 0) { ls.skills.splice(six, 1); applied++; } return; }
+          if (six < 0 && ls.skills.length < 20) { ls.skills.push(sv); applied++; }
         }
       } catch (e) { /* one bad item never breaks the app */ }
     });
