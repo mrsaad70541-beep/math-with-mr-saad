@@ -568,6 +568,7 @@ html.dark .note a, html.dark .note a:visited { color: var(--gold); }
 
 .th-meta{font-size:12.5px;color:var(--mut);margin:-4px 0 10px}
 .th-curr{font-size:12px;color:var(--mut);margin:-6px 0 10px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.th-curr-note{font-size:10.5px;color:var(--mut);opacity:.85;margin:-8px 0 10px}
 .th-cf{font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
 .th-cf.cf3{color:#137333;background:#e6f4ea;border-color:#13733344}
 .th-cf.cf2{color:#1f4e78;background:#eef4fb;border-color:#1f4e7844}
