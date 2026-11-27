@@ -573,7 +573,8 @@ function mruns(html) {
       return part;
     }
     if (inMath) return part;
-    return part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="rtl">' + m.trim().replace(/([0-9٠-٩]+)\/([0-9٠-٩]+)/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/\^([−\-]?[0-9٠-٩]+)/g, '<sup>$1</sup>').replace(/([²³]+)/g, '<sup>$1</sup>') + '</span>');
+    const _r = part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="rtl">' + m.trim().replace(/([0-9٠-٩]+)\/([0-9٠-٩]+)/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/\^([−\-]?[0-9٠-٩]+)/g, '<sup>$1</sup>').replace(/([²³]+)/g, '<sup>$1</sup>') + '</span>');
+    return window.MATHX ? window.MATHX.render(_r) : _r;
   }).join('');
 }
 function qVisual(cur) {
@@ -744,7 +745,7 @@ function qFinish(ok, yourText, timeout) {
   if (fb) {
     let m = ok ? '<b>إجابة صحيحة</b>' : (timeout ? '<b>انتهى الوقت</b>' : '<b>إجابة غير صحيحة</b>');
     if (!ok) m += ' الإجابة الصحيحة: <span class="eqwrap">' + (QTEXT.indexOf(cur.t) >= 0 ? '<span class="mrun" dir="ltr">' + esc(qRight(cur)) + '</span>' : mruns(qRight(cur))) + '</span>';
-    if (qState.practice) m += (cur.exT ? '<div>' + esc(cur.exT) + '</div>' : '') + (cur.exE ? '<div class="eqwrap">' + cur.exE + '</div>' : '');
+    if (qState.practice) m += (cur.exT ? '<div>' + esc(cur.exT) + '</div>' : '') + (cur.exE ? '<div class="eqwrap">' + mruns(cur.exE) + '</div>' : '');
     fb.innerHTML = '<div class="qfb ' + (ok ? 'ok' : 'no') + '">' + m + '</div>' + (qState.practice ? '<button class="btn2" id="qnext" onclick="qNext()">التالي</button>' : '');
   }
   if (!qState.practice) setTimeout(qNext, 1100);
@@ -973,7 +974,7 @@ function challengeHtml(c, done, picked) {
     h += `<div class="explain ${picked === c.a ? 'good' : 'bad'}">
       <b>${picked === c.a ? 'إجابة صحيحة!' : 'الإجابة الصحيحة: ' + c.o[c.a]}</b>
       <div class="ot">${esc(c.exT)}</div>
-      <span class="eqline">${c.exE}</span>
+      <span class="eqline">${mruns(c.exE)}</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='${chHash(c)}'">محاولة تانية</button>
@@ -1047,7 +1048,7 @@ function mistakes() {
       <div class="qtext" style="font-size:15px">${mruns(m.q)}</div>
       <div class="mline bad">إجابتك: ${mruns(m.your)}</div>
       <div class="mline good">الصح: ${mruns(m.right)}</div>
-      <div class="mex">${m.exE ? `<span class="ot">${esc(m.exT || '')}</span><span class="eqline">${m.exE}</span>` : (m.exH || esc(m.ex || ''))}</div>
+      <div class="mex">${m.exE ? `<span class="ot">${esc(m.exT || '')}</span><span class="eqline">${mruns(m.exE)}</span>` : (m.exH || esc(m.ex || ''))}</div>
       <a class="btn2 ghost" href="${m.from}">إعادة المحاولة</a>
     </div>`;
   });
