@@ -1077,6 +1077,7 @@ function challengeHtml(c, done, picked) {
       <div class="ot">${esc(c.exT)}</div>
       <span class="eqline">${mruns(c.exE)}</span>
     </div>
+    ${c.sv ? `<div class="qcard"><div class="qhead">فيديو الحل</div><div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${esc(c.sv)}" title="فيديو الحل" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div></div>` : ''}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='${chHash(c)}'">محاولة تانية</button>
       <button class="btn2 ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="تحدي — رياضيات مع مستر سعد" data-u="${esc(c.cid ? WSHARE + c.cid : '#/challenge/' + c.id)}" data-x="حل تحدي في تطبيق رياضيات مع مستر سعد">شارك السؤال</button>
@@ -1659,6 +1660,7 @@ if (__saq) {
           if (!p.id || !p.q || !Array.isArray(p.o) || !p.o.length) return;
           var nc = { id: p.id, cid: String(it.id || ''), date: p.date || '', iso: p.iso || '', title: String(p.title || it.title || '').slice(0, 200),
             q: sanHTML(p.q), o: p.o.map(sanHTML), a: (typeof p.a === 'number' ? p.a : 0), exT: typeof p.exT === 'string' ? p.exT : '', exE: sanHTML(p.exE),
+            sv: (typeof p.sv === 'string' && /^[A-Za-z0-9_-]{6,15}$/.test(p.sv)) ? p.sv : '',
             level: String(p.level || '').slice(0, 60), cat: String(p.cat || '').slice(0, 60) };
           var ci = CHALLENGES.findIndex(function (c) { return c.id === p.id; });
           if (ci >= 0) CHALLENGES[ci] = nc; else CHALLENGES.unshift(nc);
