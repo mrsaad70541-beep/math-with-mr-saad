@@ -687,7 +687,7 @@ window.THEO = (function () {
     const m = M.find((x) => x.id === id); if (!m) return home();
     return '<a class="back" href="#/theorems">‹ اكتشف النظرية بنفسك</a><div class="section-title">' + esc(m.title) + '</div>' +
       '<div class="th-meta">' + GR[m.g] + ' · ' + esc(m.lesson) + '</div>' +
-      '<div class="th-media">' + (m.media && m.media.video ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.video) + '">فيديو التجربة</a>' : '<span class="th-soon">فيديو التجربة: قريبًا</span>') + (m.media && m.media.voice ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.voice) + '">شرح صوتي</a>' : '<span class="th-soon">شرح صوتي: قريبًا</span>') + '</div><div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
+      '<div class="th-media">' + (m.media && m.media.video ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.video) + '">فيديو التجربة</a>' : '<span class="th-soon">فيديو التجربة: قريبًا</span>') + (m.media && m.media.voice ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.voice) + '">شرح صوتي</a>' : '<span class="th-soon">شرح صوتي: قريبًا</span>') + '</div><div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><span class="labzoom" role="group" aria-label="تكبير الرسم"><button type="button" class="btn2 ghost sm" id="thZoomOut" aria-label="تصغير الرسم">−</button><b id="thZoomPct">١٠٠٪</b><button type="button" class="btn2 ghost sm" id="thZoomIn" aria-label="تكبير الرسم">+</button></span><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
       '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
       '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
       '<div class="labcard obs"><span class="labtag">٣ · لاحظ</span><div id="thRows" class="th-rows"></div><div class="th-rec"><button class="btn2 sm" id="thRec" type="button">سجّل هذه الحالة</button><span id="thCount">٠ / ٣</span></div><div id="thObs" class="th-obs"></div><button class="btn2 sm" id="thGo" type="button" disabled>٤ · استنتج (بعد ٣ حالات مختلفة)</button></div>' +
@@ -719,6 +719,17 @@ window.THEO = (function () {
     const inst = mount(host, m);
     window.__thPred = null;
     wireEngine(m, inst);
+    let thZ = 1;
+    const thArPct = (x) => String(Math.round(x * 100)).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]) + '٪';
+    const thZoomSet = (z) => {
+      thZ = Math.min(2.5, Math.max(1, Math.round(z * 100) / 100));
+      const svg = document.querySelector('.labcard.stage svg'), pct = document.getElementById('thZoomPct');
+      if (svg) { svg.style.width = (thZ * 100) + '%'; svg.style.maxHeight = thZ > 1 ? 'none' : ''; }
+      if (pct) pct.textContent = thArPct(thZ);
+    };
+    const zi = document.getElementById('thZoomIn'), zo = document.getElementById('thZoomOut');
+    if (zi) zi.onclick = () => thZoomSet(thZ + 0.25);
+    if (zo) zo.onclick = () => thZoomSet(thZ - 0.25);
     const tb = document.getElementById('thTeach');
     tb.onclick = () => { const on = document.body.classList.toggle('th-teach'); const steps = [...document.querySelectorAll('#thProof .th-step')], bar = document.getElementById('thTBar'); bar.hidden = !on; steps.forEach((x) => x.classList.toggle('h', on)); tb.textContent = on ? 'إنهاء وضع المعلم' : 'وضع المعلم'; const st = document.querySelector('.labcard.stage'); if (on && st && st.requestFullscreen) { st.requestFullscreen().catch(() => {}); } else if (!on && document.fullscreenElement) document.exitFullscreen(); };
     document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('th-teach')) { document.body.classList.remove('th-teach'); tb.textContent = 'وضع المعلم'; } }, { once: true });
