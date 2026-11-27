@@ -77,7 +77,7 @@ window.LAB = (function () {
   function labZoomSet(z) {
     labZ = Math.min(2.5, Math.max(1, Math.round(z * 100) / 100));
     const svg = document.querySelector('#labSvgHost svg'), pct = document.getElementById('labZoomPct');
-    if (svg) svg.style.width = (labZ * 100) + '%';
+    if (svg) { svg.style.width = (labZ * 100) + '%'; svg.style.maxHeight = labZ > 1 ? 'none' : ''; }
     if (pct) pct.textContent = toArPct(labZ);
   }
   document.addEventListener('click', function (e) {
