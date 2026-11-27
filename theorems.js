@@ -335,7 +335,7 @@ window.THEO = (function () {
     },
     draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.seg(P.A, r.D, 2); d.seg(P.B, r.E, 2); d.seg(P.C, r.F, 2); d.dot(r.G, 1); d.label(r.G, 'م', 8, 18); d.label(r.D, 'د', -3, 18); d.label(r.E, 'هـ', 8, 2); d.label(r.F, 'و', -18, 2); },
     concl: 'المتوسطات الثلاثة مرّت بنقطة واحدة، والنسبة ٢ : ١ ثبتت في كل مثلث.',
-    proof: 'البرهان: القطعة الواصلة بين منتصفي ضلعين توازي الثالث وتساوي نصفه، ومنها تتولد النسبة ٢ : ١ لمتوسطين، وبنفس الطريقة للثالث.'
+    proof: 'البرهان: القطعة الواصلة بين منتصفي ضلعين توازي الضلع الثالث وتساوي نصفه، لأن المثلث الصغير يشابه المثلث الأصلي بنسبة ١ : ٢. فعند تقاطع متوسطين يتشابه المثلثان اللذان قاعدتاهما القطعة المتوسطة والضلع الموازي لها، فيقسم كل متوسطٍ الآخر بنسبة ٢ : ١ من جهة الرأس. والنقطة التي تقسم متوسطًا بعينه بنسبة ٢ : ١ من الرأس وحيدة؛ وبتطبيق النتيجة نفسها على زوج آخر من المتوسطات يمر المتوسط الثالث بالنقطة نفسها، فتتلاقى المتوسطات الثلاثة في نقطة واحدة.'
   });
 
   /* تشابه المضلعات */
@@ -380,17 +380,26 @@ window.THEO = (function () {
       const c2 = Math.max(15, Math.min(c2raw, 170 - b));
       const E = { x: 190, y: 230 };
       const ED = s * Math.sin(c2 * D2R) / Math.sin((b + c2) * D2R);
-      let Dx = E.x + ED * Math.cos(b * D2R), Dy = E.y - ED * Math.sin(b * D2R), Fx = 190 + s, Fy = 230;
-      let f = 1;
-      [[Dx, Dy], [Fx, Fy]].forEach((p) => { const dx = p[0] - E.x, dy = p[1] - E.y; if (dx > 0) f = Math.min(f, 145 / dx); if (dx < 0) f = Math.min(f, -8 / dx); if (dy > 0) f = Math.min(f, 58 / dy); if (dy < 0) f = Math.min(f, -218 / dy); });
-      f = Math.min(1, f); Dx = E.x + (Dx - E.x) * f; Dy = E.y + (Dy - E.y) * f; Fx = E.x + (Fx - E.x) * f; Fy = E.y + (Fy - E.y) * f;
+      const Dx = E.x + ED * Math.cos(b * D2R), Dy = E.y - ED * Math.sin(b * D2R), Fx = 190 + s, Fy = 230;
+      let ff = 1;
+      [[Dx, Dy], [Fx, Fy]].forEach((p) => { const dx = p[0] - E.x, dy = p[1] - E.y; if (dx > 0) ff = Math.min(ff, 145 / dx); if (dx < 0) ff = Math.min(ff, -8 / dx); if (dy > 0) ff = Math.min(ff, 58 / dy); if (dy < 0) ff = Math.min(ff, -196 / dy); });
+      ff = Math.min(1, ff);
       const D = { x: Dx, y: Dy }, F = { x: Fx, y: Fy };
       const a2 = ang(E, D, F);
       const r1 = dist(E, F) / dist(P.B, P.C), r2 = dist(D, E) / dist(P.A, P.B), r3 = dist(D, F) / dist(P.A, P.C);
       const par = Math.abs(c2 - c) < 0.5 && c2raw <= 170 - b;
-      return { rows: [['∠أ', a, 0], ['∠د (لم نحدده نحن)', a2, 1], ['هـ و / ب ج', r1], ['د هـ / أ ب', r2], ['د و / أ ج', r3]], eq: par ? [[a, a2], [r1, r2], [r2, r3]] : [], D, E, F, par };
+      return { rows: [['∠أ', a, 0], ['∠د (لم نحدده نحن)', a2, 1], ['هـ و / ب ج', r1], ['د هـ / أ ب', r2], ['د و / أ ج', r3]], eq: par ? [[a, a2], [r1, r2], [r2, r3]] : [], D, E, F, par, ff };
     },
-    draw(P, d, r) { d.poly([P.A, P.B, P.C]); d.poly([r.D, r.E, r.F], 1); d.angle(P.A, P.B, P.C); d.angle(P.A, P.C, P.B); d.angle(r.D, r.E, r.F); d.angle(r.D, r.F, r.E); d.tag(r.par ? 'زاويتان متساويتان: المثلثان متشابهان' : 'زاوية واحدة فقط متساوية: لا يتحقق التشابه', r.par); },
+    draw(P, d, r) {
+      d.poly([P.A, P.B, P.C]); d.angle(P.A, P.B, P.C); d.angle(P.A, P.C, P.B);
+      const T = (p) => ({ x: r.E.x + (p.x - r.E.x) * r.ff, y: r.E.y + (p.y - r.E.y) * r.ff });
+      const Dp = T(r.D), Fp = T(r.F);
+      d.poly([Dp, r.E, Fp], 1);
+      d.angle(Dp, r.E, Fp, ' '); d.angle(Dp, Fp, r.E, ' ');
+      d.txt({ x: r.E.x - 14, y: r.E.y + 26 }, toAr(ang(Dp, r.E, Fp), 0) + '°');
+      d.txt({ x: Fp.x + 14, y: Fp.y + 26 }, toAr(ang(Dp, Fp, r.E), 0) + '°');
+      d.tag(r.par ? 'زاويتان متساويتان: المثلثان متشابهان' : 'زاوية واحدة فقط متساوية: لا يتحقق التشابه', r.par);
+    },
     concl: 'الزاوية الثالثة تساوت وحدها، ونسب الأضلاع الثلاث تساوت، لكل شكل جرّبته.',
     proof: 'البرهان: الزاوية الثالثة تساوي ١٨٠° ناقص الزاويتين، ثم قانون الجيب (أو رسم مواز) يثبت تناسب الأضلاع.'
   });
