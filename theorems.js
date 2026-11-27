@@ -522,6 +522,23 @@ window.THEO = (function () {
   });
 
   /* ---------- محرك الرسم ---------- */
+  /* حفظ الحالات ومشاركتها: تخزين محلي لكل نموذج + ترميز حالة اصطناعية محدودة الحقول في رابط المشاركة. */
+  const LSOBS = (id) => 'threc:' + id;
+  const loadObs = (id) => { try { const a = JSON.parse(localStorage.getItem(LSOBS(id)) || '[]'); return Array.isArray(a) ? a.filter((o) => o && typeof o.key === 'string' && typeof o.txt === 'string' && o.key.length <= 400 && o.txt.length <= 800).slice(0, 12) : []; } catch (e) { return []; } };
+  const saveObs = (id, obs) => { try { localStorage.setItem(LSOBS(id), JSON.stringify(obs.slice(0, 12))); } catch (e) { /* التخزين غير متاح */ } };
+  const b64u = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const b64ud = (s) => { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); };
+  const encState = (P, obs) => { const p = {}; Object.keys(P).forEach((k) => { const v = P[k]; if (typeof v === 'number' && isFinite(v)) p[k] = Math.round(v * 1000) / 1000; }); return 'v1.' + b64u(JSON.stringify({ p, o: (obs || []).slice(0, 12).map((o) => ({ k: String(o.key).slice(0, 400), t: String(o.txt).slice(0, 800) })) })); };
+  const decState = (s) => {
+    try {
+      if (typeof s !== 'string' || s.length > 8000 || s.indexOf('v1.') !== 0) return null;
+      const j = JSON.parse(b64ud(s.slice(3))); if (!j || typeof j !== 'object') return null;
+      const p = {}; Object.keys(j.p || {}).slice(0, 30).forEach((k) => { if (/^[A-Za-z0-9_]{1,16}$/.test(k) && typeof j.p[k] === 'number' && isFinite(j.p[k]) && Math.abs(j.p[k]) <= 1e6) p[k] = j.p[k]; });
+      const o = (Array.isArray(j.o) ? j.o : []).slice(0, 12).map((x) => ({ key: String((x && x.k) || '').slice(0, 400), txt: String((x && x.t) || '').slice(0, 800) })).filter((x) => x.key && x.txt);
+      return { p, o };
+    } catch (e) { return null; }
+  };
+  const hashState = () => { const q = location.hash.split('?')[1] || ''; const mm = q.match(/(?:^|&)st=([^&]+)/); return mm ? decState(decodeURIComponent(mm[1])) : null; };
   function mount(host, m) {
     host.innerHTML = '';
     const svg = document.createElementNS(NS, 'svg');
@@ -536,7 +553,8 @@ window.THEO = (function () {
     (m.chk || []).forEach((c) => { P[c.k] = 0; });
     const regular = (n) => { const t = []; for (let i = 0; i < 10; i++) t.push(-Math.PI / 2 + i * 2 * Math.PI / n); return t; };
     if (m.ring) P.th = regular(P.n);
-    const obs = []; let last = null; let editIdx = -1; let stepIdx = -1; let tgt = gDyn;
+    const obs = []; const stShared = hashState(); (stShared ? stShared.o : loadObs(m.id)).forEach((o) => obs.push(o));
+    let last = null; let editIdx = -1; let stepIdx = -1; let tgt = gDyn;
     const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || tgt).appendChild(e); return e; };
     const pts = (ps) => ps.map((p) => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
     const d = {
@@ -649,11 +667,19 @@ window.THEO = (function () {
     if (m.tie) { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox" id="thTie" checked> ساوِ الزاويتين ب وج'; ctrl.appendChild(lb); tie = lb.querySelector('input'); tie.onchange = () => { if (tie.checked) { P.c = P.b; document.getElementById('th_c').value = P.b; document.querySelectorAll('#thCtrl label span').forEach((s, i) => { s.textContent = toAr([P.b, P.c][i], 0); }); compute(); } }; }
     (m.chk || []).forEach((c) => { const lb = document.createElement('label'); lb.className = 'th-chk'; lb.innerHTML = '<input type="checkbox"> ' + esc(c.label); ctrl.appendChild(lb); lb.querySelector('input').onchange = (e) => { P[c.k] = e.target.checked ? 1 : 0; compute(); }; });
     if (m.tie) { P.c = P.b; }
+    if (stShared && Object.keys(stShared.p).length) {
+      Object.keys(stShared.p).forEach((k) => {
+        if (typeof P[k] !== 'number') return;
+        const inp = document.getElementById('th_' + k);
+        if (inp) { inp.value = stShared.p[k]; inp.dispatchEvent(new Event('input')); } else { P[k] = stShared.p[k]; }
+      });
+      toastMsg('فُتحت حالة مشارَكة من الرابط');
+    }
     compute(); sync();
     // سجل الملاحظات
     const rec = document.getElementById('thRec'), tbl = document.getElementById('thObs'), concl = document.getElementById('thConcl');
     function renderObs() { tbl.innerHTML = obs.map((o, i) => '<div class="th-or"><b>' + toAr(i + 1, 0) + '</b><span>' + mxh(o.txt) + '</span><button type="button" class="th-del" data-i="' + i + '" aria-label="حذف الحالة ' + toAr(i + 1, 0) + '">حذف</button><button type="button" class="th-del th-ed' + (editIdx === i ? ' on' : '') + '" data-e="' + i + '" aria-label="تعديل الحالة ' + toAr(i + 1, 0) + '">' + (editIdx === i ? 'إلغاء التعديل' : 'تعديل') + '</button></div>').join(''); rec.nextElementSibling && 0; document.getElementById('thCount').textContent = toAr(obs.length, 0) + ' / ٣'; document.getElementById('thGo').disabled = obs.length < 3; if (obs.length < 3) concl.hidden = true; }
-    tbl.onclick = (e) => { const b = e.target.closest('.th-del'); if (!b) return; if (b.dataset.e != null) { const k = +b.dataset.e; editIdx = editIdx === k ? -1 : k; if (editIdx >= 0) toastMsg('غيّر الشكل ثم اضغط «سجّل هذه الحالة» لاستبدال الحالة ' + toAr(k + 1, 0)); renderObs(); return; } const d = +b.dataset.i; obs.splice(d, 1); if (editIdx === d) editIdx = -1; else if (editIdx > d) editIdx--; renderObs(); };
+    tbl.onclick = (e) => { const b = e.target.closest('.th-del'); if (!b) return; if (b.dataset.e != null) { const k = +b.dataset.e; editIdx = editIdx === k ? -1 : k; if (editIdx >= 0) toastMsg('غيّر الشكل ثم اضغط «سجّل هذه الحالة» لاستبدال الحالة ' + toAr(k + 1, 0)); renderObs(); return; } const d = +b.dataset.i; obs.splice(d, 1); if (editIdx === d) editIdx = -1; else if (editIdx > d) editIdx--; renderObs(); saveObs(m.id, obs); };
     rec.onclick = () => {
       if (!last || !last.eq.length) { toastMsg('الشرط غير متحقق الآن، لا فائدة من تسجيل هذه الحالة'); return; }
       const key = last.rows.map((r) => (typeof r[1] === 'number' ? toAr(r[1], 1) : r[1])).join('|');
@@ -661,11 +687,12 @@ window.THEO = (function () {
       const txt = last.rows.filter((r) => r[0] !== '').map((r) => r[0] + ': ' + (typeof r[1] === 'number' ? toAr(r[1], dd) : r[1])).join(' | ');
       if (obs.some((o, j) => o.key === key && j !== editIdx)) { toastMsg('غيّر الشكل أولًا لتسجّل حالة مختلفة'); return; }
       if (editIdx >= 0) { obs[editIdx] = { key, txt }; editIdx = -1; } else obs.push({ key, txt });
-      renderObs();
+      renderObs(); saveObs(m.id, obs);
     };
+    renderObs();
     document.getElementById('thGo').onclick = () => { const pc = document.getElementById('thPredCmp'); if (pc) { const pi = window.__thPred; pc.textContent = pi == null ? 'لم تسجّل توقّعًا قبل التجربة.' : (pi === m.a ? 'توقّعك كان: ' + m.opts[pi] + ' وهو يتفق مع ما لاحظت.' : 'توقّعك كان: ' + m.opts[pi] + '، والملاحظات تشير إلى: ' + m.opts[m.a] + '.'); } concl.hidden = false; concl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
-    document.getElementById('thReset').onclick = () => mount(host, m);
-    return { P, compute, get last() { return last; }, setStep(i) { stepIdx = i; drawProof(last || m.calc(P)); } };
+    document.getElementById('thReset').onclick = () => { try { localStorage.removeItem(LSOBS(m.id)); } catch (e) { /* none */ } if (location.hash.indexOf('?') > -1) { try { history.replaceState(null, '', location.pathname + location.search + '#/theorem/' + m.id); } catch (e2) { /* none */ } } mount(host, m); };
+    return { P, compute, get last() { return last; }, get obs() { return obs; }, setStep(i) { stepIdx = i; drawProof(last || m.calc(P)); } };
   }
   function toastMsg(t) { if (window.toast) window.toast(t); }
 
@@ -730,6 +757,7 @@ window.THEO = (function () {
     return '<div class="th-curr">' + body + ' <span class="th-cf cf' + c.cf + '">' + CF_TXT[c.cf] + '</span></div>';
   }
   function page(id) {
+    id = String(id).split('?')[0];
     const m = M.find((x) => x.id === id); if (!m) return home();
     return '<a class="back" href="#/theorems">‹ اكتشف النظرية بنفسك</a><div class="section-title">' + esc(m.title) + '</div>' +
       '<div class="th-meta">' + GR[m.g] + ' · ' + esc(m.lesson) + '</div>' +
@@ -761,7 +789,7 @@ window.THEO = (function () {
   }
   function after(p) {
     if (p[0] !== 'theorem' || !p[1]) return;
-    const m = M.find((x) => x.id === p[1]); if (!m) return;
+    const m = M.find((x) => x.id === String(p[1]).split('?')[0]); if (!m) return;
     const host = document.getElementById('thHost'); if (!host) return;
     const inst = mount(host, m);
     window.__thPred = null;
@@ -781,7 +809,7 @@ window.THEO = (function () {
     const tb = document.getElementById('thTeach');
     tb.onclick = () => { const on = document.body.classList.toggle('th-teach'); const steps = [...document.querySelectorAll('#thProof .th-step')], bar = document.getElementById('thTBar'); bar.hidden = !on; steps.forEach((x) => x.classList.toggle('h', on)); tb.textContent = on ? 'إنهاء وضع المعلم' : 'وضع المعلم'; const st = document.querySelector('.labcard.stage'); if (on && st && st.requestFullscreen) { st.requestFullscreen().catch(() => {}); } else if (!on && document.fullscreenElement) document.exitFullscreen(); };
     document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('th-teach')) { document.body.classList.remove('th-teach'); tb.textContent = 'وضع المعلم'; } }, { once: true });
-    document.getElementById('thShare').onclick = () => { const u = location.href, t = m.title; if (navigator.share) navigator.share({ title: t, url: u }).catch(() => {}); else if (navigator.clipboard) navigator.clipboard.writeText(u).then(() => toastMsg('نُسخ رابط النظرية')); else toastMsg(u); };
+    document.getElementById('thShare').onclick = () => { const u = location.origin + location.pathname + '#/theorem/' + m.id + '?st=' + encodeURIComponent(encState(inst.P, inst.obs)); const t = m.title; if (navigator.share) navigator.share({ title: t, url: u }).catch(() => {}); else if (navigator.clipboard) navigator.clipboard.writeText(u).then(() => toastMsg('نُسخ رابط النظرية مع حالاتها المسجّلة')); else toastMsg(u); };
     document.getElementById('thSheet').onclick = () => {
       const w = window.open('', '_blank'); if (!w) { toastMsg('اسمح بالنوافذ المنبثقة لتصدير الورقة'); return; }
       const rows = [...document.querySelectorAll('#thObs .th-or span')].map((x) => '<li>' + esc(x.textContent) + '</li>').join('');
