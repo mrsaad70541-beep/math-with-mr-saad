@@ -573,7 +573,7 @@ function mruns(html) {
       return part;
     }
     if (inMath) return part;
-    const _r = part.replace(/\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="rtl">' + m.trim().replace(/([0-9٠-٩]+)\/([0-9٠-٩]+)/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/\^([−\-]?[0-9٠-٩]+)/g, '<sup>$1</sup>').replace(/([²³]+)/g, '<sup>$1</sup>') + '</span>');
+    const _r = part.replace(/[=+\-−×÷]?\s*[−+\-]?\s*\(*[0-9٠-٩][0-9٠-٩\s+\-−×÷=\/().٫,%^²³]*[0-9٠-٩)%]|[=+\-−×÷]\s*[−+\-]?\s*\(*[0-9٠-٩]|\(*[0-9٠-٩]/g, (m) => '<span class="mrun" dir="rtl">' + m.trim().replace(/([0-9٠-٩]+)\/([0-9٠-٩]+)/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/\^([−\-]?[0-9٠-٩]+)/g, '<sup>$1</sup>').replace(/([²³]+)/g, '<sup>$1</sup>') + '</span>');
     return window.MATHX ? window.MATHX.render(_r) : _r;
   }).join('');
 }
