@@ -944,7 +944,6 @@ function planToggle(skill) {
   const p = planGet();
   p[skill] = p[skill] === false;
   localStorage.setItem('saad.plan.v1', JSON.stringify(p));
-  route();
 }
 window.planToggle = planToggle;
 function diagHtml() {
