@@ -64,6 +64,11 @@ window.THEO = (function () {
     calc(P) { const a = ang(P.B, P.A, P.C), b = ang(P.A, P.B, P.C), c = ang(P.A, P.C, P.B); return { rows: [['∠أ', a], ['∠ب', b], ['∠ج', c], ['المجموع', a + b + c, 1]], eq: [[a + b + c, 180]] }; },
     draw(P, d) { d.poly([P.A, P.B, P.C]); d.angle(P.A, P.B, P.C); d.angle(P.B, P.A, P.C); d.angle(P.A, P.C, P.B); },
     concl: 'في كل الأشكال التي جرّبتها كان المجموع ١٨٠°.',
+    steps: [
+      { say: 'نرسم من الرأس أ مستقيمًا يوازي الضلع ب ج.', proofIdx: 0, draw(P, d) { const u = sub(P.C, P.B), n = Math.hypot(u.x, u.y), ux = u.x / n, uy = u.y / n; d.seg({ x: P.A.x - ux * 130, y: P.A.y - uy * 130 }, { x: P.A.x + ux * 130, y: P.A.y + uy * 130 }, 2); } },
+      { say: 'الزاويتان المتبادلتان داخلياً عند أ تساويان زاويتي ب وج.', proofIdx: 1, draw(P, d) { const u = sub(P.C, P.B), n = Math.hypot(u.x, u.y), ux = u.x / n, uy = u.y / n; const a1 = { x: P.A.x - ux * 130, y: P.A.y - uy * 130 }, a2 = { x: P.A.x + ux * 130, y: P.A.y + uy * 130 }; d.seg(a1, a2, 2); d.angle(a1, P.A, P.B); d.angle(a2, P.A, P.C); } },
+      { say: 'فتكوّن الزوايا الثلاث عند أ زاوية مستقيمة قياسها ١٨٠ درجة.', proofIdx: 1, draw(P, d) { const u = sub(P.C, P.B), n = Math.hypot(u.x, u.y), ux = u.x / n, uy = u.y / n; const a1 = { x: P.A.x - ux * 130, y: P.A.y - uy * 130 }, a2 = { x: P.A.x + ux * 130, y: P.A.y + uy * 130 }; d.seg(a1, a2, 2); d.angle(a1, P.A, P.B); d.angle(a2, P.A, P.C); d.angle(a1, P.A, a2); } },
+    ],
     proof: 'البرهان: نرسم من أحد الرءوس مستقيمًا يوازي الضلع المقابل. الزاويتان المتبادلتان تساويان زاويتين من المثلث، فيكوّن مع الزاوية الثالثة زاوية مستقيمة ١٨٠°.'
   });
 
