@@ -926,6 +926,14 @@ function certificate() {
 }
 
 /* ===== اكتشف مستواك (diagnostic) ===== */
+function diagTraining(lessonHash) {
+  const m = /^#\/g\/(g[123])\/l\/([^/]+)$/.exec(lessonHash || '');
+  const g = m && DATA.grades.find((x) => x.id === m[1]);
+  const li = g ? findLesson(g, m[2]) : -1;
+  const l = li >= 0 ? g.lessons[li] : null;
+  if (l && l.quiz && QUIZSETS[l.quiz]) return `والتدريب المناسب: <a href="#/test/${esc(l.quiz)}">${esc(QUIZSETS[l.quiz].title)}</a>`;
+  return 'ولا يتوفر تدريب مخصص لهذه المهارة حاليًا — ننصح بمشاهدة فيديوهات الدرس';
+}
 let dState = null;
 function diag() {
   dState = { i: 0, per: {}, locked: false, plan: planGet() };
@@ -953,7 +961,7 @@ function diagHtml() {
       const q = qs.find((x) => x.skill === s);
       h += `<div class="labcard"><span class="labtag">${mastered ? 'متقنة' : 'تحتاج مراجعة'}</span><h3 style="margin:8px 0 4px;font-size:15px">${esc(s)} — أجبت صحيحًا على <bdi>${toArNum(p.c)} من ${toArNum(p.t)}</bdi></h3>
         ${mastered ? '<p class="dim">أداؤك هنا يشير إلى إتقان أولي لهذه المهارة.</p>'
-          : `<p class="dim">الدرس المقترح: <a href="${q.lesson}">فتح الدرس</a> · والتدريب المناسب: <a href="#/test">اختبار قوى القوى</a> · راجع أخطاءك في <a href="#/mistakes">أخطائي</a>.</p>`}</div>`;
+          : `<p class="dim">الدرس المقترح: <a href="${q.lesson}">فتح الدرس</a> · ${diagTraining(q.lesson)} · راجع أخطاءك في <a href="#/mistakes">أخطائي</a>.</p>`}</div>`;
     });
     if (needs.length) {
       const plan = planGet();
