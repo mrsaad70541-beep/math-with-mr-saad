@@ -710,6 +710,7 @@ window.THEO = (function () {
     };
     const out = document.getElementById('thRows'), status = document.getElementById('thStatus');
     function animateStep(layer) {
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       Array.from(layer.children).forEach((el2, i) => {
         const delay = i * 0.22;
         el2.style.opacity = '0';
@@ -832,7 +833,7 @@ window.THEO = (function () {
     };
     renderObs();
     document.getElementById('thGo').onclick = () => { const pc = document.getElementById('thPredCmp'); if (pc) { const pi = window.__thPred; pc.textContent = pi == null ? 'لم تسجّل توقّعًا قبل التجربة.' : (pi === m.a ? 'توقّعك كان: ' + m.opts[pi] + ' وهو يتفق مع ما لاحظت.' : 'توقّعك كان: ' + m.opts[pi] + '، والملاحظات تشير إلى: ' + m.opts[m.a] + '.'); } concl.hidden = false; concl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
-    document.getElementById('thReset').onclick = () => { try { localStorage.removeItem(LSOBS(m.id)); } catch (e) { /* none */ } if (location.hash.indexOf('?') > -1) { try { history.replaceState(null, '', location.pathname + location.search + '#/theorem/' + m.id); } catch (e2) { /* none */ } } mount(host, m); };
+    document.getElementById('thReset').onclick = () => { try { localStorage.removeItem(LSOBS(m.id)); } catch (e) { /* none */ } if (location.hash.indexOf('?') > -1) { try { history.replaceState(null, '', location.pathname + location.search + '#/theorem/' + m.id); } catch (e2) { /* none */ } } const __ni = mount(host, m); wireEngine(m, __ni); };
     return { P, compute, get last() { return last; }, get obs() { return obs; }, setStep(i) { stepIdx = i; drawProof(last || m.calc(P)); } };
   }
   function toastMsg(t) { if (window.toast) window.toast(t); }
@@ -926,7 +927,7 @@ window.THEO = (function () {
     return '<a class="back" href="#/theorems">‹ اكتشف النظرية بنفسك</a><div class="section-title">' + esc(m.title) + '</div>' +
       '<div class="th-meta">' + GR[m.g] + ' · ' + esc(m.lesson) + '</div>' +
       curLine(m) +
-      '<div class="th-media">' + (m.media && m.media.video ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.video) + '">فيديو التجربة</a>' : '<span class="th-soon">فيديو التجربة: قريبًا</span>') + (m.media && m.media.voice ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.voice) + '">شرح صوتي</a>' : '<span class="th-soon">شرح صوتي: قريبًا</span>') + '</div><div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><span class="labzoom" role="group" aria-label="تكبير الرسم"><button type="button" class="btn2 ghost sm" id="thZoomOut" aria-label="تصغير الرسم">−</button><b id="thZoomPct">١٠٠٪</b><button type="button" class="btn2 ghost sm" id="thZoomIn" aria-label="تكبير الرسم">+</button></span><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
+      '<div class="th-media">' + (m.media && m.media.video && /^https:\/\//i.test(m.media.video) ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.video) + '">فيديو التجربة</a>' : '<span class="th-soon">فيديو التجربة: قريبًا</span>') + (m.media && m.media.voice && /^https:\/\//i.test(m.media.voice) ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.voice) + '">شرح صوتي</a>' : '<span class="th-soon">شرح صوتي: قريبًا</span>') + '</div><div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><span class="labzoom" role="group" aria-label="تكبير الرسم"><button type="button" class="btn2 ghost sm" id="thZoomOut" aria-label="تصغير الرسم">−</button><b id="thZoomPct">١٠٠٪</b><button type="button" class="btn2 ghost sm" id="thZoomIn" aria-label="تكبير الرسم">+</button></span><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
       '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
       '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div id="thRows" class="th-rows"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
       '<div class="labcard obs"><span class="labtag">٣ · لاحظ</span><div class="th-rec"><button class="btn2 sm" id="thRec" type="button">سجّل هذه الحالة</button><span id="thCount">٠ / ٣</span></div><details class="th-obsd" id="thObsD"><summary>الحالات المسجّلة</summary><div id="thObs" class="th-obs"></div></details><button class="btn2 sm" id="thGo" type="button" disabled>٤ · استنتج (بعد ٣ حالات مختلفة)</button></div>' +
@@ -936,11 +937,12 @@ window.THEO = (function () {
   function wireEngine(m, inst) {
     const steps = engineSteps(m), say = document.getElementById('thEngSay'), nEl = document.getElementById('thEngN'), spans = () => [...document.querySelectorAll('#thProof .th-step')];
     let i = -1, timer = null;
+    const gen = (window.__thEngGen = (window.__thEngGen || 0) + 1);
     const show = (k) => { i = Math.max(-1, Math.min(steps.length - 1, k)); say.innerHTML = i < 0 ? '' : mxh(steps[i].say); nEl.textContent = i < 0 ? 'لم تبدأ' : toAr(i + 1, 0) + ' / ' + toAr(steps.length, 0); const hi = i < 0 ? -1 : (steps[i].proofIdx != null ? steps[i].proofIdx : (m.steps && m.steps.length ? -1 : i)); spans().forEach((x, j) => x.classList.toggle('cur', j === hi)); inst.setStep(i); };
     const stop = () => { if (timer) { clearInterval(timer); timer = null; document.getElementById('thEngPlay').textContent = 'تشغيل تلقائي'; } };
     document.getElementById('thEngNext').onclick = () => { stop(); show(i + 1); };
     document.getElementById('thEngPrev').onclick = () => { stop(); show(i - 1); };
-    document.getElementById('thEngPlay').onclick = () => { if (timer) { stop(); return; } if (i >= steps.length - 1) show(-1); document.getElementById('thEngPlay').textContent = 'إيقاف'; timer = setInterval(() => { if (!document.getElementById('thEngSay')) { stop(); return; } if (i >= steps.length - 1) { stop(); return; } show(i + 1); }, 2600); };
+    document.getElementById('thEngPlay').onclick = () => { if (timer) { stop(); return; } if (i >= steps.length - 1) show(-1); document.getElementById('thEngPlay').textContent = 'إيقاف'; timer = setInterval(() => { if (gen !== window.__thEngGen || !document.getElementById('thEngSay')) { stop(); return; } if (i >= steps.length - 1) { stop(); return; } show(i + 1); }, 2600); };
     show(-1);
   }
   function register(m) {
@@ -986,7 +988,7 @@ window.THEO = (function () {
     document.getElementById('thHideAll').onclick = () => stepsAll().forEach((x) => x.classList.add('h'));
     document.getElementById('thShowAll').onclick = () => stepsAll().forEach((x) => x.classList.remove('h'));
     const ao = document.getElementById('thAppOpts');
-    if (ao) ao.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; const i = +b.dataset.i, f = document.getElementById('thAppFb'); ao.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); f.hidden = false; f.textContent = (i === m.app.a ? 'إجابة صحيحة. ' : 'ليست الإجابة الصحيحة. ') + (m.app.why || ''); };
+    if (ao) ao.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; const i = +b.dataset.i, f = document.getElementById('thAppFb'); ao.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); f.hidden = false; f.innerHTML = (i === m.app.a ? 'إجابة صحيحة. ' : 'ليست الإجابة الصحيحة. ') + mxh(m.app.why || ''); };
     const opts = document.getElementById('thOpts'), fb = document.getElementById('thFb');
     opts.onclick = (e) => {
       const b = e.target.closest('button'); if (!b) return; const i = +b.dataset.i;
