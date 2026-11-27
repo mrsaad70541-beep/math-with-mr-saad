@@ -1552,11 +1552,15 @@ if (__saq) {
     if (k[0] === 'lesson' && k.length === 3 && p.title) {
       var g2 = gradeOf(k[1]); if (!g2 || !g2.lessons[+k[2]]) return false;
       var old = g2.lessons[+k[2]];
-      g2.lessons[+k[2]] = { ord: ordOf(p), title: String(p.title).slice(0, 120),
+      var nl2 = { ord: ordOf(p), title: String(p.title).slice(0, 120),
         label: String(p.label || old.label || '').slice(0, 120),
         videos: (Array.isArray(p.videos) ? p.videos : old.videos)
           .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
           .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt, ord: ordOf(v) }; }) };
+      if (typeof p.term === 'string' && p.term.trim()) nl2.term = p.term.trim().slice(0, 80); else if (old.term) nl2.term = old.term;
+      if (typeof p.unit === 'string' && p.unit.trim()) nl2.unit = p.unit.trim().slice(0, 80); else if (old.unit) nl2.unit = old.unit;
+      if (Array.isArray(p.skills) && p.skills.length) nl2.skills = p.skills.filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }); else if (Array.isArray(old.skills)) nl2.skills = old.skills;
+      g2.lessons[+k[2]] = nl2;
       if (p.quiz && QUIZSETS[p.quiz]) g2.lessons[+k[2]].quiz = p.quiz;
       return true;
     }
