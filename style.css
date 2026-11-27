@@ -339,10 +339,10 @@ a.card:active { transform: scale(.99); }
   background: var(--bg); border: 1.5px dashed var(--line); border-radius: var(--r-sm);
   padding: 13px; font-size: 17px; font-weight: 800; color: var(--link);
   text-align: center; margin: 12px 0;
-  direction: ltr; unicode-bidi: isolate;
+  direction: rtl; unicode-bidi: isolate;
 }
 .bookpg .ex { background: var(--ex-tint); border-radius: var(--r-sm); padding: 11px 13px; font-size: 13px; color: var(--ex-ink); margin-top: 10px; line-height: 1.9; }
-.bookpg .mx { direction: ltr; unicode-bidi: isolate; font-weight: 800; }
+.bookpg .mx { direction: rtl; unicode-bidi: isolate; font-weight: 800; }
 .booknav { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 .booknav button {
   background: var(--navy); color: #fff; border: 0; border-radius: var(--pill);
@@ -502,7 +502,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .qmore { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .qmore h3 { width: 100%; margin: 0; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .qfb, .chipbtn { transition: none; } }
-.mrun { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.mrun { direction: rtl; unicode-bidi: isolate; display: inline-block; }
+.mrun sup { unicode-bidi: isolate; }
 .cap.sub { font-size: 12px; color: var(--mut); margin-top: 4px; }
 .schips { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 10px 4px; }
 .schips button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line, rgba(255,255,255,.18)); background: transparent; color: inherit; cursor: pointer; }
