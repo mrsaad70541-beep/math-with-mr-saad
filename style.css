@@ -634,3 +634,15 @@ html.dark .th-svg text.thtag.ok{fill:#7ee2a8}html.dark .th-svg text.thtag.no{fil
 body.th-teach .th-eng{display:none}
 .th-tbar[hidden]{display:none!important}
 .th-svg .labtxt{fill:currentColor}
+
+/* ===== MATHX: matrices / determinants / vectors (central renderer mathx.js) ===== */
+.mx{display:inline-flex;align-items:stretch;vertical-align:middle;margin:0 4px;direction:rtl}
+.mxb{width:6px;align-self:stretch;border:2px solid currentColor}
+.mx .mx1{border-width:2px 0 2px 2px;border-radius:5px 0 0 5px;margin-left:1px}
+.mx .mx2{border-width:2px 2px 2px 0;border-radius:0 5px 5px 0;margin-right:1px}
+.mxdet .mxb{width:2px;border-radius:0}
+.mxdet .mx1{border-width:0 0 0 2px;margin-left:5px}
+.mxdet .mx2{border-width:0 2px 0 0;margin-right:5px}
+.mxvb{align-self:center;font-size:1.35em;line-height:1;padding:0 1px}
+.mxg{display:inline-grid;gap:3px 12px;align-items:center;justify-items:center;padding:4px 1px}
+.mxc{white-space:nowrap}
