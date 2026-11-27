@@ -1565,7 +1565,7 @@ window.addEventListener('hashchange', route);
 var __initialRouteDone = false;
 function __initialRoute() { if (__initialRouteDone) return; __initialRouteDone = true; route(); }
 window.__resolveInitialRoute = __initialRoute;
-if (/^#\/g\/[^/]+\/l\/\d+\/v\/\d+/.test(location.hash || '')) {
+if (/^#\/g\/[^/]+\/l\/[^/]+\/v\/[^/]+/.test(location.hash || '')) {
   app.innerHTML = '<div class="note">جارٍ التحميل…</div>';
   setTimeout(__initialRoute, 4000);
 } else __initialRoute();
@@ -1680,16 +1680,46 @@ if (__saq) {
     if (k[0] === 'video' && k.length === 4 && YT.test(p.yt || '') && p.n) {
       var g = gradeOf(k[1]); if (!g) return false;
       var l = g.lessons[+k[2]]; if (!l || !l.videos[+k[3]]) return false;
-      l.videos[+k[3]] = { n: String(p.n).slice(0, 200), yt: p.yt }; return true;
+      var ov = l.videos[+k[3]];
+      var nv = { n: String(p.n).slice(0, 200), yt: p.yt };
+      if (ov && ov.vid) nv.vid = ov.vid; // keep stable id: watch routes must survive an override
+      if (ov && ov.cmeta !== undefined) nv.cmeta = ov.cmeta;
+      l.videos[+k[3]] = nv; return true;
     }
     if (k[0] === 'lesson' && k.length === 3 && p.title) {
       var g2 = gradeOf(k[1]); if (!g2 || !g2.lessons[+k[2]]) return false;
       var old = g2.lessons[+k[2]];
       var nl2 = { ord: ordOf(p), title: String(p.title).slice(0, 120),
         label: String(p.label || old.label || '').slice(0, 120),
-        videos: (Array.isArray(p.videos) ? p.videos : old.videos)
-          .filter(function (v) { return v && YT.test(v.yt || '') && v.n; })
-          .map(function (v) { return { n: String(v.n).slice(0, 200), yt: v.yt, ord: ordOf(v) }; }) };
+        videos: (function () {
+          var usedVid = {};
+          return (Array.isArray(p.videos) ? p.videos : old.videos)
+            .map(function (v) {
+              if (!v || typeof v !== 'object') return null;
+              // identity preservation: honor a payload vid only when it is one of THIS
+              // lesson's existing stable ids (once); otherwise match a unique original
+              // by yt; never infer identity from position.
+              var src = null;
+              if (typeof v.vid === 'string' && /^[A-Za-z0-9_-]{1,24}$/.test(v.vid) && !usedVid[v.vid]) {
+                var byId = old.videos.filter(function (x) { return x && x.vid === v.vid; });
+                if (byId.length === 1) src = byId[0];
+              }
+              if (!src && typeof v.yt === 'string' && v.yt) {
+                var mm = old.videos.filter(function (x) { return x && x.yt === v.yt && x.vid && !usedVid[x.vid]; });
+                if (mm.length === 1) src = mm[0];
+              }
+              var yt = YT.test(v.yt || '') ? v.yt : (src ? src.yt : ''); // omitted field = preserve original
+              var n = (typeof v.n === 'string' && v.n.trim()) ? v.n : (src ? src.n : '');
+              if (!YT.test(yt) || !n) return null; // invalid entry: dropped, never positionally filled
+              var o = { n: String(n).slice(0, 200), yt: yt, ord: ordOf(v) };
+              if (src && src.vid) { o.vid = src.vid; usedVid[src.vid] = true; }
+              if (src && src.cmeta !== undefined) o.cmeta = src.cmeta;
+              return o;
+            })
+            .filter(function (x) { return !!x; });
+        })() };
+      if (old.lid) nl2.lid = old.lid; // keep stable id: lesson routes must survive an override
+      if (old.cid) nl2.cid = old.cid;
       if (typeof p.term === 'string' && p.term.trim()) nl2.term = p.term.trim().slice(0, 80); else if (old.term) nl2.term = old.term;
       if (typeof p.unit === 'string' && p.unit.trim()) nl2.unit = p.unit.trim().slice(0, 80); else if (old.unit) nl2.unit = old.unit;
       if (Array.isArray(p.skills) && p.skills.length) nl2.skills = p.skills.filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 20).map(function (x) { return x.trim().slice(0, 80); }); else if (Array.isArray(old.skills)) nl2.skills = old.skills;
@@ -1937,6 +1967,7 @@ if (__saq) {
     } catch (e) { return false; }
     return true;
   }
+  var __fsR; window.__feedSettled = new Promise(function (r) { __fsR = r; });
   var ac = ('AbortController' in window) ? new AbortController() : null;
   var to = setTimeout(function () { if (ac) ac.abort(); }, TIMEOUT_MS);
   fetch(REMOTE, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' })
@@ -1953,5 +1984,213 @@ if (__saq) {
       if (applied > 0 && alreadyRouted && (currentRouteGone() || safeToRerender())) route();
       qPendingReroute();
     })
-    .catch(function () { clearTimeout(to); window.__qRemote = 'fail'; qPendingReroute(); if (window.__resolveInitialRoute) window.__resolveInitialRoute(); /* bundled content stands */ });
+    .catch(function () { clearTimeout(to); window.__qRemote = 'fail'; qPendingReroute(); if (window.__resolveInitialRoute) window.__resolveInitialRoute(); /* bundled content stands */ })
+    .then(function () { __fsR(); /* settled: merged, empty, or failed — preview overlay runs only after this */ });
+
+  /* ===== Draft preview (owner-session only, postMessage handoff, read-only) =====
+     The admin preview page (session-authed on the worker) embeds the app at
+     #/preview-embed and postMessages ONE saved item. The item is retained on
+     arrival, then overlaid EXACTLY ONCE after the public feed settles, so a
+     late feed merge can never wipe or reorder the previewed content (each
+     merge reinitializes theorem metadata). Render is confirmed before ack.
+     localStorage is quarantined to an in-memory overlay for the whole preview,
+     so playback/history/bookmark writes never persist. */
+  previewBoot();
+  function previewBoot() {
+    if (window.__pvBoot) return; window.__pvBoot = true;
+    if (!/^#\/preview-embed\/?$/.test(location.hash || '')) return;
+    var ORIGIN = 'https://secureadmin.mrsaad70541.workers.dev';
+    var pvActive = false, pvTarget = null, pvBar = null, readyTimer = null;
+    // Faithful in-memory SNAPSHOT of real storage: every Storage method operates on the
+    // snapshot only, so update/remove/clear of EXISTING keys behave exactly like real
+    // storage while never touching it. Installation is verified by a live probe; if the
+    // platform refuses, the preview FAILS CLOSED (no merge, no render, no ready).
+    function quarantineStorage() {
+      try {
+        var real = window.localStorage;
+        var snap = new Map();
+        for (var i = 0; i < real.length; i++) { var k0 = real.key(i); if (k0 !== null) snap.set(k0, real.getItem(k0)); }
+        var shim = {
+          getItem: function (k) { k = String(k); return snap.has(k) ? snap.get(k) : null; },
+          setItem: function (k, v) { snap.set(String(k), String(v)); },
+          removeItem: function (k) { snap.delete(String(k)); },
+          clear: function () { snap.clear(); },
+          key: function (i) { var ks = Array.from(snap.keys()); return (i >= 0 && i < ks.length) ? ks[i] : null; },
+          get length() { return snap.size; }
+        };
+        Object.defineProperty(window, 'localStorage', { configurable: true, get: function () { return shim; } });
+        var probe = 'saad.pvprobe.' + Date.now();
+        var before = real.getItem(probe);
+        window.localStorage.setItem(probe, '1');
+        var okShim = window.localStorage === shim && window.localStorage.getItem(probe) === '1' && real.getItem(probe) === before;
+        window.localStorage.removeItem(probe);
+        return !!okShim;
+      } catch (e) { return false; }
+    }
+    function applySpacing() {
+      if (!pvBar) return;
+      var h = pvBar.offsetHeight || 48;
+      var tb = document.getElementById('tabbar');
+      var th = tb ? tb.offsetHeight : 0;
+      if (tb) tb.style.bottom = h + 'px'; // keep bottom navigation reachable above the banner
+      document.body.style.paddingBottom = (h + th) + 'px'; // content clears BOTH nav and banner
+    }
+    function showBanner(txt, bad) {
+      var old = document.getElementById('pv-bar'); if (old) old.remove();
+      var d = document.createElement('div');
+      d.id = 'pv-bar'; d.setAttribute('dir', 'rtl');
+      d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:' + (bad ? '#7f1d1d' : '#1b365d') + ';color:#fff;padding:10px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 -2px 10px rgba(0,0,0,.25)';
+      var s = document.createElement('span'); s.textContent = txt; d.appendChild(s);
+      var b = document.createElement('button'); b.textContent = 'إنهاء المعاينة';
+      b.style.cssText = 'background:#e8b23a;color:#1a1206;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;flex:none';
+      b.onclick = function () { location.hash = '#/'; };
+      d.appendChild(b); document.body.appendChild(d);
+      pvBar = d; applySpacing();
+    }
+    window.addEventListener('resize', applySpacing);
+    if (!quarantineStorage()) { // fail closed: never run an unisolated preview
+      showBanner('تعذّر عزل التخزين المحلي — أُلغيت المعاينة حمايةً لبيانات هذا الجهاز.', true);
+      return;
+    }
+    // Mirrors the worker's public-visibility rule exactly: status alone is NOT visibility.
+    function visOf(it) {
+      var st = String(it.status || ''), pa = it.publish_at ? Date.parse(it.publish_at) : NaN, now = Date.now();
+      if (st === 'published') return (isNaN(pa) || pa <= now) ? 'now' : 'future';
+      if (st === 'scheduled') return (!isNaN(pa) && pa <= now) ? 'now' : 'future';
+      return 'never';
+    }
+    function fmtWhen(it) { // instant rendered in the ACTUAL publish timezone, labeled
+      var t = it.publish_at ? Date.parse(it.publish_at) : NaN;
+      if (isNaN(t)) return '';
+      var tz = (typeof it.publish_tz === 'string' && it.publish_tz) || 'UTC';
+      try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); } catch (e) { tz = 'UTC'; }
+      try {
+        return new Intl.DateTimeFormat('ar-EG-u-nu-latn', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(t)) + ' (' + tz + ')';
+      } catch (e) { return new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' (UTC)'; }
+    }
+    var STATUS_WORD = { draft: 'مسودة', scheduled: 'مجدول', hidden: 'مخفي', archived: 'مؤرشف', published: 'منشور' };
+    function truthText(it, applied) {
+      var st = String(it.status || ''), vis = visOf(it);
+      var when = fmtWhen(it);
+      var t;
+      if (it.type === 'home') t = 'معاينة إعدادات الصفحة الرئيسية — تُعرض الرئيسية بهذه الإعدادات فقط';
+      else if (vis === 'now') t = (st === 'scheduled') ? 'هذا العنصر «مجدول» وحان موعده — ظاهر للطلاب الآن' : 'هذا العنصر منشور وظاهر للطلاب الآن — تعرض المعاينة نسخته المحفوظة';
+      else if (vis === 'future') t = (st === 'published' ? 'منشور لكنه لا يظهر للطلاب قبل ' : '«مجدول» — يظهر للطلاب في ') + (when || 'موعد لاحق');
+      else t = 'معاينة قبل النشر — هذا العنصر «' + (STATUS_WORD[st] || st) + '» ولا يراه الطلاب';
+      if (it.type !== 'home' && applied === 0) t += ' — تعذّر دمجه في العرض';
+      return t;
+    }
+    // Runs AFTER mergeItems, so it routes through the app's own link builders
+    // (lHash/vHash prefer stable lid/vid over positional indexes).
+    function targetOf(it) {
+      var p = payloadOf(it); if (!p) return '#/';
+      if (it.type === 'thm' && typeof p.id === 'string') return '#/theorem/' + p.id;
+      var k = String(p.bundled || '').split(':');
+      if (k[0] === 'video' && k.length === 4) {
+        var gb = gradeOf(k[1]); if (!gb) return '#/';
+        var lb = gb.lessons[+k[2]]; if (!lb || lb._gone) return '#/';
+        if (!lb.videos[+k[3]] || lb.videos[+k[3]]._gone) return '#/';
+        return vHash(gb, +k[2], +k[3]);
+      }
+      if (k[0] === 'lesson' && k.length === 3) {
+        var gl = gradeOf(k[1]); if (!gl) return '#/';
+        if (!gl.lessons[+k[2]] || gl.lessons[+k[2]]._gone) return '#/';
+        return lHash(gl, +k[2]);
+      }
+      if (it.type === 'experiment') return '#/lab/x-' + it.id;
+      if (it.type === 'video' && p.g) {
+        var g = gradeOf(p.g); if (!g) return '#/';
+        var li = (typeof p.li === 'number') ? p.li : g.lessons.findIndex(function (x) { return x.title === p.lesson; });
+        var l = g.lessons[li]; if (!l) return '#/';
+        var vi = l.videos.findIndex(function (v) { return v.yt === p.yt; });
+        return vi >= 0 ? vHash(g, li, vi) : lHash(g, li);
+      }
+      if (it.type === 'lesson' && p.g) {
+        var g2 = gradeOf(p.g); if (!g2) return '#/';
+        var li2 = g2.lessons.findIndex(function (x) { return x.title === p.title; });
+        if (li2 < 0) li2 = g2.lessons.length - 1;
+        return lHash(g2, Math.max(0, li2));
+      }
+      if (it.type === 'quiz' && p.id && QUIZSETS[p.id]) return '#/test/' + p.id;
+      if (it.type === 'file') return '#/files/' + (LIB_CATS.some(function (c) { return c.id === p.cat; }) ? p.cat : 'educational');
+      if (it.type === 'book') {
+        var bpi = BOOK.findIndex(function (x) { return x.cid === String(it.id); });
+        return bpi >= 0 ? '#/book/' + (bpi + 1) : '#/book';
+      }
+      if (it.type === 'section') {
+        if ((p.track === 'qudurat' || p.track === 'leh') && DATA[p.track]) {
+          var gi = DATA[p.track].groups.findIndex(function (gr) { return gr.title === p.title; });
+          if (gi >= 0) return '#/t/' + p.track + '/c/' + gi;
+        }
+        if (p.id && gradeOf(p.id)) return '#/g/' + p.id;
+        return '#/';
+      }
+      if ((it.type === 'unit' || it.type === 'skill') && p.g) return '#/g/' + p.g;
+      return '#/';
+    }
+    // Render proof: the ack reports the ACTUAL rendered outcome, never elapsed time.
+    // A matching hash alone is not proof — the same route can render an
+    // unavailable/placeholder state or a different model.
+    var UNAVAIL_RE = /غير متاح|غير موجود|تعذّر تحميل|تعذر العثور/;
+    function markerOf(it) { // model-identity text that MUST be in the rendered target
+      var p = payloadOf(it) || {};
+      var m = p.title || p.n || p.text || p.desc || p.t || p.q || (p.questions && p.questions[0] && p.questions[0].q) || '';
+      return (typeof m === 'string' ? m.trim() : '').slice(0, 60);
+    }
+    function renderOutcome(it) { // 'rendered' | 'unavailable' | 'missing' | 'pending'
+      if (location.hash !== pvTarget) return 'pending';
+      var appEl = document.getElementById('app');
+      var txt = appEl ? (appEl.innerText || '') : '';
+      if (UNAVAIL_RE.test(txt)) return 'unavailable';
+      var m = markerOf(it);
+      if (m === '') return txt.length > 40 ? 'rendered' : 'pending'; // home/settings: page rendered at all
+      return txt.indexOf(m) !== -1 ? 'rendered' : 'pending';
+    }
+    window.addEventListener('hashchange', function () {
+      if (pvActive && pvTarget && location.hash !== pvTarget) location.reload(); // exit = full state reset
+    });
+    window.addEventListener('message', function (e) {
+      if (e.origin !== ORIGIN || e.source !== window.parent || pvActive) return;
+      var it = e.data && e.data.saadPreview;
+      if (!it || typeof it !== 'object' || typeof it.id !== 'string' || typeof it.type !== 'string') return;
+      pvActive = true; if (readyTimer) { clearInterval(readyTimer); readyTimer = null; }
+      var apply = function () { // exactly once, after the public feed settles
+        var vis = visOf(it);
+        var applied = 0;
+        try { applied = mergeItems([Object.assign({}, it, { status: 'published' })]); } catch (err) { applied = 0; } // in-memory copy only; source status preserved in `it`
+        if (vis !== 'now' && typeof window.shareLink === 'function') {
+          window.shareLink = function () { if (typeof toast === 'function') toast('المشاركة متاحة بعد نشر العنصر'); }; // no misleading draft share links
+        }
+        showBanner(truthText(it, applied), false);
+        pvTarget = targetOf(it);
+        location.hash = pvTarget;
+        var pvTries = 0;
+        var pvIv = setInterval(function () { // poll the ROUTER'S DOM RESULT; the wait is not the proof
+          pvTries++;
+          var oc = renderOutcome(it);
+          if (oc === 'pending' && pvTries <= 40) return; // ~5s ceiling for slow devices
+          clearInterval(pvIv);
+          var rendered = applied > 0 && oc === 'rendered';
+          try { window.parent.postMessage({ saadPreviewAck: { id: it.id, applied: applied, rendered: rendered, outcome: oc, target: pvTarget } }, ORIGIN); } catch (e2) {}
+        }, 120);
+      };
+      if (window.__feedSettled) window.__feedSettled.then(apply); else apply();
+    });
+    if (window.parent !== window) {
+      var posts = 0;
+      var postReady = function () { try { window.parent.postMessage({ saadPreviewReady: true }, ORIGIN); } catch (e) {} };
+      postReady();
+      readyTimer = setInterval(function () {
+        if (pvActive || ++posts > 20) {
+          clearInterval(readyTimer); readyTimer = null;
+          if (!pvActive) showBanner('تعذّر استلام بيانات المعاينة من لوحة التحكم.', true);
+          return;
+        }
+        postReady();
+      }, 750); // keep announcing readiness until the parent answers (covers slow API/feed races)
+    } else {
+      showBanner('صفحة المعاينة تُفتح من لوحة التحكم فقط.', true);
+    }
+  }
 })();
+
