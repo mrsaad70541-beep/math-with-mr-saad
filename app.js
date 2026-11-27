@@ -312,6 +312,7 @@ function home() {
   if (last) h += `
   <a class="contcard" href="${last.u}">
     <span class="lbl">استكمل تعلمك</span>
+    <span class="cbr"></span>
     <span class="t">${esc(last.t)}</span>
     <span class="go">متابعة ‹</span>
   </a>`;
