@@ -688,10 +688,52 @@ window.THEO = (function () {
     h += '<p class="dim labmore">نظرية فيثاغورس لها نموذجها في <a href="#/lab/pythagoras">مختبر الرياضيات</a>.</p>';
     return h;
   }
+  /* تصنيف المنهج (إضافة وصفية فقط): المصدر هيكل مجلدات الإنتاج المبني من كتاب المعاصر ترم ١.
+     cf: 3 = مطابَق بصفحة الكتاب مباشرة، 2 = حسب هيكل الإنتاج، 1 = فيه جزء مستنتج/قيد التحقق، 0 = التصنيف قيد التحقق. */
+  const CURR = {
+    'tri-sum': { u: 3, l: 4, s: 1, sk: 'مجموع زوايا المثلث', cf: 2 },
+    'tri-ext': { u: 3, l: 4, s: 2, sk: 'الزاوية الخارجة عن المثلث', cf: 2 },
+    'vertical': { u: 3, l: 0, s: 0, sk: '', cf: 0 },
+    'parallel': { u: 3, l: 3, s: 2, sk: 'زوايا المتوازيين والقاطع', cf: 2 },
+    'quad-sum': { u: 3, l: 5, s: 1, sk: 'مجموع زوايا الشكل الرباعي', cf: 2 },
+    'poly-sum': { u: 3, l: 7, s: 3, sk: 'مجموع قياسات الزوايا الداخلة', cf: 2 },
+    'parallelogram': { u: 3, l: 5, s: 3, sk: 'متوازي الأضلاع', cf: 2 },
+    'rhombus': { u: 3, l: 6, s: 2, sk: 'المعين', cf: 2 },
+    'rectangle': { u: 3, l: 6, s: 1, sk: 'المستطيل', cf: 2 },
+    'isosceles': { u: 3, l: 5, s: 1, sk: 'الساقان وزاويتا القاعدة', cf: 2 },
+    'isosceles-conv': { u: 3, l: 5, s: 2, sk: 'عكس نظرية المتساوي الساقين', cf: 2 },
+    'equilateral': { u: 3, l: 5, s: 3, sk: 'المثلث المتساوي الأضلاع', cf: 2 },
+    'medians': { u: 3, l: 4, s: 1, sk: 'متوسطات المثلث ونقطة تقاطعها', cf: 2 },
+    'sim-poly': { u: 3, l: 1, s: 3, sk: 'التأكد من التشابه', cf: 1 },
+    'sim-tri-aa': { u: 3, l: 2, s: 2, sk: 'تشابه المثلثات بحالة زاويتين', cf: 2 },
+    'thales': { u: 3, l: 2, s: 0, sk: '', cf: 1 },
+    'dilation': { u: 3, l: 3, s: 1, sk: 'المفهوم والمعامل', cf: 2 },
+    'trig': { u: 3, l: 4, s: 1, sk: 'تعريف النسب المثلثية', cf: 2 },
+    'special': { u: 3, l: 5, s: 1, sk: 'النسب المثلثية للزوايا ٣٠° و٤٥° و٦٠°', cf: 2 },
+    'slopes': { u: 3, l: 6, s: 2, sk: 'المستقيمان المتوازيان', s2: 3, sk2: 'المستقيمان المتعامدان', cf: 2 },
+    'line-eq': { u: 3, l: 7, s: 2, sk: 'صيغة الميل ونقطة والحالات الخاصة', cf: 1 },
+    'power-power': { u: 1, l: 1, s: 1, sk: 'قوة القوة', cf: 3 }
+  };
+  const CF_TXT = { 3: 'مطابَق بصفحة الكتاب', 2: 'حسب هيكل الإنتاج من الكتاب', 1: 'قيد التحقق', 0: 'قيد التحقق من المصدر' };
+  function curLine(m) {
+    const c = CURR[m.id]; if (!c) return '';
+    let body;
+    if (c.cf === 0) body = 'المنهج: ترم ١ · الوحدة ' + toAr(c.u, 0) + ' · الدرس والمهارة: قيد التحقق';
+    else {
+      body = 'المنهج: ترم ١ · الوحدة ' + toAr(c.u, 0) + ' · الدرس ' + toAr(c.l, 0);
+      if (c.s > 0) {
+        body += ' · المهارة ' + toAr(c.s, 0) + ': ' + esc(c.sk);
+        if (c.s2) body += ' + المهارة ' + toAr(c.s2, 0) + ': ' + esc(c.sk2);
+        if (c.cf === 1) body += ' (استنتاج، قيد التحقق)';
+      } else body += ' · المهارة: قيد التحقق';
+    }
+    return '<div class="th-curr">' + body + ' <span class="th-cf cf' + c.cf + '">' + CF_TXT[c.cf] + '</span></div>';
+  }
   function page(id) {
     const m = M.find((x) => x.id === id); if (!m) return home();
     return '<a class="back" href="#/theorems">‹ اكتشف النظرية بنفسك</a><div class="section-title">' + esc(m.title) + '</div>' +
       '<div class="th-meta">' + GR[m.g] + ' · ' + esc(m.lesson) + '</div>' +
+      curLine(m) +
       '<div class="th-media">' + (m.media && m.media.video ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.video) + '">فيديو التجربة</a>' : '<span class="th-soon">فيديو التجربة: قريبًا</span>') + (m.media && m.media.voice ? '<a class="btn2 ghost sm" target="_blank" rel="noopener" href="' + esc(m.media.voice) + '">شرح صوتي</a>' : '<span class="th-soon">شرح صوتي: قريبًا</span>') + '</div><div class="th-bar"><button type="button" class="btn2 ghost sm" id="thTeach">وضع المعلم</button><span class="labzoom" role="group" aria-label="تكبير الرسم"><button type="button" class="btn2 ghost sm" id="thZoomOut" aria-label="تصغير الرسم">−</button><b id="thZoomPct">١٠٠٪</b><button type="button" class="btn2 ghost sm" id="thZoomIn" aria-label="تكبير الرسم">+</button></span><button type="button" class="btn2 ghost sm" id="thSheet">ورقة عمل A4</button><button type="button" class="btn2 ghost sm" id="thShare">مشاركة الرابط</button></div>' +
       '<div class="labcard th-pred"><span class="labtag">١ · توقّع</span><p>' + mxh(m.q) + '</p><div class="th-opts" id="thOpts">' + m.opts.map((o, i) => '<button type="button" class="tbtn" data-i="' + i + '">' + mxh(o) + '</button>').join('') + '</div><p id="thFb" class="th-fb" hidden></p></div>' +
       '<div class="labcard stage"><span class="labtag">٢ · جرّب</span><p class="th-cond">الشرط: ' + mxh(m.cond) + '</p><div id="thHost"></div><div id="thStatus" class="th-st"></div><div id="thCtrl" class="th-ctrl"></div><div id="thRows" class="th-rows"></div><div class="labtools"><button class="btn2 ghost sm" id="thReset" type="button">إعادة</button></div></div>' +
