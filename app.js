@@ -169,7 +169,7 @@ function showQR(title, u) {
   document.getElementById('qrclose').focus();
 }
 window.showQR = showQR;
-function qrBtn(u, title) { return `<button class="savebtn" onclick="showQR('${esc(title || '')}', '${u}')" aria-label="رمز QR للرابط" title="رمز QR">${IC.qr}</button>`; }
+function qrBtn(u, title) { return `<button class="savebtn" onclick="showQR(this.dataset.t, this.dataset.u)" data-t="${esc(title || '')}" data-u="${esc(u)}" aria-label="رمز QR للرابط" title="رمز QR">${IC.qr}</button>`; }
 
 /* ===== Arabic-normalizing search ===== */
 function norm(s) {
@@ -260,10 +260,10 @@ const IC = {
 };
 
 function saveBtn(u, t) {
-  return `<button class="savebtn ${isSaved(u) ? 'on' : ''}" onclick="toggleSave('${u}', this.dataset.t)" data-t="${esc(t)}" aria-label="حفظ">${IC.mark}</button>`;
+  return `<button class="savebtn ${isSaved(u) ? 'on' : ''}" onclick="toggleSave(this.dataset.u, this.dataset.t)" data-u="${esc(u)}" data-t="${esc(t)}" aria-label="حفظ">${IC.mark}</button>`;
 }
 function shareBtn(title, u, text) {
-  return `<button class="savebtn" onclick="shareLink(this.dataset.t, '${u}', this.dataset.x)" data-t="${esc(title)}" data-x="${esc(text || '')}" aria-label="مشاركة">${IC.share}</button>`;
+  return `<button class="savebtn" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(title)}" data-u="${esc(u)}" data-x="${esc(text || '')}" aria-label="مشاركة">${IC.share}</button>`;
 }
 
 /* ===== pages ===== */
@@ -385,7 +385,7 @@ function lesson(gid, li) {
   if (!l || l._gone) return `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="note">هذا الدرس غير متاح حاليًا</div>`;
   const meta = (typeof LESSON_META !== 'undefined') ? LESSON_META[gid + '/' + li] : null;
   let h = `<a class="back" href="#/g/${g.id}">‹ ${esc(g.title)}</a><div class="section-title">${esc(l.title)} <span class="stag">${esc(l.label)}</span></div>`;
-  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink('${esc(l.title)} — رياضيات مع مستر سعد', '${l.cid ? WSHARE + esc(l.cid) : '#/g/' + gid + '/l/' + li}', 'درس ${esc(l.title)} (${esc(g.title)})')">مشاركة الدرس</button>${qrBtn('#/g/' + gid + '/l/' + li, l.title)}</div>`;
+  h += `<div class="lactions">${saveBtn('#/g/' + gid + '/l/' + li, l.title + ' — ' + g.title)}<button class="btn2 sm ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(l.title)} — رياضيات مع مستر سعد" data-u="${esc(l.cid ? WSHARE + l.cid : '#/g/' + gid + '/l/' + li)}" data-x="درس ${esc(l.title)} (${esc(g.title)})">مشاركة الدرس</button>${qrBtn('#/g/' + gid + '/l/' + li, l.title)}</div>`;
   if (meta && meta.objectives) h += `<div class="lmeta"><h3>أهداف التعلم</h3><ul class="objlist">${meta.objectives.map((o) => `<li><span class="ot">${esc(o.t)}</span>${o.e ? `<span class="eqline">${o.e}</span>` : ''}${o.c ? `<span class="econd">${o.c}</span>` : ''}</li>`).join('')}</ul></div>`;
   if (l.term || l.unit) h += `<div class="lmeta"><p>${esc([l.term, l.unit].filter(Boolean).join(' · '))}</p></div>`;
   if (l.skills && l.skills.length) h += `<div class="lmeta"><h3>المهارات المرتبطة</h3><div class="skillchips">${l.skills.map((x) => `<span class="skillchip">${esc(x)}</span>`).join('')}</div></div>`;
@@ -688,7 +688,7 @@ function quizHtml() {
       <div class="cap sub">أخطاء هذه المحاولة: ${qState.wrong} · المحفوظ في «أخطائي» من كل المحاولات: ${totalM}</div>
       <button class="btn2" onclick="restartQuiz()">إعادة الاختبار</button>
       <a class="btn2 ghost" href="#/g/g3/l/0">مراجعة الدرس</a>
-      ${set.cid ? `<button class="btn2 ghost" onclick="shareLink(this.dataset.t, '${WSHARE}${esc(set.cid)}', 'اختبار في تطبيق رياضيات مع مستر سعد')" data-t="${esc(set.title)} — رياضيات مع مستر سعد">مشاركة الاختبار</button>` : ''}
+      ${set.cid ? `<button class="btn2 ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(set.title)} — رياضيات مع مستر سعد" data-u="${WSHARE}${esc(set.cid)}" data-x="اختبار في تطبيق رياضيات مع مستر سعد">مشاركة الاختبار</button>` : ''}
       ${totalM ? `<a class="btn2 ghost" href="#/mistakes">كل أخطائي المحفوظة (${totalM})</a>` : ''}
       ${others.length ? `<div class="qmore"><h3>اختبارات أخرى</h3>${others.map((k) => `<a class="btn2 sm ghost" href="#/test/${esc(k)}">${esc(QUIZSETS[k].title)}</a>`).join(' ')}</div>` : ''}
     </div></div>`;
@@ -978,7 +978,7 @@ function challengeHtml(c, done, picked) {
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='${chHash(c)}'">محاولة تانية</button>
-      <button class="btn2 ghost" onclick="shareLink('تحدي — رياضيات مع مستر سعد', '${c.cid ? WSHARE + esc(c.cid) : chHash(c)}', 'حل تحدي في تطبيق رياضيات مع مستر سعد')">شارك السؤال</button>
+      <button class="btn2 ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="تحدي — رياضيات مع مستر سعد" data-u="${esc(c.cid ? WSHARE + c.cid : chHash(c))}" data-x="حل تحدي في تطبيق رياضيات مع مستر سعد">شارك السؤال</button>
       <button class="btn2 ghost" onclick="chShareImage()">شارك كصورة</button>
     </div>`;
   }
@@ -1239,7 +1239,7 @@ function fileCard(f) {
     <div class="fbtns">
       <a class="btn2 sm" href="${esc(f.url)}" target="_blank" rel="noopener">معاينة</a>
       ${f.allowDownload ? `<a class="btn2 sm ghost" href="${esc(f.url)}" download>تحميل</a>` : ''}
-      <button class="btn2 sm ghost" onclick="shareLink('${esc(f.title)}', '${esc(f.url)}', '')">مشاركة</button>
+      <button class="btn2 sm ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="${esc(f.title)}" data-u="${esc(f.url)}" data-x="">مشاركة</button>
     </div>
   </div>`;
 }
