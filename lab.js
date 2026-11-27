@@ -14,7 +14,7 @@ window.LAB = (function () {
     if (parent) parent.appendChild(e);
     return e;
   }
-  function makeDraggable(svg, handle, pos, onMove, bounds) {
+  function makeDraggable(svg, handle, pos, onMove, bounds, kb) {
     const pt = svg.createSVGPoint();
     let dragging = false;
     handle.style.cursor = 'grab';
@@ -27,6 +27,36 @@ window.LAB = (function () {
       if (bounds) { p.x = Math.min(bounds.maxX, Math.max(bounds.minX, p.x)); p.y = Math.min(bounds.maxY, Math.max(bounds.minY, p.y)); }
       return p;
     };
+    /* keyboard alternative with per-experiment semantics (kb), so a "unit" and Home/End
+       keep their own meaning per model: kb={label, axis:'x'|'xy', step, min, max, now}.
+       role=slider + aria-valuemin/max/now only when the model is a real 1D slider. */
+    if (kb && kb.label && bounds) {
+      const isSlider = kb.axis === 'x' && typeof kb.min === 'number' && typeof kb.max === 'number' && typeof kb.now === 'function';
+      handle.setAttribute('tabindex', '0');
+      handle.setAttribute('aria-label', kb.label);
+      if (isSlider) {
+        handle.setAttribute('role', 'slider');
+        handle.setAttribute('aria-valuemin', String(kb.min));
+        handle.setAttribute('aria-valuemax', String(kb.max));
+        handle.setAttribute('aria-valuenow', String(kb.now()));
+      }
+      handle.addEventListener('keydown', (ev) => {
+        const step = kb.step || ((bounds.maxX - bounds.minX) / 20);
+        let nx = pos.x, ny = pos.y, used = true;
+        if (ev.key === 'ArrowLeft') nx -= step; else if (ev.key === 'ArrowRight') nx += step;
+        else if (kb.axis === 'xy' && ev.key === 'ArrowUp') ny -= step;
+        else if (kb.axis === 'xy' && ev.key === 'ArrowDown') ny += step;
+        else if (isSlider && ev.key === 'Home') nx = bounds.minX;
+        else if (isSlider && ev.key === 'End') nx = bounds.maxX;
+        else used = false;
+        if (!used) return;
+        pos.x = Math.min(bounds.maxX, Math.max(bounds.minX, nx));
+        pos.y = Math.min(bounds.maxY, Math.max(bounds.minY, ny));
+        onMove();
+        if (isSlider) handle.setAttribute('aria-valuenow', String(kb.now()));
+        ev.preventDefault();
+      });
+    }
     handle.addEventListener('pointerdown', (ev) => { dragging = true; handle.setPointerCapture(ev.pointerId); handle.style.cursor = 'grabbing'; ev.preventDefault(); });
     handle.addEventListener('pointermove', (ev) => {
       if (!dragging) return;
@@ -34,6 +64,7 @@ window.LAB = (function () {
       if (!p) return;
       pos.x = p.x; pos.y = p.y;
       onMove();
+      if (kb && kb.axis === 'x' && typeof kb.now === 'function') handle.setAttribute('aria-valuenow', String(kb.now()));
     });
     const up = () => { dragging = false; handle.style.cursor = 'grab'; };
     handle.addEventListener('pointerup', up);
@@ -128,12 +159,15 @@ window.LAB = (function () {
     document.getElementById('labSvgHost').appendChild(svg);
     const A = { x: 80, y: 190 }, B = { x: 260, y: 190 }, C = { x: 170, y: 50 };
     const poly = svgEl('polygon', { fill: 'rgba(30,111,163,.12)', stroke: 'var(--navy)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, svg);
-    const mkHandle = (p, color) => {
+    const mkHandle = (p, color, vlabel) => {
       const h = svgEl('circle', { r: 11, fill: color, stroke: '#fff', 'stroke-width': 2.5 }, svg);
-      makeDraggable(svg, h, p, draw, { minX: 15, maxX: W - 15, minY: 15, maxY: H - 15 });
+      makeDraggable(svg, h, p, draw, { minX: 15, maxX: W - 15, minY: 15, maxY: H - 15 },
+        { label: vlabel, axis: 'xy', step: 10 });
       return h;
     };
-    const hA = mkHandle(A, '#1e6fa3'), hB = mkHandle(B, '#1e6fa3'), hC = mkHandle(C, '#b8860b');
+    const hA = mkHandle(A, '#1e6fa3', 'الرأس الأول — اسحبه أو استخدم الأسهم للتحريك'),
+      hB = mkHandle(B, '#1e6fa3', 'الرأس الثاني — اسحبه أو استخدم الأسهم للتحريك'),
+      hC = mkHandle(C, '#b8860b', 'الرأس الثالث — اسحبه أو استخدم الأسهم للتحريك');
     const tA = svgEl('text', { class: 'labtxt' }, svg), tB = svgEl('text', { class: 'labtxt' }, svg), tC = svgEl('text', { class: 'labtxt' }, svg);
     function draw() {
       poly.setAttribute('points', `${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`);
@@ -240,15 +274,16 @@ window.LAB = (function () {
     }
     const dist = svgEl('line', { y1: 40, y2: 40, stroke: '#b8860b', 'stroke-width': 3, 'stroke-linecap': 'round' }, svg);
     const pA = { x: xOf(-3), y: 55 }, pB = { x: xOf(4), y: 55 };
-    const mkH = (p, color) => {
+    const mkH = (p, color, plabel) => {
       const h = svgEl('circle', { r: 11, fill: color, stroke: '#fff', 'stroke-width': 2.5 }, svg);
       makeDraggable(svg, h, p, () => {
         p.x = xOf(vOf(p.x)); p.y = 55;
         draw();
-      }, { minX: X0, maxX: X1, minY: 55, maxY: 55 });
+      }, { minX: X0, maxX: X1, minY: 55, maxY: 55 },
+        { label: plabel, axis: 'x', step: (X1 - X0) / (MAX - MIN), min: MIN, max: MAX, now: () => vOf(p.x) });
       return h;
     };
-    const hA = mkH(pA, '#1e6fa3'), hB = mkH(pB, '#b8860b');
+    const hA = mkH(pA, '#1e6fa3', 'النقطة الأولى على خط الأعداد'), hB = mkH(pB, '#b8860b', 'النقطة الثانية على خط الأعداد');
     function draw() {
       hA.setAttribute('cx', pA.x); hA.setAttribute('cy', pA.y);
       hB.setAttribute('cx', pB.x); hB.setAttribute('cy', pB.y);
