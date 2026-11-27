@@ -1,0 +1,12 @@
+name: data.js JSON gate
+on:
+  push:
+    paths: [data.js]
+  pull_request:
+    paths: [data.js]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node tools/datajs-json-gate.js data.js
