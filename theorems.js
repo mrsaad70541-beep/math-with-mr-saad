@@ -221,7 +221,7 @@ window.THEO = (function () {
       const dg = ang(A, O, D), h1 = ang(P.B, A, C), h2 = ang(C, A, D);
       return { rows: [['أب = ب ج = ج د = د أ', r, 0, 1], ['الزاوية بين القطرين', dg, 1], ['∠ب أ ج', h1], ['∠ج أ د', h2]], eq: [[dg, 90], [h1, h2], [dist(P.B, C), dist(C, D)]], C, D, O };
     },
-    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ', -18, 16); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); },
+    draw(P, d, r) { d.poly([{ x: 90, y: 230 }, P.B, r.C, r.D]); d.seg({ x: 90, y: 230 }, r.C, 2); d.seg(P.B, r.D, 2); d.rightMark(r.O, r.C, r.D); d.label({ x: 90, y: 230 }, 'أ', -14, 18); d.label(r.C, 'ج'); d.label(r.D, 'د'); const A0 = { x: 90, y: 230 }; d.tick(A0, P.B, 1); d.tick(P.B, r.C, 1); d.tick(r.C, r.D, 1); d.tick(r.D, A0, 1); },
     concl: 'الزاوية بين القطرين كانت ٩٠° دائمًا، وقطر المعين نصّف الزاوية عند الرأس.',
     proof: 'البرهان: المثلثان أبج وأدج متطابقان (ثلاثة أضلاع)، فالقطر ينصف الزاوية؛ ومن مثلث متساوي الساقين يكون المنصّف عموديًا على القاعدة.'
   });
@@ -476,6 +476,10 @@ window.THEO = (function () {
       const ext = (p, v) => [add(p, mul({ x: v.x, y: -v.y }, -400 / Math.hypot(v.x, v.y))), add(p, mul({ x: v.x, y: -v.y }, 400 / Math.hypot(v.x, v.y)))];
       const v1 = { x: P.Q.x - P.P.x, y: -(P.Q.y - P.P.y) }, a = ext(P.P, v1), O2 = { x: 120, y: 90 }, b = ext(O2, r.v2);
       d.clipLine(a[0], a[1]); d.clipLine(b[0], b[1], 1); d.dot(O2, 1);
+      const mp = mid(P.P, P.Q), n1 = Math.hypot(v1.x, v1.y), pp1 = { x: -v1.y / n1 * 15, y: v1.x / n1 * 15 };
+      d.txt({ x: mp.x + pp1.x, y: mp.y + pp1.y }, 'الأول');
+      const n2 = Math.hypot(r.v2.x, r.v2.y), pp2 = { x: -r.v2.y / n2 * 15, y: r.v2.x / n2 * 15 };
+      d.txt({ x: O2.x + pp2.x, y: O2.y + pp2.y }, 'الثاني', '#b8860b');
       d.tag(r.mode ? 'الوضع الحالي: متعامدان (المستقيم الذهبي عمودي على مستقيم المقبضين)' : 'الوضع الحالي: متوازيان (المستقيم الذهبي يوازي مستقيم المقبضين)', true);
     },
     concl: 'في وضع التوازي تساوى الميلان، وفي وضع التعامد كان حاصل الضرب −١ دائمًا.',
@@ -563,7 +567,8 @@ window.THEO = (function () {
         e.textContent = txt || toAr(ang(a, v, b), 0) + '°';
       },
       grid() { for (let i = -8; i <= 8; i++) { el('line', { x1: 170 + 20 * i, y1: 10, x2: 170 + 20 * i, y2: 290, stroke: i ? '#d9dee6' : 'currentColor', 'stroke-width': i ? 0.8 : 1.6 }); el('line', { x1: 10, y1: 150 + 20 * i, x2: 330, y2: 150 + 20 * i, stroke: i ? '#d9dee6' : 'currentColor', 'stroke-width': i ? 0.8 : 1.6 }); } },
-      dots(mm, nn) { for (let i = 0; i < nn; i++) { el('rect', { x: 20, y: 20 + i * 62, width: 300, height: 52, rx: 8, fill: 'rgba(30,111,163,.1)', stroke: '#1e6fa3' }); const t = el('text', { x: 170, y: 20 + i * 62 + 20, 'text-anchor': 'middle', 'font-size': 12, fill: 'currentColor', 'font-weight': 700, direction: 'rtl', style: 'unicode-bidi:isolate' }); t.textContent = '(أ'; const sp = document.createElementNS(NS, 'tspan'); sp.setAttribute('dy', '-5'); sp.setAttribute('font-size', '9'); sp.textContent = toAr(mm, 0); t.appendChild(sp); const sp2 = document.createElementNS(NS, 'tspan'); sp2.setAttribute('dy', '5'); sp2.textContent = ')'; t.appendChild(sp2); for (let j = 0; j < mm; j++) el('circle', { cx: 170 - (mm - 1) * 16 + j * 32, cy: 20 + i * 62 + 36, r: 9, fill: '#b8860b' }); } }
+      dots(mm, nn) { for (let i = 0; i < nn; i++) { el('rect', { x: 20, y: 20 + i * 62, width: 300, height: 52, rx: 8, fill: 'rgba(30,111,163,.1)', stroke: '#1e6fa3' }); const t = el('text', { x: 170, y: 20 + i * 62 + 20, 'text-anchor': 'middle', 'font-size': 12, fill: 'currentColor', 'font-weight': 700, direction: 'rtl', style: 'unicode-bidi:isolate' }); t.textContent = '(أ'; const sp = document.createElementNS(NS, 'tspan'); sp.setAttribute('dy', '-5'); sp.setAttribute('font-size', '9'); sp.textContent = toAr(mm, 0); t.appendChild(sp); const sp2 = document.createElementNS(NS, 'tspan'); sp2.setAttribute('dy', '5'); sp2.textContent = ')'; t.appendChild(sp2); for (let j = 0; j < mm; j++) el('circle', { cx: 170 - (mm - 1) * 16 + j * 32, cy: 20 + i * 62 + 36, r: 9, fill: '#b8860b' }); }
+      const cap = el('text', { x: 170, y: 20 + nn * 62 + 14, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: 'currentColor' }); cap.textContent = 'كل نقطة = عامل من الأساس أ؛ عدد العوامل الكلي = م × ن'; }
     };
     const out = document.getElementById('thRows'), status = document.getElementById('thStatus');
     function drawProof(R) { gPr.innerHTML = ''; const st = m.steps && m.steps[stepIdx]; if (st && typeof st.draw === 'function') { tgt = gPr; try { st.draw(P, d, R); } catch (e) {} tgt = gDyn; } }
