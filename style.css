@@ -300,16 +300,16 @@ a.card:active { transform: scale(.99); }
 }
 .quiz .qhead, .qhead { font-size: 11px; color: var(--mut); font-weight: 700; }
 .quiz .qtext, .qtext { font-size: 17px; font-weight: 800; color: var(--ink); margin: 8px 0 4px; }
-.quiz .opts button {
+.quiz .opts button, .bkx .opts button {
   display: block; width: 100%; text-align: right;
   padding: 12px 14px; margin-top: 9px;
   border-radius: var(--r-sm); border: 1.5px solid var(--line); background: var(--card);
   font-family: inherit; font-size: 14.5px; font-weight: 700; color: var(--ink);
   cursor: pointer;
 }
-.quiz .opts button.ok { border-color: var(--ok); background: var(--ok-tint); color: var(--ok-ink); }
-.quiz .opts button.no { border-color: var(--bad); background: var(--bad-tint); color: var(--bad-ink); }
-.quiz .opts button:disabled { cursor: default; }
+.quiz .opts button.ok, .bkx .opts button.ok { border-color: var(--ok); background: var(--ok-tint); color: var(--ok-ink); }
+.quiz .opts button.no, .bkx .opts button.no { border-color: var(--bad); background: var(--bad-tint); color: var(--bad-ink); }
+.quiz .opts button:disabled, .bkx .opts button:disabled { cursor: default; }
 .explain {
   margin-top: 12px; border-radius: var(--r-sm); padding: 12px 14px;
   font-size: 13px; line-height: 1.9;
@@ -653,7 +653,8 @@ body.th-teach .th-eng{display:none}
 /* book engine: editions, PDF pages, question links, in-book exercises */
 .bkeds{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0;font-size:13.5px}
 .bkpdf{padding:6px}
-.bkpdfobj{display:block;width:100%;height:72vh;border:0;border-radius:8px;background:#fff}
+.bkpdflink{display:flex;flex-direction:column;gap:10px;align-items:flex-start;padding:22px 16px;background:#fff;border-radius:8px}
+.bkpdflink .note{margin:0}
 .bkq .bkqr{border-top:1px solid var(--line,#e5e5e5)}
 .bkq .bkqr:first-of-type{border-top:0}
 .bkqt{display:block;width:100%;text-align:start;background:none;border:0;padding:8px 4px;font:inherit;font-weight:700;cursor:pointer;color:inherit}
