@@ -618,7 +618,7 @@ function watch(gid, li, vi) {
   setTimeout(() => vpInit(v.yt, nu, next && next.n), 0);
   return `<a class="back" href="${lHash(g, li)}">‹ ${esc(l.title)}</a>
   <div class="section-title">${esc(v.n)}</div>
-  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
+  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}?enablejsapi=1&cc_load_policy=1&origin=${encodeURIComponent(location.origin)}${vpStart(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
@@ -1077,7 +1077,7 @@ function challengeHtml(c, done, picked) {
       <div class="ot">${esc(c.exT)}</div>
       <span class="eqline">${mruns(c.exE)}</span>
     </div>
-    ${c.sv ? `<div class="qcard"><div class="qhead">فيديو الحل</div><div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${esc(c.sv)}" title="فيديو الحل" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div></div>` : ''}
+    ${c.sv ? `<div class="qcard"><div class="qhead">فيديو الحل</div><div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${esc(c.sv)}?cc_load_policy=1" title="فيديو الحل" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div></div>` : ''}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn2" onclick="location.hash='${chHash(c)}'">محاولة تانية</button>
       <button class="btn2 ghost" onclick="shareLink(this.dataset.t, this.dataset.u, this.dataset.x)" data-t="تحدي — رياضيات مع مستر سعد" data-u="${esc(c.cid ? WSHARE + c.cid : '#/challenge/' + c.id)}" data-x="حل تحدي في تطبيق رياضيات مع مستر سعد">شارك السؤال</button>
@@ -1275,7 +1275,7 @@ function watchSample(yt) {
   setLast(u, v.n);
   return `<a class="back" href="#/t/leh">‹ ليه؟</a>
   <div class="section-title">${esc(v.n)}</div>
-  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
+  <div class="playerwrap" data-yt="1">${navigator.onLine === false ? voffHtml() : `<iframe src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}?cc_load_policy=1" title="${esc(v.n)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}</div>
   <div class="actionrow">
     ${saveBtn(u, v.n)}
     ${shareBtn(v.n, u)}
