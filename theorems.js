@@ -17,7 +17,8 @@ window.THEO = (function () {
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const rtx = (x) => x.charAt(0) === '√' ? '<span class="rt"><b class="rg">√</b><span class="rr">' + x.slice(1) + '</span></span>' : x;
-  const mxh = (t) => esc(t).replace(/(?<![أ-ي])(−?[أ-ي][٠-٩]?)\/([أ-ي][٠-٩]?)(?![أ-ي])/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/(√?[٠-٩0-9]+)\/(√?[٠-٩0-9]+)/g, (m0, n, dn) => '<span class="fr"><span class="fn">' + rtx(n) + '</span><span class="fd">' + rtx(dn) + '</span></span>').replace(/√([٠-٩0-9]+)/g, '<span class="rt"><b class="rg">√</b><span class="rr">$1</span></span>').replace(/\^\(([^)]*)\)/g, '<sup>$1</sup>').replace(/\^([٠-٩0-9]+|[أ-ي])/g, '<sup>$1</sup>');
+  const mxh0 = (t) => esc(t).replace(/(?<![أ-ي])(−?[أ-ي][٠-٩]?)\/([أ-ي][٠-٩]?)(?![أ-ي])/g, '<span class="fr"><span class="fn">$1</span><span class="fd">$2</span></span>').replace(/(√?[٠-٩0-9]+)\/(√?[٠-٩0-9]+)/g, (m0, n, dn) => '<span class="fr"><span class="fn">' + rtx(n) + '</span><span class="fd">' + rtx(dn) + '</span></span>').replace(/√([٠-٩0-9]+)/g, '<span class="rt"><b class="rg">√</b><span class="rr">$1</span></span>').replace(/\^\(([^)]*)\)/g, '<sup>$1</sup>').replace(/\^([٠-٩0-9]+|[أ-ي])/g, '<sup>$1</sup>');
+  const mxh = (t) => (window.MATHX ? window.MATHX.render(mxh0(t)) : mxh0(t));
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
   const add = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
