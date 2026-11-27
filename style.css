@@ -417,7 +417,9 @@ a.card:active { transform: scale(.99); }
 .live-row.dim,.dim{color:var(--mut)}
 .labtools{display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px}
 .btn2.sm{padding:6px 12px;font-size:12px}
-.labsvg{background:var(--bg);border-radius:var(--r-sm);padding:6px}
+.labsvg{background:var(--bg);border-radius:var(--r-sm);padding:6px;overflow:auto}
+.labzoom{display:inline-flex;align-items:center;gap:6px}
+.labzoom b{font-size:12px;min-width:38px;text-align:center}
 .labsvgel{display:block;max-height:300px}
 .labtxt{font-size:13px;font-weight:700;fill:var(--navy-ink)}
 .labtxt.ctr{text-anchor:middle}
