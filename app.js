@@ -110,6 +110,7 @@ function addMistake(m) {
 
 /* ===== share (real links) ===== */
 const WSHARE = 'https://secureadmin.mrsaad70541.workers.dev/s/c/';
+const CH_TZ = 'Asia/Riyadh';
 function seoUrl(u) {
   const ml = /^#\/g\/(g[123])\/l\/0$/.exec(u);
   if (ml && typeof DATA === 'undefined') return null;
@@ -943,7 +944,6 @@ function diagAnswer(oi) {
 window.diagAnswer = diagAnswer;
 
 /* ===== daily challenge ===== */
-const CH_TZ = 'Asia/Riyadh';
 function todayIso() { return new Intl.DateTimeFormat('en-CA', { timeZone: CH_TZ }).format(new Date()); }
 function chIsToday(c) { return c.iso === todayIso(); }
 function chAvail() { const t = todayIso(); return CHALLENGES.filter((c) => c.iso <= t); }
