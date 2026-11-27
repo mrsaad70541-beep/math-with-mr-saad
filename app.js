@@ -123,8 +123,9 @@ function findLesson(g, seg) {
   if (i >= 0) return i;
   if (/^\d+$/.test(seg)) {
     const lid = (LEGACY_L[g.id] || [])[+seg];
-    if (lid) { i = g.lessons.findIndex((l) => l.lid === lid); if (i >= 0) return i; }
-    i = +seg; return (i >= 0 && i < g.lessons.length) ? i : -1;
+    if (lid) return g.lessons.findIndex((l) => l.lid === lid); // legacy alias: resolve its entity or fail, never a shifted occupant
+    i = +seg; const occ = g.lessons[i]; // no alias (post-migration index): positional only for id-less content
+    return (occ && !occ.lid) ? i : -1;
   }
   return -1;
 }
@@ -134,8 +135,9 @@ function findVideo(l, seg) {
   if (i >= 0) return i;
   if (/^\d+$/.test(seg)) {
     const vid = (LEGACY_V[l.lid] || [])[+seg];
-    if (vid) { i = l.videos.findIndex((v) => v.vid === vid); if (i >= 0) return i; }
-    i = +seg; return (i >= 0 && i < l.videos.length) ? i : -1;
+    if (vid) return l.videos.findIndex((v) => v.vid === vid); // legacy alias: resolve its entity or fail, never a shifted occupant
+    i = +seg; const occ = l.videos[i]; // no alias (post-migration index): positional only for id-less content
+    return (occ && !occ.vid) ? i : -1;
   }
   return -1;
 }
