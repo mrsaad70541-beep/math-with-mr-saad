@@ -666,3 +666,6 @@ body.th-teach .th-eng{display:none}
 .bkx .bkxq{border-top:1px solid var(--line,#e5e5e5);padding:8px 0}
 .bkx .bkxq:first-of-type{border-top:0}
 .bkxqt{font-weight:700;margin-bottom:6px;line-height:1.9}
+.bkq .bkqr.hl{outline:2px solid var(--gold,#d9a520);outline-offset:-2px;border-radius:8px}
+
+.bkqsh{display:inline-block;background:none;border:0;padding:0 4px 8px;font:inherit;font-size:.85em;color:var(--brand,#1b3a6b);text-decoration:underline;cursor:pointer}

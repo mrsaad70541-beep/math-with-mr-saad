@@ -1260,7 +1260,7 @@ function bookHtml() {
     ${pg.cid && !pg.ft ? '' : `<div class="f eqwrap">${pg.f}</div>`}
     ${pg.cid && !pg.ex ? '' : `<div class="ex"><span class="exlabel">مثال</span><span class="eqline">${pg.ex}</span></div>`}
   </div>`}
-  ${pg.qs && pg.qs.length ? `<div class="qcard bkq"><div class="qhead">أسئلة الصفحة وحلولها</div>${pg.qs.map((q) => `<div class="bkqr"><button type="button" class="bkqt" onclick="this.parentNode.classList.toggle('open')">سؤال ${q.n}</button><div class="bkqb">${q.s ? `<div class="bkqs">${q.s}</div>` : ''}${q.sp ? `<a class="btn2 sm ghost" href="${bkUrl(q.sp)}">الحل في صفحة ${q.sp}</a>` : ''}${q.v ? `<button type="button" class="btn2 sm ghost" onclick="bkQv(this)">فيديو الشرح</button><div class="playerwrap bkqv" data-v="${q.v}" hidden></div>` : ''}</div></div>`).join('')}</div>` : ''}
+  ${pg.qs && pg.qs.length ? `<div class="qcard bkq"><div class="qhead">أسئلة الصفحة وحلولها</div>${pg.qs.map((q) => `<div class="bkqr" data-n="${q.n}" data-k="${bkQk(pg, q)}"><button type="button" class="bkqt" onclick="this.parentNode.classList.toggle('open')">سؤال ${q.n}</button><button type="button" class="bkqsh" onclick="bkQs(this)" aria-label="مشاركة رابط السؤال ${q.n}">مشاركة رابط السؤال</button><div class="bkqb">${q.s ? `<div class="bkqs">${q.s}</div>` : ''}${q.sp ? `<a class="btn2 sm ghost" href="${bkUrl(q.sp)}">الحل في صفحة ${q.sp}</a>` : ''}${q.v ? `<button type="button" class="btn2 sm ghost" onclick="bkQv(this)">فيديو الشرح</button><div class="playerwrap bkqv" data-v="${q.v}" hidden></div>` : ''}</div></div>`).join('')}</div>` : ''}
   ${pg.xr && pg.xr.length ? `<div class="qcard bkx"><div class="qhead">تدريب تفاعلي</div>${pg.xr.map((x, xi) => bkXrQ(x, xi)).join('')}</div>` : ''}
   <div class="booknav">
     <button onclick="bookGo(-1)" ${bp === 0 ? 'disabled' : ''}>‹ السابق</button>
@@ -1310,6 +1310,41 @@ window.bookBm = bookBm;
 function bookNote(v) { const n = bkGetE('notes', {}); if (v.trim()) n[bp + 1] = v; else delete n[bp + 1]; bkSetE('notes', n); }
 window.bookNote = bookNote;
 window.bookGo = bookGo;
+/* Question deep link: #/book/N?q=<question number> or #/bk/<id>[/<ed>]/N?q=<n>. Question number is the book's own number (unchanged).
+   The link highlights the question row only; the solution stays collapsed, and the shared text never contains the solution. */
+let BKQ = '', BKK = '';
+/* Anchor check token (not security or access control): a local 64-bit (two fixed-width 32-bit halves) mix digest of existing public
+   page identity and page-facing fields: item id, edition, PDF url, page title/text/formula/example, plus printed question number, sp and v.
+   The solution text is NOT an input, so the link carries nothing derived from the answer. Replacing the page source or editing the page text
+   changes the token; a solution-only edit keeps the anchor valid (it is still the same question). It cannot prove identity of content we do not store. */
+function bkQk(pg, q) {
+  const str = [pg.cid || '', pg.ed || '', pg.pdf || '', pg.t || '', pg.p || '', pg.ft || '', pg.ex || '', q.n, q.sp || 0, q.v || ''].join('\u0001');
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  const hx = (x) => ('00000000' + (x >>> 0).toString(16)).slice(-8);
+  return hx(h1) + hx(h2);
+}
+function bkQs(b) {
+  const r = b.closest('.bkqr'); if (!r) return;
+  const n = r.getAttribute('data-n') || '';
+  shareLink('سؤال ' + n, bkUrl(bp + 1) + '?q=' + encodeURIComponent(n) + '&k=' + encodeURIComponent(r.getAttribute('data-k') || ''), 'سؤال ' + n + ' — صفحة ' + (bp + 1));
+}
+function bkQfocus() {
+  const n = BKQ, k = BKK; BKQ = ''; BKK = ''; if (!n) return;
+  const m = k ? Array.prototype.filter.call(document.querySelectorAll('.bkq .bkqr'), (x) => x.getAttribute('data-n') === n && x.getAttribute('data-k') === k) : [];
+  if (m.length === 1) {
+    m[0].classList.add('hl');
+    try { m[0].scrollIntoView({ block: 'center' }); } catch (e) { /* older browsers */ }
+    return;
+  }
+  /* no token (older link), changed, removed, reused or duplicated number: never highlight a replacement */
+  const card = document.querySelector('.bkq') || document.querySelector('.bookpg'); if (!card) return;
+  const d = document.createElement('div'); d.className = 'note bkqnote'; d.setAttribute('role', 'status');
+  d.textContent = 'السؤال المشار إليه تغيّر أو لم يعد متاحًا في هذه الصفحة.';
+  card.parentNode.insertBefore(d, card);
+}
 function bkQv(b) {
   const w = b.parentNode.querySelector('.bkqv');
   if (!w) return;
@@ -1488,7 +1523,16 @@ function filesCat(id) {
   return h;
 }
 function route() {
-  const p = location.hash.replace(/^#\//, '').split('/').filter(Boolean);
+  BKQ = ''; BKK = '';
+  let hh = location.hash;
+  if (/^#\/(book|bk)\//.test(hh)) {
+    const qi = hh.indexOf('?q=');
+    if (qi >= 0) {
+      try { const parts = hh.slice(qi + 1).split('&'); parts.forEach((x) => { if (x.indexOf('q=') === 0) BKQ = decodeURIComponent(x.slice(2)).slice(0, 20); else if (x.indexOf('k=') === 0) BKK = decodeURIComponent(x.slice(2)).slice(0, 16); }); } catch (e) { BKQ = ''; BKK = ''; }
+      hh = hh.slice(0, qi);
+    }
+  }
+  const p = hh.replace(/^#\//, '').split('/').filter(Boolean);
   let html;
   if (p[0] === 'c' && p[1]) {
     let fg = null, fi = -1;
@@ -1530,6 +1574,7 @@ function route() {
   else if (p[0] === 'account') html = account();
   else html = home();
   app.innerHTML = html;
+  if (BKQ) bkQfocus();
   document.body.classList.toggle('sub', p.length > 0);
   const q = document.getElementById('q');
   const sr = document.getElementById('sres');
