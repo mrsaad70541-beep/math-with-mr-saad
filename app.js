@@ -1211,6 +1211,17 @@ function curPages() {
   });
   return out;
 }
+// In-app PDF reader entry. Version id = stable hash(edition + '|' + pdf url), IDENTICAL to stableVid in reader/pdfview.js:
+// adding/reordering/removing other editions never changes it, so saved notes and shared links keep their PDF.
+function readerVid(ed, url) {
+  const s = String(ed) + '|' + String(url); let h1 = 0x811c9dc5, h2 = 5381;
+  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 ^= c; h1 = Math.imul(h1, 16777619); h2 = (Math.imul(h2, 33) ^ c) | 0; }
+  return 'e' + (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36);
+}
+function readerHref(pg) {
+  if (!(pg.pno > 0) || !pg.pdf) return ''; // curPages() expansion drops ed: the active edition is bkEd()
+  return 'reader/pdfview.html#book=' + (CURBK || 'main') + '&v=' + readerVid(CURBK ? bkEd() : (pg.ed || ''), pg.pdf) + '&page=' + pg.pno;
+}
 function bkUrl(n, ed) {
   if (!CURBK) return '#/book/' + n;
   const eds = bkEds();
@@ -1241,7 +1252,7 @@ function bookHtml() {
   <div class="bkzoom"><span>تكبير الصفحة</span><button type="button" onclick="bookZ(-0.1)" aria-label="تصغير">−</button><b>${Math.round(bkZ() * 100)}٪</b><button type="button" onclick="bookZ(0.1)" aria-label="تكبير">+</button><span class="bkprog">تقدّم القراءة: ${Math.min(curPages().length, Math.max(bkGetE("maxp", 0), bp + 1))} من ${curPages().length} صفحات</span></div>
   ${pg.pdf ? `<div class="bookpg bkpdf">
     <div class="ptag">صفحة ${bp + 1} من ${curPages().length} — ملف PDF أصلي</div>
-    <div class="bkpdflink"><div class="note">ملف PDF أصلي — صفحة ${pg.pno} من ${pg.pcnt || 1}. يُفتح الملف في تبويب جديد.</div><a class="btn2" href="${pg.pdf}#page=${pg.pno}" target="_blank" rel="noopener">افتح صفحة PDF ${pg.pno} في تبويب جديد</a></div>
+    <div class="bkpdflink"><div class="note">ملف PDF أصلي — صفحة ${pg.pno} من ${pg.pcnt || 1}.</div>${readerHref(pg) ? `<a class="btn2" id="bkReader" href="${readerHref(pg)}">اقرأ في القارئ (بحث وإشارات وملاحظات)</a> ` : ''}<a class="btn2 ghost" href="${pg.pdf}#page=${pg.pno}" target="_blank" rel="noopener">افتح صفحة PDF ${pg.pno} في تبويب جديد</a></div>
   </div>` : `<div class="bookpg" style="zoom:${bkZ()}">
     <div class="ptag">${pg.cid ? '' : 'وحدة قوى القوى · الصف الثالث الإعدادي · '}صفحة ${bp + 1} من ${curPages().length}</div>
     <h3>${pg.t}</h3>
